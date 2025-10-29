@@ -75,8 +75,21 @@
       .catalog-grid .ticket-card{display:flex;flex-direction:column;width:100%}
       .ticket-card.is-muted{filter:grayscale(1);opacity:.55;transition:filter .2s ease,opacity .2s ease}
       .ticket-card.is-active{box-shadow:0 0 0 .15rem rgba(0,83,164,.35)}
-      @media (max-width:768px){header.site-header{padding:2.25rem 0 1.75rem}.badge-open{width:100%;justify-content:center}}
-      @media (max-width:576px){.catalog-toolbar .row > * + *{margin-top:.5rem}}
+      #modalDetalhes .modal-dialog{max-width:980px}
+      #modalDetalhes .modal-content{border-radius:18px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.18)}
+      #modalDetalhes .modal-header,#modalDetalhes .modal-footer{background:var(--surface);border-color:rgba(0,0,0,.05)}
+      #modalDetalhes .modal-body{padding:2rem}
+      .modal-poster{background:#e9eef7;border-radius:14px;overflow:hidden;box-shadow:0 10px 26px rgba(0,45,98,.14);min-height:360px}
+      .modal-poster img{width:100%;height:100%;object-fit:cover;display:block}
+      @media (max-width:768px){
+        header.site-header{padding:2.25rem 0 1.75rem}
+        .badge-open{width:100%;justify-content:center}
+        #modalDetalhes .modal-body{padding:1.5rem}
+      }
+      @media (max-width:576px){
+        .catalog-toolbar .row > * + *{margin-top:.5rem}
+        #modalDetalhes .modal-body{padding:1.25rem}
+      }
     </style>
   </head>
   <body>
@@ -145,20 +158,20 @@
 
     <!-- MODAL: DETALHES -->
     <div class="modal fade" id="modalDetalhes" tabindex="-1" aria-labelledby="modalTitulo" aria-hidden="true">
-      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title fw-bold" id="modalTitulo">Título da peça</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
           </div>
           <div class="modal-body">
-            <div class="row g-3">
-              <div class="col-12 col-md-5">
-                <div class="ratio ratio-2x3 bg-light">
-                  <img id="modalPoster" src="" alt="Pôster da peça" class="w-100 h-100 poster-img rounded">
+            <div class="row g-4 align-items-stretch">
+              <div class="col-12 col-lg-5 d-flex">
+                <div class="modal-poster w-100 h-100">
+                  <img id="modalPoster" src="" alt="Pôster da peça" class="poster-img">
                 </div>
               </div>
-              <div class="col-12 col-md-7">
+              <div class="col-12 col-lg-7 d-flex flex-column gap-2">
                 <div class="mb-2"><span class="ci" id="modalClass">L</span></div>
                 <p class="small text-uppercase text-muted fw-semibold mb-1">Teatro</p>
                 <p class="fw-semibold" id="modalTeatro">—</p>
