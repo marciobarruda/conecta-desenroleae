@@ -73,6 +73,9 @@
       .btn-fav[aria-pressed="true"]{border-color:#ffc107!important}
       .catalog-grid .col{display:flex}
       .catalog-grid .ticket-card{display:flex;flex-direction:column;width:100%}
+      .ticket-card.is-muted{filter:grayscale(1);opacity:.55;transition:filter .2s ease,opacity .2s ease}
+      .ticket-card.is-muted .btn-ticket{pointer-events:none}
+      .btn-ticket[aria-pressed="true"]{box-shadow:0 0 0 .15rem rgba(13,110,253,.25)}
       @media (max-width:768px){header.site-header{padding:2.25rem 0 1.75rem}.badge-open{width:100%;justify-content:center}}
       @media (max-width:576px){.catalog-toolbar .row > * + *{margin-top:.5rem}}
     </style>
@@ -169,7 +172,7 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button id="modalFavBtn" type="button" class="btn btn-outline-warning">Favoritar</button>
+            <button id="modalTicketBtn" type="button" class="btn btn-outline-primary" aria-pressed="false">🎟️ Pegar ingresso</button>
             <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Fechar</button>
           </div>
         </div>
@@ -208,7 +211,7 @@
           sinopse:"Uma viagem poética pelas ruas do Recife, onde memórias se cruzam com o cotidiano e cada esquina revela afetos e segredos que insistem em permanecer vivos.",
           poster:"https://deliriumnerd.com/wp-content/uploads/2019/08/aurora-nas-sombras-darkside-destacada-1024x538.jpg" },
         { id:"maresia", nome:"Maresia", classificacao:"Livre", genero:"Teatro-dança", teatro:"Teatro Apolo",
-          quando:"13 outubro, 19h", mapUrl:"#",
+          quando:"12 outubro, 19h", mapUrl:"#",
           sinopse:"Entre calmarias e tempestades, uma família ribeirinha enfrenta mudanças climáticas e afetivas, assinando pactos silenciosos com o vento e a maré.",
           poster:"https://www.papocult.com.br/wp-content/uploads/2023/08/Cia-Acaso-Maresia-divulgacao.jpg" },
         { id:"o-auto-do-frevo", nome:"O Auto do Frevo", classificacao:"10+", genero:"Musical", teatro:"Paço do Frevo",
@@ -258,13 +261,20 @@
       const modal = new bootstrap.Modal($("#modalDetalhes"));
       const mTitle=$("#modalTitulo"), mPoster=$("#modalPoster"), mClass=$("#modalClass"),
             mTeatro=$("#modalTeatro"), mQuando=$("#modalQuando"), mGenero=$("#modalGenero"),
-            mSinopse=$("#modalSinopse"), mFavBtn=$("#modalFavBtn");
+            mSinopse=$("#modalSinopse"), mTicketBtn=$("#modalTicketBtn");
 
       const getFavs=()=>{try{return JSON.parse(localStorage.getItem(KEY_FAV)||"[]")}catch{return []}};
       const setFavs=(a)=>localStorage.setItem(KEY_FAV,JSON.stringify(a));
       const isFav=(id)=>getFavs().includes(id);
       const updateFavCount=()=>{elFavCount.textContent=getFavs().length};
       const unique=(arr)=>[...new Set(arr)].sort((a,b)=>a.localeCompare(b,"pt-BR"));
+      const DATE_KEY_EMPTY="__sem_data__";
+      const selectedTickets={};
+      const normalizeDate=(date)=>{
+        if(!date) return DATE_KEY_EMPTY;
+        const [day] = String(date).split(',');
+        return day.trim().toLowerCase() || DATE_KEY_EMPTY;
+      };
 
       // Símbolo de classificação (cores e rótulo)
       function classSymbol(cl){
@@ -328,12 +338,49 @@
         $$("button[data-jump]",elFavList).forEach(b=>b.addEventListener("click",e=>{e.preventDefault();openDetails(b.getAttribute("data-jump"));}));
       }
 
+      function applyTicketSelections(){
+        $$('[data-card-id]').forEach(card=>{
+          const cardId=card.getAttribute('data-card-id');
+          const dateKey=normalizeDate(card.getAttribute('data-date'));
+          const selectedId=selectedTickets[dateKey];
+          const shouldMute=selectedId && selectedId!==cardId;
+          card.classList.toggle('is-muted', !!shouldMute);
+        });
+        $$('button[data-ticket]').forEach(btn=>{
+          const id=btn.getAttribute('data-ticket');
+          const dateKey=normalizeDate(btn.getAttribute('data-date'));
+          const selectedId=selectedTickets[dateKey];
+          const isSelected=selectedId===id;
+          const hasOtherSelected=selectedId && selectedId!==id;
+          btn.classList.toggle('btn-success', isSelected);
+          btn.classList.toggle('btn-outline-primary', !isSelected && !hasOtherSelected);
+          btn.classList.toggle('btn-outline-secondary', !!hasOtherSelected);
+          btn.disabled=!!hasOtherSelected;
+          btn.setAttribute('aria-pressed', isSelected ? 'true':'false');
+          btn.textContent=isSelected?"🎟️ Ingresso selecionado":(hasOtherSelected?"🎟️ Indisponível":"🎟️ Pegar ingresso");
+        });
+        reflectModalTicket();
+      }
+
+      function toggleTicket(id,date){
+        const key=normalizeDate(date);
+        if(selectedTickets[key]===id){
+          delete selectedTickets[key];
+        }else{
+          selectedTickets[key]=id;
+        }
+        applyTicketSelections();
+      }
+
       // ====== Card (estilo ingresso) ======
       function cardTemplate(p){
-        const fav=isFav(p.id);
+        const dateKey=normalizeDate(p.quando);
+        const selectedId=selectedTickets[dateKey];
+        const isSelected=selectedId===p.id;
+        const isMuted=selectedId && selectedId!==p.id;
         return `
           <div class="col">
-            <div class="ticket-card h-100">
+            <div class="ticket-card h-100${isMuted?' is-muted':''}" data-card-id="${p.id}" data-date="${p.quando||''}">
               <div class="ticket-cover ratio ratio-16x9">
                 <img loading="lazy" src="${p.poster}" alt="Pôster da peça ${p.nome}" class="poster-img">
               </div>
@@ -367,8 +414,8 @@
                 </div>
 
                 <div class="d-flex gap-2 mt-3">
-                  <button class="btn ${fav?'btn-warning':'btn-outline-warning'} btn-sm" data-fav="${p.id}" aria-pressed="${fav}">
-                    ${fav ? '★ Favorito' : '☆ Favoritar'}
+                  <button class="btn ${isSelected?'btn-success':'btn-outline-primary'} btn-sm btn-ticket" data-ticket="${p.id}" data-date="${p.quando||''}" aria-pressed="${isSelected}">
+                    ${isSelected ? '🎟️ Ingresso selecionado' : '🎟️ Pegar ingresso'}
                   </button>
                   <button class="btn btn-primary btn-sm" data-details="${p.id}">Abrir detalhes</button>
                 </div>
@@ -381,7 +428,8 @@
         elGrid.innerHTML = list.map(cardTemplate).join("");
         elResultInfo.textContent = `Exibindo ${list.length} de ${pecas.length}`;
         $$("button[data-details]").forEach(b=>b.addEventListener("click",()=>openDetails(b.getAttribute("data-details"))));
-        $$("button[data-fav]").forEach(b=>b.addEventListener("click",()=>toggleFav(b.getAttribute("data-fav"))));
+        $$("button[data-ticket]").forEach(b=>b.addEventListener("click",()=>toggleTicket(b.getAttribute("data-ticket"), b.getAttribute("data-date"))));
+        applyTicketSelections();
       }
 
       // ====== Busca/Filtros ======
@@ -417,20 +465,31 @@
         mQuando.textContent = p.quando || "—";
         mGenero.textContent = p.genero || "—";
         mSinopse.textContent = p.sinopse;
-        mFavBtn.dataset.id = p.id;
-        reflectModalFav(isFav(p.id));
+        mTicketBtn.dataset.id = p.id;
+        mTicketBtn.dataset.date = p.quando || "";
+        reflectModalTicket();
         modal.show();
       }
-      function reflectModalFav(pressed){
-        mFavBtn.classList.toggle("btn-outline-warning", !pressed);
-        mFavBtn.classList.toggle("btn-warning", pressed);
-        mFavBtn.textContent = pressed ? "Remover dos favoritos" : "Favoritar";
-        mFavBtn.setAttribute("aria-pressed", pressed ? "true":"false");
+      function reflectModalTicket(){
+        const id=mTicketBtn.dataset.id;
+        if(!id) return;
+        const date=mTicketBtn.dataset.date;
+        const key=normalizeDate(date);
+        const selectedId=selectedTickets[key];
+        const isSelected=selectedId===id;
+        const isBlocked=selectedId && selectedId!==id;
+        mTicketBtn.classList.toggle("btn-success", isSelected);
+        mTicketBtn.classList.toggle("btn-outline-primary", !isSelected && !isBlocked);
+        mTicketBtn.classList.toggle("btn-outline-secondary", !!isBlocked);
+        mTicketBtn.disabled=!!isBlocked;
+        mTicketBtn.setAttribute("aria-pressed", isSelected ? "true":"false");
+        mTicketBtn.textContent = isSelected ? "🎟️ Ingresso selecionado" : (isBlocked ? "🎟️ Indisponível" : "🎟️ Pegar ingresso");
+        mTicketBtn.title = isBlocked ? "Já existe um ingresso escolhido para esta data." : "";
       }
-      mFavBtn.addEventListener("click",()=>{
-        const id=mFavBtn.dataset.id;
-        const now=toggleFav(id);
-        reflectModalFav(now);
+      mTicketBtn.addEventListener("click",()=>{
+        const id=mTicketBtn.dataset.id;
+        const date=mTicketBtn.dataset.date;
+        toggleTicket(id,date);
       });
 
       // ====== Offcanvas eventos ======
