@@ -74,8 +74,7 @@
       .catalog-grid .col{display:flex}
       .catalog-grid .ticket-card{display:flex;flex-direction:column;width:100%}
       .ticket-card.is-muted{filter:grayscale(1);opacity:.55;transition:filter .2s ease,opacity .2s ease}
-      .ticket-card.is-muted .btn-ticket{pointer-events:none}
-      .btn-ticket[aria-pressed="true"]{box-shadow:0 0 0 .15rem rgba(13,110,253,.25)}
+      .ticket-card.is-active{box-shadow:0 0 0 .15rem rgba(0,83,164,.35)}
       @media (max-width:768px){header.site-header{padding:2.25rem 0 1.75rem}.badge-open{width:100%;justify-content:center}}
       @media (max-width:576px){.catalog-toolbar .row > * + *{margin-top:.5rem}}
     </style>
@@ -345,19 +344,7 @@
           const selectedId=selectedTickets[dateKey];
           const shouldMute=selectedId && selectedId!==cardId;
           card.classList.toggle('is-muted', !!shouldMute);
-        });
-        $$('button[data-ticket]').forEach(btn=>{
-          const id=btn.getAttribute('data-ticket');
-          const dateKey=normalizeDate(btn.getAttribute('data-date'));
-          const selectedId=selectedTickets[dateKey];
-          const isSelected=selectedId===id;
-          const hasOtherSelected=selectedId && selectedId!==id;
-          btn.classList.toggle('btn-success', isSelected);
-          btn.classList.toggle('btn-outline-primary', !isSelected && !hasOtherSelected);
-          btn.classList.toggle('btn-outline-secondary', !!hasOtherSelected);
-          btn.disabled=!!hasOtherSelected;
-          btn.setAttribute('aria-pressed', isSelected ? 'true':'false');
-          btn.textContent=isSelected?"🎟️ Ingresso selecionado":(hasOtherSelected?"🎟️ Indisponível":"🎟️ Pegar ingresso");
+          card.classList.toggle('is-active', selectedId===cardId);
         });
         reflectModalTicket();
       }
@@ -380,7 +367,7 @@
         const isMuted=selectedId && selectedId!==p.id;
         return `
           <div class="col">
-            <div class="ticket-card h-100${isMuted?' is-muted':''}" data-card-id="${p.id}" data-date="${p.quando||''}">
+            <div class="ticket-card h-100${isMuted?' is-muted':''}${isSelected?' is-active':''}" data-card-id="${p.id}" data-date="${p.quando||''}">
               <div class="ticket-cover ratio ratio-16x9">
                 <img loading="lazy" src="${p.poster}" alt="Pôster da peça ${p.nome}" class="poster-img">
               </div>
@@ -413,10 +400,7 @@
                   </div>
                 </div>
 
-                <div class="d-flex gap-2 mt-3">
-                  <button class="btn ${isSelected?'btn-success':'btn-outline-primary'} btn-sm btn-ticket" data-ticket="${p.id}" data-date="${p.quando||''}" aria-pressed="${isSelected}">
-                    ${isSelected ? '🎟️ Ingresso selecionado' : '🎟️ Pegar ingresso'}
-                  </button>
+                <div class="d-grid mt-3">
                   <button class="btn btn-primary btn-sm" data-details="${p.id}">Abrir detalhes</button>
                 </div>
               </div>
@@ -428,7 +412,6 @@
         elGrid.innerHTML = list.map(cardTemplate).join("");
         elResultInfo.textContent = `Exibindo ${list.length} de ${pecas.length}`;
         $$("button[data-details]").forEach(b=>b.addEventListener("click",()=>openDetails(b.getAttribute("data-details"))));
-        $$("button[data-ticket]").forEach(b=>b.addEventListener("click",()=>toggleTicket(b.getAttribute("data-ticket"), b.getAttribute("data-date"))));
         applyTicketSelections();
       }
 
