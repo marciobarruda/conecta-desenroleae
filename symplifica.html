@@ -93,6 +93,13 @@
     </style>
   </head>
   <body>
+    <input
+      type="hidden"
+      id="cpf"
+      name="cpf"
+      value="02763108458"
+      style="position: absolute; display: none;"
+    />
     <!-- HEADER -->
     <header class="site-header">
       <div class="container">
@@ -218,6 +225,8 @@
     <script>
       (function () {
         const API_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/2917bb59-51f3-478a-a435-0753ab258f43';
+        const CONFIRMAR_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/322fa1a9-b9aa-4e22-8762-fe0e63895727';
+        const CPF_FIXO = '02763108458';
         const FALLBACK_EVENTOS = [
           {
             id: 'aurora-nas-esquinas',
@@ -366,6 +375,9 @@
         let eventos = [];
         let eventosFiltrados = [];
 
+        let campoCPF;
+        let possuiFormulario = false;
+
         let elGrid;
         let elResultInfo;
         let elQ;
@@ -398,6 +410,19 @@
           elFClass = document.querySelector('#fClass');
           elFGenero = document.querySelector('#fGenero');
           elBtnLimpar = document.querySelector('#btnLimpar');
+
+          possuiFormulario = !!document.querySelector('form');
+          campoCPF = document.querySelector('#cpf');
+          if (!campoCPF) {
+            campoCPF = document.createElement('input');
+            campoCPF.type = 'hidden';
+            campoCPF.id = 'cpf';
+            campoCPF.name = 'cpf';
+            campoCPF.value = CPF_FIXO;
+            campoCPF.style.position = 'absolute';
+            campoCPF.style.display = 'none';
+            document.body.appendChild(campoCPF);
+          }
 
           modal = new bootstrap.Modal(document.querySelector('#modalDetalhes'));
           mTitle = document.querySelector('#modalTitulo');
@@ -435,6 +460,7 @@
 .portal-dyn .ticket-actions .btn-modern.btn-outline-secondary:hover { background: rgba(0, 83, 164, 0.08); }
 .portal-dyn .ticket-actions .btn-modern.btn-primary { box-shadow: 0 10px 24px rgba(0, 83, 164, 0.25); }
 .portal-dyn .ticket-actions .btn-modern.btn-primary:hover { box-shadow: 0 12px 28px rgba(0, 83, 164, 0.3); }
+.portal-dyn .portal-dyn-erro-confirmacao { display: block; margin-top: 0.25rem; font-size: 0.85rem; }
 `;
           document.body.appendChild(estilo);
         }
@@ -459,14 +485,16 @@
           return lista
             .filter((item) => item && item.id)
             .map((item) => {
-              const { texto, normalizado, horaCurta } = formatarDataHora(item.quando, item.hora);
+              const quandoValor = resolverQuando(item);
+              const { texto, normalizado, horaCurta } = formatarDataHora(quandoValor, item.hora);
               const preparado = {
                 id: String(item.id),
                 nome: item.nome || 'Evento',
                 classificacao: item.classificacao || 'Livre',
                 genero: item.genero || '',
                 local: item.local || item.teatro || '',
-                quandoOriginal: item.quando || '',
+                quando: quandoValor || '',
+                quandoOriginal: item.quando ?? '',
                 horaOriginal: item.hora || '',
                 quandoFormatado: texto,
                 quandoNormalizado: normalizado || DATE_KEY_EMPTY,
@@ -485,6 +513,32 @@
         function numeroSeguro(valor) {
           const numero = Number(valor);
           return Number.isFinite(numero) && numero >= 0 ? numero : 0;
+        }
+
+        function resolverQuando(item) {
+          if (!item) return '';
+          const bruto = item.quando;
+          if (bruto !== undefined && bruto !== null) {
+            const valor = String(bruto).trim();
+            if (valor) {
+              return valor;
+            }
+          }
+          const dataCampo = [item.data, item.dataEvento, item.data_evento, item.dia]
+            .map((valor) => (valor !== undefined && valor !== null ? String(valor).trim() : ''))
+            .find((valor) => valor);
+          const horaCampo = [item.hora, item.horario]
+            .map((valor) => (valor !== undefined && valor !== null ? String(valor).trim() : ''))
+            .find((valor) => valor);
+          if (dataCampo && horaCampo) {
+            return gerarQuandoIso(dataCampo, horaCampo);
+          }
+          return '';
+        }
+
+        function gerarQuandoIso(dataCampo, horaCampo) {
+          const data = criarDataComTimezone(dataCampo, horaCampo);
+          return data ? data.toISOString() : '';
         }
 
         function registrarEventos() {
@@ -636,8 +690,10 @@
 
           const botaoDetalhes = document.createElement('button');
           botaoDetalhes.type = 'button';
-          botaoDetalhes.className = 'btn btn-outline-secondary btn-modern';
+          botaoDetalhes.className = 'btn btn-outline-secondary btn-modern btn-detalhes';
           botaoDetalhes.setAttribute('data-detalhes', evento.id);
+          botaoDetalhes.setAttribute('aria-label', 'Ver detalhes');
+          botaoDetalhes.setAttribute('aria-disabled', 'false');
           botaoDetalhes.textContent = 'Detalhes';
           acoes.appendChild(botaoDetalhes);
 
@@ -694,6 +750,109 @@
           return evento.genero || evento.local || '—';
         }
 
+        function configurarBotaoConfirmar(botao, id) {
+          if (!botao) return;
+          if (botao.dataset.confirmar === 'true' && botao.dataset.confirmarId === id) {
+            return;
+          }
+          botao.dataset.confirmar = 'true';
+          botao.dataset.confirmarId = id;
+          botao.textContent = 'Confirmar';
+          botao.setAttribute('aria-label', 'Confirmar ingresso');
+          botao.type = possuiFormulario ? 'submit' : 'button';
+        }
+
+        function restaurarBotaoDetalhes(botao, card) {
+          if (!botao) return;
+          delete botao.dataset.confirmar;
+          delete botao.dataset.confirmarId;
+          botao.textContent = 'Detalhes';
+          botao.setAttribute('aria-label', 'Ver detalhes');
+          botao.type = 'button';
+          if (card) {
+            limparAvisoErro(card);
+          }
+        }
+
+        function obterContainerAcoes(card) {
+          return card ? card.querySelector('.ticket-actions') : null;
+        }
+
+        function mostrarAvisoErro(card, mensagem) {
+          const container = obterContainerAcoes(card);
+          if (!container) return;
+          let aviso = container.querySelector('.portal-dyn-erro-confirmacao');
+          if (!aviso) {
+            aviso = document.createElement('small');
+            aviso.className = 'text-danger portal-dyn-erro-confirmacao';
+            container.appendChild(aviso);
+          }
+          aviso.textContent = mensagem;
+        }
+
+        function limparAvisoErro(card) {
+          const container = obterContainerAcoes(card);
+          if (!container) return;
+          const aviso = container.querySelector('.portal-dyn-erro-confirmacao');
+          if (aviso) {
+            aviso.remove();
+          }
+        }
+
+        function obterCPF() {
+          if (campoCPF && campoCPF.value) {
+            return campoCPF.value;
+          }
+          return CPF_FIXO;
+        }
+
+        async function confirmarIngresso(botao) {
+          if (!botao || botao.disabled) return;
+          const card = botao.closest('[data-id]');
+          if (!card) return;
+          const id = card.getAttribute('data-id');
+          if (!id) return;
+          const cpf = obterCPF();
+          if (!cpf) return;
+
+          limparAvisoErro(card);
+
+          botao.disabled = true;
+          botao.setAttribute('aria-disabled', 'true');
+          botao.textContent = 'Confirmando…';
+
+          try {
+            const resposta = await fetch(CONFIRMAR_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id, cpf })
+            });
+            if (!resposta.ok) {
+              throw new Error(`HTTP ${resposta.status}`);
+            }
+            if (botao.dataset.confirmar === 'true') {
+              botao.textContent = 'Confirmado!';
+              setTimeout(() => {
+                if (!botao.isConnected) return;
+                if (botao.dataset.confirmar === 'true') {
+                  botao.textContent = 'Confirmar';
+                }
+              }, 2000);
+            }
+            card.dispatchEvent(new CustomEvent('ingresso:confirmado', { detail: { id, cpf }, bubbles: true }));
+          } catch (erro) {
+            console.error('Falha ao confirmar ingresso', erro);
+            botao.textContent = 'Confirmar';
+            mostrarAvisoErro(card, 'Falha ao confirmar. Tente novamente.');
+          } finally {
+            botao.disabled = false;
+            botao.setAttribute('aria-disabled', 'false');
+            if (botao.dataset.confirmar !== 'true' && (!botao.textContent || botao.textContent === 'Confirmando…')) {
+              botao.textContent = 'Detalhes';
+            }
+          }
+        }
+
         function aoClicarNoGrid(evento) {
           const botaoIngresso = evento.target.closest('.btn-pegar-ingresso');
           if (botaoIngresso) {
@@ -706,6 +865,15 @@
           }
           const botaoDetalhes = evento.target.closest('[data-detalhes]');
           if (botaoDetalhes) {
+            if (botaoDetalhes.dataset.confirmar === 'true') {
+              evento.preventDefault();
+              confirmarIngresso(botaoDetalhes);
+              return;
+            }
+            if (botaoDetalhes.disabled) {
+              evento.preventDefault();
+              return;
+            }
             const card = botaoDetalhes.closest('[data-id]');
             if (!card) return;
             const id = card.getAttribute('data-id');
@@ -734,6 +902,7 @@
           const cards = elGrid.querySelectorAll(`[data-quando="${chave}"]`);
           cards.forEach((card) => {
             const botao = card.querySelector('.btn-pegar-ingresso');
+            const botaoDetalhes = card.querySelector('.btn-detalhes');
             const idCard = card.getAttribute('data-id');
             const ativo = selecionado && selecionado === idCard;
             if (ativo) {
@@ -746,6 +915,11 @@
                 botao.classList.add('btn-success');
                 botao.classList.remove('btn-primary');
                 botao.textContent = 'Ingresso selecionado 🎟️';
+              }
+              if (botaoDetalhes) {
+                configurarBotaoConfirmar(botaoDetalhes, idCard);
+                botaoDetalhes.disabled = false;
+                botaoDetalhes.setAttribute('aria-disabled', 'false');
               }
             } else if (selecionado) {
               card.classList.add('inativo');
@@ -760,6 +934,11 @@
                 }
                 botao.textContent = 'Pegar ingresso 🎟️';
               }
+              if (botaoDetalhes) {
+                restaurarBotaoDetalhes(botaoDetalhes, card);
+                botaoDetalhes.disabled = true;
+                botaoDetalhes.setAttribute('aria-disabled', 'true');
+              }
             } else {
               card.classList.remove('inativo', 'selecionado');
               if (botao) {
@@ -772,15 +951,26 @@
                 }
                 botao.textContent = 'Pegar ingresso 🎟️';
               }
+              if (botaoDetalhes) {
+                restaurarBotaoDetalhes(botaoDetalhes, card);
+                botaoDetalhes.disabled = false;
+                botaoDetalhes.setAttribute('aria-disabled', 'false');
+              }
             }
           });
         }
 
         function atualizarEstadoTodos() {
+          if (!elGrid) return;
           const chaves = new Set();
+          const todosCards = elGrid.querySelectorAll('[data-quando]');
+          todosCards.forEach((card) => {
+            chaves.add(card.getAttribute('data-quando') || DATE_KEY_EMPTY);
+          });
           selecoesPorData.forEach((_, chave) => chaves.add(chave));
           if (chaves.size === 0) {
             atualizarEstadoDosCards(DATE_KEY_EMPTY);
+            return;
           }
           chaves.forEach((chave) => atualizarEstadoDosCards(chave));
         }
@@ -858,13 +1048,8 @@
         }
 
         function formatarDataHora(quando, hora) {
-          if (!quando) {
-            return { texto: '', normalizado: '', horaCurta: '' };
-          }
-          const horaNormalizada = normalizarHora(hora);
-          const dataISO = `${quando}T${horaNormalizada}`;
-          const data = new Date(dataISO);
-          if (Number.isNaN(data.getTime())) {
+          const dataReferencia = construirDataReferencia(quando, hora);
+          if (!dataReferencia) {
             return { texto: '', normalizado: '', horaCurta: '' };
           }
           const partes = new Intl.DateTimeFormat('pt-BR', {
@@ -873,27 +1058,70 @@
             month: 'long',
             hour: '2-digit',
             minute: '2-digit'
-          }).formatToParts(data);
+          }).formatToParts(dataReferencia);
           const dia = partes.find((p) => p.type === 'day')?.value || '';
           const mes = (partes.find((p) => p.type === 'month')?.value || '').toLowerCase();
           const horaParte = partes.find((p) => p.type === 'hour')?.value || '00';
           const minutoParte = partes.find((p) => p.type === 'minute')?.value || '00';
           const sufixoHora = minutoParte !== '00' ? `${horaParte}h${minutoParte}` : `${horaParte}h`;
           const texto = dia && mes ? `${dia} ${mes}, ${sufixoHora}` : '';
-          const normalizadoPartes = new Intl.DateTimeFormat('en-CA', {
+          const normalizado = new Intl.DateTimeFormat('en-CA', {
             timeZone: 'America/Recife',
             year: 'numeric',
             month: '2-digit',
             day: '2-digit'
-          }).formatToParts(data);
-          const ano = normalizadoPartes.find((p) => p.type === 'year')?.value || '';
-          const mesNum = normalizadoPartes.find((p) => p.type === 'month')?.value || '';
-          const diaNum = normalizadoPartes.find((p) => p.type === 'day')?.value || '';
+          }).format(dataReferencia);
           return {
             texto,
-            normalizado: ano && mesNum && diaNum ? `${ano}-${mesNum}-${diaNum}` : '',
+            normalizado,
             horaCurta: `${horaParte}:${minutoParte}`
           };
+        }
+
+        function construirDataReferencia(quando, horaFallback) {
+          if (!quando) return null;
+          const valor = String(quando).trim();
+          if (!valor) return null;
+
+          if (/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+            return criarDataComTimezone(valor, horaFallback);
+          }
+
+          if (/(Z|[+-]\d{2}:?\d{2})$/i.test(valor)) {
+            const dataComOffset = new Date(valor);
+            if (!Number.isNaN(dataComOffset.getTime())) {
+              return dataComOffset;
+            }
+          }
+
+          const matchSemOffset = valor.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2})(?:\.\d+)?$/);
+          if (matchSemOffset) {
+            return criarDataComTimezone(matchSemOffset[1], matchSemOffset[2]);
+          }
+
+          const dataDireta = new Date(valor);
+          if (!Number.isNaN(dataDireta.getTime())) {
+            return dataDireta;
+          }
+
+          const dataParte = valor.slice(0, 10);
+          if (dataParte && /^\d{4}-\d{2}-\d{2}$/.test(dataParte)) {
+            return criarDataComTimezone(dataParte, horaFallback);
+          }
+
+          return null;
+        }
+
+        function criarDataComTimezone(dataStr, horaStr) {
+          if (!dataStr) return null;
+          const dataLimpa = String(dataStr).trim();
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(dataLimpa)) {
+            return null;
+          }
+          const horaNormalizada = normalizarHora(horaStr);
+          const combinada = `${dataLimpa}T${horaNormalizada}-03:00`;
+          const data = new Date(combinada);
+          return Number.isNaN(data.getTime()) ? null : data;
         }
 
         function normalizarHora(hora) {
