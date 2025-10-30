@@ -618,9 +618,7 @@
           const blocoInfo = document.createElement('div');
           blocoInfo.className = 'row g-2 mt-2';
           blocoInfo.appendChild(criarMeta('Gênero e local', montarGeneroLocal(evento)));
-          const quandoTexto = evento.quandoFormatado
-            ? `Quando: ${evento.quandoFormatado}`
-            : 'Quando: —';
+          const quandoTexto = evento.quandoFormatado || '—';
           blocoInfo.appendChild(criarMeta('Quando', quandoTexto));
           blocoInfo.appendChild(criarMeta('Ingressos', `Disponíveis: ${evento.disponiveis} / ${evento.disponibilizados}`));
           corpo.appendChild(blocoInfo);
