@@ -216,295 +216,683 @@
     <!-- SCRIPTS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      // ====== Dataset (inclui 'genero') ======
-      const pecas = [
-        { id:"aurora-nas-esquinas", nome:"Aurora nas Esquinas", classificacao:"12+", genero:"Drama", teatro:"Teatro Santa Isabel",
-          quando:"12 outubro, 16h", mapUrl:"#",
-          sinopse:"Uma viagem poética pelas ruas do Recife, onde memórias se cruzam com o cotidiano e cada esquina revela afetos e segredos que insistem em permanecer vivos.",
-          poster:"https://deliriumnerd.com/wp-content/uploads/2019/08/aurora-nas-sombras-darkside-destacada-1024x538.jpg" },
-        { id:"maresia", nome:"Maresia", classificacao:"Livre", genero:"Teatro-dança", teatro:"Teatro Apolo",
-          quando:"12 outubro, 19h", mapUrl:"#",
-          sinopse:"Entre calmarias e tempestades, uma família ribeirinha enfrenta mudanças climáticas e afetivas, assinando pactos silenciosos com o vento e a maré.",
-          poster:"https://www.papocult.com.br/wp-content/uploads/2023/08/Cia-Acaso-Maresia-divulgacao.jpg" },
-        { id:"o-auto-do-frevo", nome:"O Auto do Frevo", classificacao:"10+", genero:"Musical", teatro:"Paço do Frevo",
-          quando:"14 outubro, 18h", mapUrl:"#",
-          sinopse:"Musical festivo que mistura frevo, teatro e narrativa popular para contar a saga de um estandarte que ganha vida e sai em busca da sua orquestra.",
-          poster:"https://midias.diariodepernambuco.com.br/static/app/noticia_127983242361/2016/12/15/680255/20161215172830466281i.jpg" },
-        { id:"paredes-que-falam", nome:"Paredes que Falam", classificacao:"14+", genero:"Experimental", teatro:"Teatro Luiz Mendonça",
-          quando:"15 outubro, 20h", mapUrl:"#",
-          sinopse:"Em um edifício histórico prestes a ruir, moradores compartilham lembranças e disputas, enquanto o passado sussurra pelos azulejos e pelas portas entreabertas.",
-          poster:"https://f.i.uol.com.br/fotografia/2025/04/02/174362328467ed947488792_1743623284_3x2_md.jpg" },
-        { id:"cartas-para-clarice", nome:"Cartas para Clarice", classificacao:"16+", genero:"Drama", teatro:"Teatro Santa Isabel",
-          quando:"16 outubro, 19h", mapUrl:"#",
-          sinopse:"Fragmentos de cartas nunca enviadas se transformam em cena, explorando silêncio, identidade e a força das pequenas escolhas que mudam destinos.",
-          poster:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5LP_4Fc1TXjepIRxOZuSCHMFhY6yKJhRSsg&s" },
-        { id:"cidade-som", nome:"Cidade-Som", classificacao:"Livre", genero:"Instalação cênica", teatro:"Parque Dona Lindu",
-          quando:"17 outubro, 17h", mapUrl:"#",
-          sinopse:"Instalação cênica com música ao vivo em que o público percorre paisagens sonoras e descobre personagens escondidos no ruído da cidade.",
-          poster:"https://www.ceara.gov.br/wp-content/uploads/2024/06/2024-04-12_Orquestra_Juruviara_ThiagoMatine-22-scaled.jpeg" },
-        { id:"o-ultimo-fio", nome:"O Último Fio", classificacao:"18+", genero:"Tragédia", teatro:"Teatro Apolo",
-          quando:"18 outubro, 21h", mapUrl:"#",
-          sinopse:"Dois irmãos costuram lembranças para não esquecer o que o tempo tenta rasgar. Um drama íntimo sobre família, perda e possibilidades de recomeço.",
-          poster:"https://www.garanhunsnoticias.com.br/images/noticias/124568/7c2c527a1ffdc43b66f3be20629667e9.jpeg" },
-        { id:"couraça", nome:"Couraça", classificacao:"14+", genero:"Teatro físico", teatro:"Teatro Luiz Mendonça",
-          quando:"19 outubro, 20h", mapUrl:"#",
-          sinopse:"Corpos que dançam e falas entrecortadas constroem um mosaico sobre proteção e vulnerabilidade em tempos de urgência.",
-          poster:"https://www.estadao.com.br/blogs/blog/wp-content/uploads/sites/265/2015/10/Jaques-e-Seu-Amo-HugoPossolo-Ando-Camargo-Angelo-Brandini-foto-de-Jo%C3%A3o-Caldas-e1444340873610.jpg" },
-        { id:"menina-e-o-vento", nome:"A Menina e o Vento", classificacao:"10+", genero:"Infantil", teatro:"Paço do Frevo",
-          quando:"20 outubro, 16h", mapUrl:"#",
-          sinopse:"A amizade improvável entre uma criança curiosa e um vento brincalhão desafia regras e apresenta uma nova forma de habitar o mundo.",
-          poster:"https://www.sociedadehumboldt.org.br/conteudo/comunicacao/dicas/teatro/1206294/1.jpg" },
-        { id:"rio-subterraneo", nome:"Rio Subterrâneo", classificacao:"12+", genero:"Suspense", teatro:"Parque Dona Lindu",
-          quando:"21 outubro, 18h", mapUrl:"#",
-          sinopse:"Narrativa que revela um Recife oculto sob as águas, onde memórias afundadas retornam para guiar um grupo em busca de pertencimento.",
-          poster:"https://s2-oglobo.glbimg.com/Vg94jDR50UtDXMDM39fXOg8nRU0=/0x0:4928x3280/924x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_da025474c0c44edd99332dddb09cabe8/internal_photos/bs/2023/j/q/UyrFCpTqKuAdvuqyYJYQ/perversa-monica-bittencourt-em-cena-5-credito-da-foto-bruna-diacoyannis-1-.jpeg" }
-      ];
+      (function () {
+        const API_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/2917bb59-51f3-478a-a435-0753ab258f43';
+        const FALLBACK_EVENTOS = [
+          {
+            id: 'aurora-nas-esquinas',
+            nome: 'Aurora nas Esquinas',
+            classificacao: '12+',
+            genero: 'Drama',
+            local: 'Teatro Santa Isabel',
+            quando: '2024-10-12',
+            hora: '16:00:00',
+            poster: 'https://deliriumnerd.com/wp-content/uploads/2019/08/aurora-nas-sombras-darkside-destacada-1024x538.jpg',
+            posterdetalhes: 'https://deliriumnerd.com/wp-content/uploads/2019/08/aurora-nas-sombras-darkside-destacada-1024x538.jpg',
+            sinopse: 'Uma viagem poética pelas ruas do Recife, onde memórias se cruzam com o cotidiano e cada esquina revela afetos e segredos que insistem em permanecer vivos.',
+            disponibilizados: 120,
+            disponiveis: 68
+          },
+          {
+            id: 'maresia',
+            nome: 'Maresia',
+            classificacao: 'Livre',
+            genero: 'Teatro-dança',
+            local: 'Teatro Apolo',
+            quando: '2024-10-12',
+            hora: '19:00:00',
+            poster: 'https://www.papocult.com.br/wp-content/uploads/2023/08/Cia-Acaso-Maresia-divulgacao.jpg',
+            posterdetalhes: 'https://www.papocult.com.br/wp-content/uploads/2023/08/Cia-Acaso-Maresia-divulgacao.jpg',
+            sinopse: 'Entre calmarias e tempestades, uma família ribeirinha enfrenta mudanças climáticas e afetivas, assinando pactos silenciosos com o vento e a maré.',
+            disponibilizados: 90,
+            disponiveis: 41
+          },
+          {
+            id: 'o-auto-do-frevo',
+            nome: 'O Auto do Frevo',
+            classificacao: '10+',
+            genero: 'Musical',
+            local: 'Paço do Frevo',
+            quando: '2024-10-14',
+            hora: '18:00:00',
+            poster: 'https://midias.diariodepernambuco.com.br/static/app/noticia_127983242361/2016/12/15/680255/20161215172830466281i.jpg',
+            posterdetalhes: 'https://midias.diariodepernambuco.com.br/static/app/noticia_127983242361/2016/12/15/680255/20161215172830466281i.jpg',
+            sinopse: 'Musical festivo que mistura frevo, teatro e narrativa popular para contar a saga de um estandarte que ganha vida e sai em busca da sua orquestra.',
+            disponibilizados: 150,
+            disponiveis: 102
+          },
+          {
+            id: 'paredes-que-falam',
+            nome: 'Paredes que Falam',
+            classificacao: '14+',
+            genero: 'Experimental',
+            local: 'Teatro Luiz Mendonça',
+            quando: '2024-10-15',
+            hora: '20:00:00',
+            poster: 'https://f.i.uol.com.br/fotografia/2025/04/02/174362328467ed947488792_1743623284_3x2_md.jpg',
+            posterdetalhes: 'https://f.i.uol.com.br/fotografia/2025/04/02/174362328467ed947488792_1743623284_3x2_md.jpg',
+            sinopse: 'Em um edifício histórico prestes a ruir, moradores compartilham lembranças e disputas, enquanto o passado sussurra pelos azulejos e pelas portas entreabertas.',
+            disponibilizados: 110,
+            disponiveis: 36
+          },
+          {
+            id: 'cartas-para-clarice',
+            nome: 'Cartas para Clarice',
+            classificacao: '16+',
+            genero: 'Drama',
+            local: 'Teatro Santa Isabel',
+            quando: '2024-10-16',
+            hora: '19:00:00',
+            poster: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5LP_4Fc1TXjepIRxOZuSCHMFhY6yKJhRSsg&s',
+            posterdetalhes: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5LP_4Fc1TXjepIRxOZuSCHMFhY6yKJhRSsg&s',
+            sinopse: 'Fragmentos de cartas nunca enviadas se transformam em cena, explorando silêncio, identidade e a força das pequenas escolhas que mudam destinos.',
+            disponibilizados: 95,
+            disponiveis: 27
+          },
+          {
+            id: 'cidade-som',
+            nome: 'Cidade-Som',
+            classificacao: 'Livre',
+            genero: 'Instalação cênica',
+            local: 'Parque Dona Lindu',
+            quando: '2024-10-17',
+            hora: '17:00:00',
+            poster: 'https://www.ceara.gov.br/wp-content/uploads/2024/06/2024-04-12_Orquestra_Juruviara_ThiagoMatine-22-scaled.jpeg',
+            posterdetalhes: 'https://www.ceara.gov.br/wp-content/uploads/2024/06/2024-04-12_Orquestra_Juruviara_ThiagoMatine-22-scaled.jpeg',
+            sinopse: 'Instalação cênica com música ao vivo em que o público percorre paisagens sonoras e descobre personagens escondidos no ruído da cidade.',
+            disponibilizados: 200,
+            disponiveis: 140
+          },
+          {
+            id: 'o-ultimo-fio',
+            nome: 'O Último Fio',
+            classificacao: '18+',
+            genero: 'Tragédia',
+            local: 'Teatro Apolo',
+            quando: '2024-10-18',
+            hora: '21:00:00',
+            poster: 'https://www.garanhunsnoticias.com.br/images/noticias/124568/7c2c527a1ffdc43b66f3be20629667e9.jpeg',
+            posterdetalhes: 'https://www.garanhunsnoticias.com.br/images/noticias/124568/7c2c527a1ffdc43b66f3be20629667e9.jpeg',
+            sinopse: 'Dois irmãos costuram lembranças para não esquecer o que o tempo tenta rasgar. Um drama íntimo sobre família, perda e possibilidades de recomeço.',
+            disponibilizados: 85,
+            disponiveis: 19
+          },
+          {
+            id: 'couraça',
+            nome: 'Couraça',
+            classificacao: '14+',
+            genero: 'Teatro físico',
+            local: 'Teatro Luiz Mendonça',
+            quando: '2024-10-19',
+            hora: '20:00:00',
+            poster: 'https://www.estadao.com.br/blogs/blog/wp-content/uploads/sites/265/2015/10/Jaques-e-Seu-Amo-HugoPossolo-Ando-Camargo-Angelo-Brandini-foto-de-Jo%C3%A3o-Caldas-e1444340873610.jpg',
+            posterdetalhes: 'https://www.estadao.com.br/blogs/blog/wp-content/uploads/sites/265/2015/10/Jaques-e-Seu-Amo-HugoPossolo-Ando-Camargo-Angelo-Brandini-foto-de-Jo%C3%A3o-Caldas-e1444340873610.jpg',
+            sinopse: 'Corpos que dançam e falas entrecortadas constroem um mosaico sobre proteção e vulnerabilidade em tempos de urgência.',
+            disponibilizados: 130,
+            disponiveis: 72
+          },
+          {
+            id: 'menina-e-o-vento',
+            nome: 'A Menina e o Vento',
+            classificacao: '10+',
+            genero: 'Infantil',
+            local: 'Paço do Frevo',
+            quando: '2024-10-20',
+            hora: '16:00:00',
+            poster: 'https://www.sociedadehumboldt.org.br/conteudo/comunicacao/dicas/teatro/1206294/1.jpg',
+            posterdetalhes: 'https://www.sociedadehumboldt.org.br/conteudo/comunicacao/dicas/teatro/1206294/1.jpg',
+            sinopse: 'A amizade improvável entre uma criança curiosa e um vento brincalhão desafia regras e apresenta uma nova forma de habitar o mundo.',
+            disponibilizados: 160,
+            disponiveis: 88
+          },
+          {
+            id: 'rio-subterraneo',
+            nome: 'Rio Subterrâneo',
+            classificacao: '12+',
+            genero: 'Suspense',
+            local: 'Parque Dona Lindu',
+            quando: '2024-10-21',
+            hora: '18:00:00',
+            poster: 'https://s2-oglobo.glbimg.com/Vg94jDR50UtDXMDM39fXOg8nRU0=/0x0:4928x3280/924x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_da025474c0c44edd99332dddb09cabe8/internal_photos/bs/2023/j/q/UyrFCpTqKuAdvuqyYJYQ/perversa-monica-bittencourt-em-cena-5-credito-da-foto-bruna-diacoyannis-1-.jpeg',
+            posterdetalhes: 'https://s2-oglobo.glbimg.com/Vg94jDR50UtDXMDM39fXOg8nRU0=/0x0:4928x3280/924x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_da025474c0c44edd99332dddb09cabe8/internal_photos/bs/2023/j/q/UyrFCpTqKuAdvuqyYJYQ/perversa-monica-bittencourt-em-cena-5-credito-da-foto-bruna-diacoyannis-1-.jpeg',
+            sinopse: 'Narrativa que revela um Recife oculto sob as águas, onde memórias afundadas retornam para guiar um grupo em busca de pertencimento.',
+            disponibilizados: 145,
+            disponiveis: 54
+          }
+        ];
+        const DATE_KEY_EMPTY = '__sem_data__';
+        const selecoesPorData = new Map();
+        const eventosPorId = new Map();
+        let eventos = [];
+        let eventosFiltrados = [];
 
-      // ====== Utilidades / estado ======
-      const $ = (s,el=document)=>el.querySelector(s);
-      const $$ = (s,el=document)=>Array.from(el.querySelectorAll(s));
-      const KEY_FAV="ftr_favs";
+        let elGrid;
+        let elResultInfo;
+        let elQ;
+        let elFLocal;
+        let elFClass;
+        let elFGenero;
+        let elBtnLimpar;
 
-      const elGrid=$("#grid"), elResultInfo=$("#resultInfo"), elQ=$("#q"),
-            elFTeatro=$("#fTeatro"), elFClass=$("#fClass"), elFGenero=$("#fGenero"), elBtnLimpar=$("#btnLimpar"),
-            elFavCount=$("#favCount"), offcanvasFav=$("#offcanvasFav"),
-            elFavList=$("#favList"), elBtnExportFav=$("#btnExportFav"), elBtnClearFav=$("#btnClearFav");
+        let modal;
+        let mTitle;
+        let mPoster;
+        let mClass;
+        let mLocal;
+        let mQuando;
+        let mGenero;
+        let mSinopse;
+        let mTicketBtn;
 
-      const modal = new bootstrap.Modal($("#modalDetalhes"));
-      const mTitle=$("#modalTitulo"), mPoster=$("#modalPoster"), mClass=$("#modalClass"),
-            mTeatro=$("#modalTeatro"), mQuando=$("#modalQuando"), mGenero=$("#modalGenero"),
-            mSinopse=$("#modalSinopse"), mTicketBtn=$("#modalTicketBtn");
-
-      const getFavs=()=>{try{return JSON.parse(localStorage.getItem(KEY_FAV)||"[]")}catch{return []}};
-      const setFavs=(a)=>localStorage.setItem(KEY_FAV,JSON.stringify(a));
-      const isFav=(id)=>getFavs().includes(id);
-      const updateFavCount=()=>{elFavCount.textContent=getFavs().length};
-      const unique=(arr)=>[...new Set(arr)].sort((a,b)=>a.localeCompare(b,"pt-BR"));
-      const DATE_KEY_EMPTY="__sem_data__";
-      const selectedTickets={};
-      const normalizeDate=(date)=>{
-        if(!date) return DATE_KEY_EMPTY;
-        const [day] = String(date).split(',');
-        return day.trim().toLowerCase() || DATE_KEY_EMPTY;
-      };
-
-      // Símbolo de classificação (cores e rótulo)
-      function classSymbol(cl){
-        const map={
-          "Livre":{cls:"l",label:"L"},
-          "10+":{cls:"c10",label:"10"},
-          "12+":{cls:"c12",label:"12"},
-          "14+":{cls:"c14",label:"14"},
-          "16+":{cls:"c16",label:"16"},
-          "18+":{cls:"c18",label:"18"},
-        };
-        const m = map[cl]||map["Livre"];
-        return `<span class="ci ${m.cls}" title="Classificação: ${cl}" aria-label="Classificação ${cl}">${m.label}</span>`;
-      }
-
-      // ====== Filtros ======
-      function renderFilters(){
-        unique(pecas.map(p=>p.teatro)).forEach(t=>{
-          const o=document.createElement("option");o.value=t;o.textContent=t;elFTeatro.appendChild(o);
-        });
-        unique(pecas.map(p=>p.classificacao)).forEach(c=>{
-          const o=document.createElement("option");o.value=c;o.textContent=c;elFClass.appendChild(o);
-        });
-        unique(pecas.map(p=>p.genero)).forEach(g=>{
-          const o=document.createElement("option");o.value=g;o.textContent=g;elFGenero.appendChild(o);
-        });
-      }
-
-      // ====== Favoritos ======
-      function toggleFav(id){
-        const curr=getFavs(); const i=curr.indexOf(id);
-        if(i>=0) curr.splice(i,1); else curr.push(id);
-        setFavs(curr); updateFavCount(); renderFavList();
-        $$(`button[data-fav="${id}"]`).forEach(btn=>{
-          const on=curr.includes(id);
-          btn.setAttribute("aria-pressed", on ? "true":"false");
-          btn.classList.toggle("btn-outline-warning", !on);
-          btn.classList.toggle("btn-warning", on);
-          btn.innerHTML= on ? "★ Favorito" : "☆ Favoritar";
-        });
-        return curr.includes(id);
-      }
-
-      function renderFavList(){
-        const ids=getFavs();
-        if(!ids.length){ elFavList.innerHTML = `<div class="text-center text-muted">Nenhuma peça favoritada ainda.</div>`; return; }
-        elFavList.innerHTML = ids
-          .map(id=>pecas.find(p=>p.id===id)).filter(Boolean)
-          .map(p=>`
-            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-start">
-              <div class="me-3">
-                <div class="fw-semibold">${p.nome}</div>
-                <small>${p.teatro} • ${classSymbol(p.classificacao)} • ${p.genero}</small>
-              </div>
-              <div class="btn-group btn-group-sm">
-                <button class="btn btn-outline-primary" data-jump="${p.id}" data-bs-dismiss="offcanvas">Abrir</button>
-                <button class="btn btn-outline-danger" data-remove="${p.id}">Remover</button>
-              </div>
-            </a>`).join("");
-        $$("button[data-remove]",elFavList).forEach(b=>b.addEventListener("click",e=>{e.preventDefault();toggleFav(b.getAttribute("data-remove"));}));
-        $$("button[data-jump]",elFavList).forEach(b=>b.addEventListener("click",e=>{e.preventDefault();openDetails(b.getAttribute("data-jump"));}));
-      }
-
-      function applyTicketSelections(){
-        $$('[data-card-id]').forEach(card=>{
-          const cardId=card.getAttribute('data-card-id');
-          const dateKey=normalizeDate(card.getAttribute('data-date'));
-          const selectedId=selectedTickets[dateKey];
-          const shouldMute=selectedId && selectedId!==cardId;
-          card.classList.toggle('is-muted', !!shouldMute);
-          card.classList.toggle('is-active', selectedId===cardId);
-        });
-        reflectModalTicket();
-      }
-
-      function toggleTicket(id,date){
-        const key=normalizeDate(date);
-        if(selectedTickets[key]===id){
-          delete selectedTickets[key];
-        }else{
-          selectedTickets[key]=id;
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', init);
+        } else {
+          init();
         }
-        applyTicketSelections();
-      }
 
-      // ====== Card (estilo ingresso) ======
-      function cardTemplate(p){
-        const dateKey=normalizeDate(p.quando);
-        const selectedId=selectedTickets[dateKey];
-        const isSelected=selectedId===p.id;
-        const isMuted=selectedId && selectedId!==p.id;
-        return `
-          <div class="col">
-            <div class="ticket-card h-100${isMuted?' is-muted':''}${isSelected?' is-active':''}" data-card-id="${p.id}" data-date="${p.quando||''}">
-              <div class="ticket-cover ratio ratio-16x9">
-                <img loading="lazy" src="${p.poster}" alt="Pôster da peça ${p.nome}" class="poster-img">
-              </div>
-              <div class="ticket-body">
-                <div class="d-flex align-items-center justify-content-between mb-1">
-                  <h5 class="mb-0 fw-bold text-truncate" title="${p.nome}">${p.nome}</h5>
-                  ${classSymbol(p.classificacao)}
-                </div>
+        async function init() {
+          elGrid = document.querySelector('#grid');
+          elResultInfo = document.querySelector('#resultInfo');
+          elQ = document.querySelector('#q');
+          elFLocal = document.querySelector('#fTeatro');
+          elFClass = document.querySelector('#fClass');
+          elFGenero = document.querySelector('#fGenero');
+          elBtnLimpar = document.querySelector('#btnLimpar');
 
-                <div class="row g-2 mt-2">
-                  <div class="col-12">
-                    <div class="meta-label">Local</div>
-                    <div class="fw-semibold small text-truncate" title="${p.teatro}">${p.teatro}</div>
-                  </div>
+          modal = new bootstrap.Modal(document.querySelector('#modalDetalhes'));
+          mTitle = document.querySelector('#modalTitulo');
+          mPoster = document.querySelector('#modalPoster');
+          mClass = document.querySelector('#modalClass');
+          mLocal = document.querySelector('#modalTeatro');
+          mQuando = document.querySelector('#modalQuando');
+          mGenero = document.querySelector('#modalGenero');
+          mSinopse = document.querySelector('#modalSinopse');
+          mTicketBtn = document.querySelector('#modalTicketBtn');
 
-                  <div class="col-12">
-                    <div class="meta-label">Data</div>
-                    <div class="fw-semibold small">${p.quando||'—'}</div>
-                  </div>
+          document.body.classList.add('portal-dyn');
+          injetarEstilos();
 
-                  <div class="col-12">
-                    <div class="meta-label">Gênero</div>
-                    <div class="fw-semibold small">${p.genero}</div>
-                  </div>
-                </div>
-
-                <div class="d-grid mt-3">
-                  <button class="btn btn-primary btn-sm" data-details="${p.id}">Abrir detalhes</button>
-                </div>
-              </div>
-            </div>
-          </div>`;
-      }
-
-      function renderGrid(list){
-        elGrid.innerHTML = list.map(cardTemplate).join("");
-        elResultInfo.textContent = `Exibindo ${list.length} de ${pecas.length}`;
-        $$("button[data-details]").forEach(b=>b.addEventListener("click",()=>openDetails(b.getAttribute("data-details"))));
-        applyTicketSelections();
-      }
-
-      // ====== Busca/Filtros ======
-      function applyFilters(){
-        const q = elQ.value.trim().toLowerCase();
-        const t = elFTeatro.value;
-        const c = elFClass.value;
-        const g = elFGenero.value;
-
-        const filtered = pecas.filter(p=>{
-          const text = !q || [p.nome,p.teatro,p.sinopse,(p.genero||'')].some(v=>v.toLowerCase().includes(q));
-          const teat = !t || p.teatro===t;
-          const clas = !c || p.classificacao===c;
-          const genr = !g || p.genero===g;
-          return text && teat && clas && genr;
-        });
-        renderGrid(filtered);
-      }
-      function resetFilters(){
-        elQ.value=""; elFTeatro.value=""; elFClass.value=""; elFGenero.value="";
-        renderGrid(pecas);
-      }
-
-      // ====== Detalhes (Modal) ======
-      function openDetails(id){
-        const p = pecas.find(x=>x.id===id); if(!p) return;
-        mTitle.textContent = p.nome;
-        mPoster.src = p.poster; mPoster.alt = `Pôster da peça ${p.nome}`;
-        // símbolo no modal
-        mClass.className = "ci " + ({"Livre":"l","10+":"c10","12+":"c12","14+":"c14","16+":"c16","18+":"c18"}[p.classificacao]||"l");
-        mClass.textContent = ({"Livre":"L","10+":"10","12+":"12","14+":"14","16+":"16","18+":"18"}[p.classificacao]||"L");
-        mTeatro.textContent = p.teatro;
-        mQuando.textContent = p.quando || "—";
-        mGenero.textContent = p.genero || "—";
-        mSinopse.textContent = p.sinopse;
-        mTicketBtn.dataset.id = p.id;
-        mTicketBtn.dataset.date = p.quando || "";
-        reflectModalTicket();
-        modal.show();
-      }
-      function reflectModalTicket(){
-        const id=mTicketBtn.dataset.id;
-        if(!id) return;
-        const date=mTicketBtn.dataset.date;
-        const key=normalizeDate(date);
-        const selectedId=selectedTickets[key];
-        const isSelected=selectedId===id;
-        const isBlocked=selectedId && selectedId!==id;
-        mTicketBtn.classList.toggle("btn-success", isSelected);
-        mTicketBtn.classList.toggle("btn-outline-primary", !isSelected && !isBlocked);
-        mTicketBtn.classList.toggle("btn-outline-secondary", !!isBlocked);
-        mTicketBtn.disabled=!!isBlocked;
-        mTicketBtn.setAttribute("aria-pressed", isSelected ? "true":"false");
-        mTicketBtn.textContent = isSelected ? "🎟️ Ingresso selecionado" : (isBlocked ? "🎟️ Indisponível" : "🎟️ Pegar ingresso");
-        mTicketBtn.title = isBlocked ? "Já existe um ingresso escolhido para esta data." : "";
-      }
-      mTicketBtn.addEventListener("click",()=>{
-        const id=mTicketBtn.dataset.id;
-        const date=mTicketBtn.dataset.date;
-        toggleTicket(id,date);
-      });
-
-      // ====== Offcanvas eventos ======
-      offcanvasFav.addEventListener("show.bs.offcanvas", renderFavList);
-      elBtnExportFav.addEventListener("click",()=>{
-        const ids=getFavs(); if(!ids.length) return alert("Nenhum favorito para exportar.");
-        navigator.clipboard.writeText(ids.join(", ")).then(()=>alert("IDs copiados para a área de transferência."));
-      });
-      elBtnClearFav.addEventListener("click",()=>{
-        if(confirm("Limpar todos os favoritos?")){
-          localStorage.setItem(KEY_FAV,"[]"); updateFavCount(); renderFavList(); renderGrid(pecas);
+          const recebidos = await fetchEventos();
+          const base = recebidos.length ? recebidos : FALLBACK_EVENTOS;
+          eventos = prepararEventos(base);
+          eventosFiltrados = [...eventos];
+          popularFiltros(eventos);
+          renderCards(eventosFiltrados);
+          atualizarResultado();
+          registrarEventos();
         }
-      });
 
-      // ====== Eventos dos filtros ======
-      [elQ, elFTeatro, elFClass, elFGenero].forEach(el=>{
-        el.addEventListener("input", applyFilters);
-        el.addEventListener("change", applyFilters);
-      });
-      elBtnLimpar.addEventListener("click", resetFilters);
+        function injetarEstilos() {
+          const estilo = document.createElement('style');
+          estilo.textContent = `.portal-dyn .inativo { filter: grayscale(100%); opacity: .6; pointer-events: none; }
+.portal-dyn .selecionado { outline: 2px solid currentColor; }`;
+          document.body.appendChild(estilo);
+        }
 
-      // ====== Boot ======
-      (function init(){
-        renderFilters(); updateFavCount(); renderGrid(pecas);
+        async function fetchEventos() {
+          try {
+            const resposta = await fetch(API_URL, { headers: { Accept: 'application/json' } });
+            if (!resposta.ok) {
+              throw new Error(`Erro HTTP ${resposta.status}`);
+            }
+            const dados = await resposta.json();
+            return Array.isArray(dados) ? dados : [];
+          } catch (erro) {
+            console.error('Falha ao buscar eventos', erro);
+            return [];
+          }
+        }
+
+        function prepararEventos(lista) {
+          eventosPorId.clear();
+          selecoesPorData.clear();
+          return lista
+            .filter((item) => item && item.id)
+            .map((item) => {
+              const { texto, normalizado, horaCurta } = formatarDataHora(item.quando, item.hora);
+              const preparado = {
+                id: String(item.id),
+                nome: item.nome || 'Evento',
+                classificacao: item.classificacao || 'Livre',
+                genero: item.genero || '',
+                local: item.local || item.teatro || '',
+                quandoOriginal: item.quando || '',
+                horaOriginal: item.hora || '',
+                quandoFormatado: texto,
+                quandoNormalizado: normalizado || DATE_KEY_EMPTY,
+                horaCurta: horaCurta,
+                poster: item.poster || '',
+                posterdetalhes: item.posterdetalhes || item.poster || '',
+                sinopse: item.sinopse || '',
+                disponibilizados: numeroSeguro(item.disponibilizados),
+                disponiveis: numeroSeguro(item.disponiveis)
+              };
+              eventosPorId.set(preparado.id, preparado);
+              return preparado;
+            });
+        }
+
+        function numeroSeguro(valor) {
+          const numero = Number(valor);
+          return Number.isFinite(numero) && numero >= 0 ? numero : 0;
+        }
+
+        function registrarEventos() {
+          if (elGrid) {
+            elGrid.addEventListener('click', aoClicarNoGrid);
+          }
+          if (elQ) {
+            elQ.addEventListener('input', aplicarFiltros);
+          }
+          [elFLocal, elFClass, elFGenero].forEach((select) => {
+            if (select) {
+              select.addEventListener('change', aplicarFiltros);
+            }
+          });
+          if (elBtnLimpar) {
+            elBtnLimpar.addEventListener('click', (evento) => {
+              evento.preventDefault();
+              limparFiltros();
+            });
+          }
+          if (mTicketBtn) {
+            mTicketBtn.addEventListener('click', () => {
+              const id = mTicketBtn.dataset.id;
+              if (!id) return;
+              const evento = eventosPorId.get(id);
+              if (!evento) return;
+              const chave = evento.quandoNormalizado || DATE_KEY_EMPTY;
+              togglePorData(chave, id);
+            });
+          }
+        }
+
+        function popularFiltros(lista) {
+          preencherSelect(elFLocal, lista.map((e) => e.local).filter(Boolean));
+          preencherSelect(elFClass, lista.map((e) => e.classificacao).filter(Boolean));
+          preencherSelect(elFGenero, lista.map((e) => e.genero).filter(Boolean));
+        }
+
+        function preencherSelect(select, valores) {
+          if (!select) return;
+          while (select.options.length > 1) {
+            select.remove(1);
+          }
+          const unicos = Array.from(new Set(valores));
+          const collator = new Intl.Collator('pt-BR');
+          unicos.sort(collator.compare);
+          unicos.forEach((valor) => {
+            const opcao = document.createElement('option');
+            opcao.value = valor;
+            opcao.textContent = valor;
+            select.appendChild(opcao);
+          });
+        }
+
+        function aplicarFiltros() {
+          const termo = (elQ ? elQ.value : '').trim().toLowerCase();
+          const filtroLocal = elFLocal ? elFLocal.value : '';
+          const filtroClass = elFClass ? elFClass.value : '';
+          const filtroGenero = elFGenero ? elFGenero.value : '';
+
+          eventosFiltrados = eventos.filter((evento) => {
+            const textoOk = !termo ||
+              [evento.nome, evento.local, evento.sinopse, evento.genero]
+                .filter(Boolean)
+                .some((campo) => campo.toLowerCase().includes(termo));
+            const localOk = !filtroLocal || evento.local === filtroLocal;
+            const classOk = !filtroClass || evento.classificacao === filtroClass;
+            const generoOk = !filtroGenero || evento.genero === filtroGenero;
+            return textoOk && localOk && classOk && generoOk;
+          });
+          renderCards(eventosFiltrados);
+          atualizarResultado();
+        }
+
+        function limparFiltros() {
+          if (elQ) elQ.value = '';
+          [elFLocal, elFClass, elFGenero].forEach((select) => {
+            if (select) select.value = '';
+          });
+          eventosFiltrados = [...eventos];
+          renderCards(eventosFiltrados);
+          atualizarResultado();
+        }
+
+        function renderCards(lista) {
+          if (!elGrid) return;
+          while (elGrid.firstChild) {
+            elGrid.removeChild(elGrid.firstChild);
+          }
+          const fragmento = document.createDocumentFragment();
+          lista.forEach((evento) => {
+            fragmento.appendChild(criarCard(evento));
+          });
+          elGrid.appendChild(fragmento);
+          atualizarEstadoTodos();
+        }
+
+        function criarCard(evento) {
+          const coluna = document.createElement('div');
+          coluna.className = 'col';
+
+          const card = document.createElement('article');
+          card.className = 'ticket-card h-100 d-flex flex-column';
+          card.setAttribute('data-id', evento.id);
+          card.setAttribute('data-quando', evento.quandoNormalizado || DATE_KEY_EMPTY);
+          card.setAttribute('data-hora', evento.horaCurta || '');
+
+          const capa = document.createElement('div');
+          capa.className = 'ticket-cover ratio ratio-16x9';
+          const imagem = document.createElement('img');
+          imagem.className = 'poster-img';
+          imagem.loading = 'lazy';
+          imagem.src = evento.poster || '';
+          imagem.alt = `Pôster da peça ${evento.nome}`;
+          capa.appendChild(imagem);
+          card.appendChild(capa);
+
+          const corpo = document.createElement('div');
+          corpo.className = 'ticket-body d-flex flex-column gap-2';
+
+          const cabecalho = document.createElement('div');
+          cabecalho.className = 'd-flex align-items-center justify-content-between';
+          const titulo = document.createElement('h5');
+          titulo.className = 'mb-0 fw-bold text-truncate';
+          titulo.title = evento.nome;
+          titulo.textContent = evento.nome;
+          cabecalho.appendChild(titulo);
+          cabecalho.appendChild(criarClassificacao(evento.classificacao));
+          corpo.appendChild(cabecalho);
+
+          const blocoInfo = document.createElement('div');
+          blocoInfo.className = 'row g-2 mt-2';
+          blocoInfo.appendChild(criarMeta('Gênero e local', montarGeneroLocal(evento)));
+          blocoInfo.appendChild(criarMeta('Data e hora', evento.quandoFormatado || '—'));
+          blocoInfo.appendChild(criarMeta('Ingressos', `Disponíveis: ${evento.disponiveis} / ${evento.disponibilizados}`));
+          corpo.appendChild(blocoInfo);
+
+          const acoes = document.createElement('div');
+          acoes.className = 'd-grid gap-2 mt-3';
+          const botaoIngresso = document.createElement('button');
+          botaoIngresso.type = 'button';
+          botaoIngresso.className = 'btn btn-primary btn-sm btn-pegar-ingresso';
+          botaoIngresso.textContent = 'Pegar ingresso 🎟️';
+          botaoIngresso.setAttribute('aria-pressed', 'false');
+          botaoIngresso.setAttribute('aria-disabled', 'false');
+          botaoIngresso.dataset.id = evento.id;
+          acoes.appendChild(botaoIngresso);
+
+          const botaoDetalhes = document.createElement('button');
+          botaoDetalhes.type = 'button';
+          botaoDetalhes.className = 'btn btn-outline-secondary btn-sm';
+          botaoDetalhes.setAttribute('data-detalhes', evento.id);
+          botaoDetalhes.textContent = 'Detalhes';
+          acoes.appendChild(botaoDetalhes);
+
+          corpo.appendChild(acoes);
+          card.appendChild(corpo);
+          coluna.appendChild(card);
+          return coluna;
+        }
+
+        function criarMeta(rotulo, valor) {
+          const grupo = document.createElement('div');
+          grupo.className = 'col-12';
+          const label = document.createElement('div');
+          label.className = 'meta-label';
+          label.textContent = rotulo;
+          const texto = document.createElement('div');
+          texto.className = 'fw-semibold small';
+          texto.textContent = valor;
+          if (rotulo === 'Gênero e local') {
+            texto.classList.add('text-truncate');
+            texto.title = valor;
+          }
+          grupo.appendChild(label);
+          grupo.appendChild(texto);
+          return grupo;
+        }
+
+        function criarClassificacao(classificacao) {
+          const info = obterClassificacao(classificacao);
+          const span = document.createElement('span');
+          span.className = `ci ${info.classe}`;
+          span.title = `Classificação: ${info.rotuloCompleto}`;
+          span.setAttribute('aria-label', `Classificação ${info.rotuloCompleto}`);
+          span.textContent = info.rotulo;
+          return span;
+        }
+
+        function obterClassificacao(valor) {
+          const mapa = {
+            Livre: { classe: 'l', rotulo: 'L', rotuloCompleto: 'Livre' },
+            '10+': { classe: 'c10', rotulo: '10', rotuloCompleto: '10+' },
+            '12+': { classe: 'c12', rotulo: '12', rotuloCompleto: '12+' },
+            '14+': { classe: 'c14', rotulo: '14', rotuloCompleto: '14+' },
+            '16+': { classe: 'c16', rotulo: '16', rotuloCompleto: '16+' },
+            '18+': { classe: 'c18', rotulo: '18', rotuloCompleto: '18+' }
+          };
+          return mapa[valor] || mapa['Livre'];
+        }
+
+        function montarGeneroLocal(evento) {
+          if (evento.genero && evento.local) {
+            return `${evento.genero} • ${evento.local}`;
+          }
+          return evento.genero || evento.local || '—';
+        }
+
+        function aoClicarNoGrid(evento) {
+          const botaoIngresso = evento.target.closest('.btn-pegar-ingresso');
+          if (botaoIngresso) {
+            const card = botaoIngresso.closest('[data-id]');
+            if (!card) return;
+            const chave = card.getAttribute('data-quando') || DATE_KEY_EMPTY;
+            const id = card.getAttribute('data-id');
+            togglePorData(chave, id);
+            return;
+          }
+          const botaoDetalhes = evento.target.closest('[data-detalhes]');
+          if (botaoDetalhes) {
+            const card = botaoDetalhes.closest('[data-id]');
+            if (!card) return;
+            const id = card.getAttribute('data-id');
+            const dados = eventosPorId.get(id);
+            if (dados) {
+              abrirModal(dados);
+            }
+          }
+        }
+
+        function togglePorData(quandoNormalizado, id) {
+          const chave = quandoNormalizado || DATE_KEY_EMPTY;
+          const atual = selecoesPorData.get(chave);
+          if (atual === id) {
+            selecoesPorData.delete(chave);
+          } else {
+            selecoesPorData.set(chave, id);
+          }
+          atualizarEstadoDosCards(chave);
+          atualizarBotaoModal();
+        }
+
+        function atualizarEstadoDosCards(chave) {
+          if (!elGrid) return;
+          const selecionado = selecoesPorData.get(chave) || null;
+          const cards = elGrid.querySelectorAll(`[data-quando="${chave}"]`);
+          cards.forEach((card) => {
+            const botao = card.querySelector('.btn-pegar-ingresso');
+            const idCard = card.getAttribute('data-id');
+            const ativo = selecionado && selecionado === idCard;
+            if (ativo) {
+              card.classList.add('selecionado');
+              card.classList.remove('inativo');
+              if (botao) {
+                botao.disabled = false;
+                botao.setAttribute('aria-disabled', 'false');
+                botao.setAttribute('aria-pressed', 'true');
+                botao.classList.add('btn-success');
+                botao.classList.remove('btn-primary');
+                botao.textContent = 'Ingresso selecionado 🎟️';
+              }
+            } else if (selecionado) {
+              card.classList.add('inativo');
+              card.classList.remove('selecionado');
+              if (botao) {
+                botao.disabled = true;
+                botao.setAttribute('aria-disabled', 'true');
+                botao.setAttribute('aria-pressed', 'false');
+                botao.classList.remove('btn-success');
+                if (!botao.classList.contains('btn-primary')) {
+                  botao.classList.add('btn-primary');
+                }
+                botao.textContent = 'Pegar ingresso 🎟️';
+              }
+            } else {
+              card.classList.remove('inativo', 'selecionado');
+              if (botao) {
+                botao.disabled = false;
+                botao.setAttribute('aria-disabled', 'false');
+                botao.setAttribute('aria-pressed', 'false');
+                botao.classList.remove('btn-success');
+                if (!botao.classList.contains('btn-primary')) {
+                  botao.classList.add('btn-primary');
+                }
+                botao.textContent = 'Pegar ingresso 🎟️';
+              }
+            }
+          });
+        }
+
+        function atualizarEstadoTodos() {
+          const chaves = new Set();
+          selecoesPorData.forEach((_, chave) => chaves.add(chave));
+          if (chaves.size === 0) {
+            atualizarEstadoDosCards(DATE_KEY_EMPTY);
+          }
+          chaves.forEach((chave) => atualizarEstadoDosCards(chave));
+        }
+
+        function abrirModal(evento) {
+          if (!mTitle) return;
+          mTitle.textContent = evento.nome;
+          if (mPoster) {
+            mPoster.src = evento.posterdetalhes || evento.poster || '';
+            mPoster.alt = `Pôster da peça ${evento.nome}`;
+          }
+          if (mClass) {
+            const info = obterClassificacao(evento.classificacao);
+            mClass.className = `ci ${info.classe}`;
+            mClass.textContent = info.rotulo;
+          }
+          if (mLocal) mLocal.textContent = evento.local || '—';
+          if (mQuando) mQuando.textContent = evento.quandoFormatado || '—';
+          if (mGenero) mGenero.textContent = evento.genero || '—';
+          if (mSinopse) mSinopse.textContent = evento.sinopse || '—';
+          if (mTicketBtn) {
+            mTicketBtn.dataset.id = evento.id;
+            mTicketBtn.dataset.quando = evento.quandoNormalizado || DATE_KEY_EMPTY;
+            mTicketBtn.dataset.hora = evento.horaCurta || '';
+          }
+          atualizarBotaoModal();
+          modal.show();
+        }
+
+        function atualizarBotaoModal() {
+          if (!mTicketBtn) return;
+          const id = mTicketBtn.dataset.id;
+          if (!id) return;
+          const evento = eventosPorId.get(id);
+          if (!evento) return;
+          const chave = evento.quandoNormalizado || DATE_KEY_EMPTY;
+          const selecionado = selecoesPorData.get(chave);
+          const ativo = selecionado === id;
+          const bloqueado = selecionado && selecionado !== id;
+
+          if (bloqueado) {
+            mTicketBtn.disabled = true;
+            mTicketBtn.setAttribute('aria-disabled', 'true');
+            mTicketBtn.setAttribute('aria-pressed', 'false');
+            mTicketBtn.textContent = '🎟️ Indisponível';
+            mTicketBtn.classList.remove('btn-success');
+            if (!mTicketBtn.classList.contains('btn-outline-secondary')) {
+              mTicketBtn.classList.add('btn-outline-secondary');
+            }
+            mTicketBtn.classList.remove('btn-outline-primary');
+          } else if (ativo) {
+            mTicketBtn.disabled = false;
+            mTicketBtn.setAttribute('aria-disabled', 'false');
+            mTicketBtn.setAttribute('aria-pressed', 'true');
+            mTicketBtn.textContent = '🎟️ Ingresso selecionado';
+            mTicketBtn.classList.add('btn-success');
+            mTicketBtn.classList.remove('btn-outline-secondary');
+            mTicketBtn.classList.remove('btn-outline-primary');
+          } else {
+            mTicketBtn.disabled = false;
+            mTicketBtn.setAttribute('aria-disabled', 'false');
+            mTicketBtn.setAttribute('aria-pressed', 'false');
+            mTicketBtn.textContent = '🎟️ Pegar ingresso';
+            mTicketBtn.classList.remove('btn-success');
+            mTicketBtn.classList.remove('btn-outline-secondary');
+            if (!mTicketBtn.classList.contains('btn-outline-primary')) {
+              mTicketBtn.classList.add('btn-outline-primary');
+            }
+          }
+        }
+
+        function atualizarResultado() {
+          if (!elResultInfo) return;
+          elResultInfo.textContent = `Exibindo ${eventosFiltrados.length} de ${eventos.length}`;
+        }
+
+        function formatarDataHora(quando, hora) {
+          if (!quando) {
+            return { texto: '', normalizado: '', horaCurta: '' };
+          }
+          const horaNormalizada = normalizarHora(hora);
+          const dataISO = `${quando}T${horaNormalizada}`;
+          const data = new Date(dataISO);
+          if (Number.isNaN(data.getTime())) {
+            return { texto: '', normalizado: '', horaCurta: '' };
+          }
+          const partes = new Intl.DateTimeFormat('pt-BR', {
+            timeZone: 'America/Recife',
+            day: '2-digit',
+            month: 'long',
+            hour: '2-digit',
+            minute: '2-digit'
+          }).formatToParts(data);
+          const dia = partes.find((p) => p.type === 'day')?.value || '';
+          const mes = (partes.find((p) => p.type === 'month')?.value || '').toLowerCase();
+          const horaParte = partes.find((p) => p.type === 'hour')?.value || '00';
+          const minutoParte = partes.find((p) => p.type === 'minute')?.value || '00';
+          const sufixoHora = minutoParte !== '00' ? `${horaParte}h${minutoParte}` : `${horaParte}h`;
+          const texto = dia && mes ? `${dia} ${mes}, ${sufixoHora}` : '';
+          const normalizadoPartes = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'America/Recife',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+          }).formatToParts(data);
+          const ano = normalizadoPartes.find((p) => p.type === 'year')?.value || '';
+          const mesNum = normalizadoPartes.find((p) => p.type === 'month')?.value || '';
+          const diaNum = normalizadoPartes.find((p) => p.type === 'day')?.value || '';
+          return {
+            texto,
+            normalizado: ano && mesNum && diaNum ? `${ano}-${mesNum}-${diaNum}` : '',
+            horaCurta: `${horaParte}:${minutoParte}`
+          };
+        }
+
+        function normalizarHora(hora) {
+          if (!hora) return '00:00:00';
+          if (/^\d{2}:\d{2}:\d{2}$/.test(hora)) return hora;
+          if (/^\d{2}:\d{2}$/.test(hora)) return `${hora}:00`;
+          return '00:00:00';
+        }
       })();
     </script>
+
   </body>
 </html>
