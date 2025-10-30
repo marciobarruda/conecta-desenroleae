@@ -393,7 +393,8 @@
           }
         ];
         const DATE_KEY_EMPTY = '__sem_data__';
-        const selecoesPorData = new Map();
+        const INTERVALO_TRES_HORAS_MS = 3 * 60 * 60 * 1000;
+        let selecaoAtualId = null;
         const eventosPorId = new Map();
         let eventos = [];
         let eventosFiltrados = [];
@@ -514,12 +515,14 @@
 
         function prepararEventos(lista) {
           eventosPorId.clear();
-          selecoesPorData.clear();
+          selecaoAtualId = null;
           return lista
             .filter((item) => item && item.id)
             .map((item) => {
               const quandoValor = resolverQuando(item);
               const { texto, normalizado, horaCurta } = formatarDataHora(quandoValor, item.hora);
+              const dataReferencia = toRecifeDate(quandoValor, item.hora);
+              const inicioAbsoluto = dataReferencia ? dataReferencia.getTime() : NaN;
               const preparado = {
                 id: String(item.id),
                 nome: item.nome || 'Evento',
@@ -534,6 +537,7 @@
                 quandoFormatado: texto,
                 quandoNormalizado: normalizado || DATE_KEY_EMPTY,
                 horaCurta: horaCurta,
+                inicioAbsoluto: Number.isFinite(inicioAbsoluto) ? inicioAbsoluto : NaN,
                 poster: item.poster || '',
                 posterdetalhes: item.posterdetalhes || item.poster || '',
                 sinopse: item.sinopse || '',
@@ -737,6 +741,20 @@
           const acoes = document.createElement('div');
           acoes.className = 'ticket-actions mt-3';
 
+          const botaoIngresso = document.createElement('button');
+          botaoIngresso.type = 'button';
+          botaoIngresso.className = 'btn btn-primary btn-modern btn-pegar-ingresso';
+          botaoIngresso.setAttribute('aria-label', 'Pegar ingresso');
+          botaoIngresso.setAttribute('aria-pressed', 'false');
+          botaoIngresso.setAttribute('aria-disabled', 'false');
+          botaoIngresso.textContent = '🎟️ Pegar ingresso';
+          botaoIngresso.dataset.id = evento.id;
+          botaoIngresso.dataset.quando = evento.quandoNormalizado || DATE_KEY_EMPTY;
+          botaoIngresso.dataset.hora = evento.horaCurta || '';
+          botaoIngresso.setAttribute('data-card-id', evento.id);
+          botaoIngresso.setAttribute('data-date', evento.quandoFormatado || '');
+          acoes.appendChild(botaoIngresso);
+
           const botaoDetalhes = document.createElement('button');
           botaoDetalhes.type = 'button';
           botaoDetalhes.className = 'btn btn-outline-secondary btn-modern btn-detalhes';
@@ -826,30 +844,6 @@
           return evento.genero || evento.local || '—';
         }
 
-        function configurarBotaoConfirmar(botao, id) {
-          if (!botao) return;
-          if (botao.dataset.confirmar === 'true' && botao.dataset.confirmarId === id) {
-            return;
-          }
-          botao.dataset.confirmar = 'true';
-          botao.dataset.confirmarId = id;
-          botao.textContent = 'Confirmar';
-          botao.setAttribute('aria-label', 'Confirmar ingresso');
-          botao.type = possuiFormulario ? 'submit' : 'button';
-        }
-
-        function restaurarBotaoDetalhes(botao, card) {
-          if (!botao) return;
-          delete botao.dataset.confirmar;
-          delete botao.dataset.confirmarId;
-          botao.textContent = 'Detalhes';
-          botao.setAttribute('aria-label', 'Ver detalhes');
-          botao.type = 'button';
-          if (card) {
-            limparAvisoErro(card);
-          }
-        }
-
         function obterContainerAcoes(card) {
           return card ? card.querySelector('.ticket-actions') : null;
         }
@@ -884,6 +878,100 @@
           if (aviso) {
             aviso.remove();
           }
+        }
+
+        function resetarDisponibilidade() {
+          if (!elGrid) return;
+          const cards = elGrid.querySelectorAll('[data-id]');
+          cards.forEach((card) => {
+            card.classList.remove('inativo', 'selecionado', 'is-muted', 'is-active');
+            limparAvisoErro(card);
+            const botao = card.querySelector('.btn-pegar-ingresso');
+            if (botao) {
+              resetarEstadoBotaoIngresso(botao);
+            }
+            const botaoDetalhes = card.querySelector('.btn-detalhes');
+            if (botaoDetalhes) {
+              botaoDetalhes.disabled = false;
+              botaoDetalhes.setAttribute('aria-disabled', 'false');
+              botaoDetalhes.type = 'button';
+            }
+          });
+        }
+
+        function resetarEstadoBotaoIngresso(botao) {
+          botao.disabled = false;
+          botao.setAttribute('aria-disabled', 'false');
+          botao.setAttribute('aria-pressed', 'false');
+          botao.textContent = '🎟️ Pegar ingresso';
+          botao.classList.remove('btn-success');
+          if (!botao.classList.contains('btn-primary')) {
+            botao.classList.add('btn-primary');
+          }
+        }
+
+        function aplicarEstadoSelecionado(card) {
+          if (!card) return;
+          card.classList.add('selecionado');
+          card.classList.add('is-active');
+          card.classList.remove('inativo', 'is-muted');
+          const botao = card.querySelector('.btn-pegar-ingresso');
+          if (botao) {
+            botao.disabled = false;
+            botao.setAttribute('aria-disabled', 'false');
+            botao.setAttribute('aria-pressed', 'true');
+            botao.textContent = '🎟️ Ingresso selecionado';
+            botao.classList.add('btn-success');
+            botao.classList.remove('btn-primary');
+          }
+          const botaoDetalhes = card.querySelector('.btn-detalhes');
+          if (botaoDetalhes) {
+            botaoDetalhes.disabled = false;
+            botaoDetalhes.setAttribute('aria-disabled', 'false');
+          }
+        }
+
+        function aplicarEstadoInativo(card) {
+          if (!card) return;
+          card.classList.add('inativo');
+          card.classList.add('is-muted');
+          card.classList.remove('selecionado', 'is-active');
+          const botao = card.querySelector('.btn-pegar-ingresso');
+          if (botao) {
+            botao.disabled = true;
+            botao.setAttribute('aria-disabled', 'true');
+            botao.setAttribute('aria-pressed', 'false');
+            botao.textContent = '🎟️ Pegar ingresso';
+            botao.classList.remove('btn-success');
+            if (!botao.classList.contains('btn-primary')) {
+              botao.classList.add('btn-primary');
+            }
+          }
+          const botaoDetalhes = card.querySelector('.btn-detalhes');
+          if (botaoDetalhes) {
+            botaoDetalhes.disabled = true;
+            botaoDetalhes.setAttribute('aria-disabled', 'true');
+          }
+        }
+
+        function estaNoIntervaloDeRestricao(eventoAlvo, eventoSelecionado) {
+          if (!eventoSelecionado || !Number.isFinite(eventoSelecionado.inicioAbsoluto)) {
+            return false;
+          }
+          if (!eventoAlvo || !Number.isFinite(eventoAlvo.inicioAbsoluto)) {
+            return false;
+          }
+          return Math.abs(eventoAlvo.inicioAbsoluto - eventoSelecionado.inicioAbsoluto) < INTERVALO_TRES_HORAS_MS;
+        }
+
+        function reloadComAtraso(ms = 800) {
+          if (typeof window === 'undefined') return;
+          const atraso = Number.isFinite(ms) ? ms : 800;
+          window.setTimeout(() => {
+            if (window.location) {
+              window.location.reload();
+            }
+          }, atraso);
         }
 
         function obterCPF() {
@@ -939,9 +1027,7 @@
             if (card) {
               card.dispatchEvent(new CustomEvent('ingresso:confirmado', { detail: { id, cpf }, bubbles: true }));
             }
-            if (typeof window !== 'undefined' && window.location) {
-              window.location.reload();
-            }
+            reloadComAtraso();
           } catch (erro) {
             console.error('Falha ao confirmar ingresso', erro);
             botao.textContent = 'Confirmar';
@@ -973,11 +1059,6 @@
           }
           const botaoDetalhes = evento.target.closest('[data-details]');
           if (botaoDetalhes) {
-            if (botaoDetalhes.dataset.confirmar === 'true') {
-              evento.preventDefault();
-              confirmarIngresso(botaoDetalhes);
-              return;
-            }
             if (botaoDetalhes.disabled) {
               evento.preventDefault();
               return;
@@ -992,99 +1073,61 @@
           }
         }
 
-        function togglePorData(quandoNormalizado, id) {
-          const chave = quandoNormalizado || DATE_KEY_EMPTY;
-          const atual = selecoesPorData.get(chave);
-          if (atual === id) {
-            selecoesPorData.delete(chave);
-          } else {
-            selecoesPorData.set(chave, id);
+        function togglePorData(_quandoNormalizado, id) {
+          if (!id) return;
+          const evento = eventosPorId.get(id);
+          if (!evento) {
+            if (selecaoAtualId === id) {
+              selecaoAtualId = null;
+              resetarDisponibilidade();
+              atualizarBotaoModal();
+            }
+            return;
           }
-          atualizarEstadoDosCards(chave);
+          if (selecaoAtualId === id) {
+            selecaoAtualId = null;
+            resetarDisponibilidade();
+          } else {
+            selecaoAtualId = id;
+            atualizarEstadoDosCards(evento);
+          }
           atualizarBotaoModal();
         }
 
-        function atualizarEstadoDosCards(chave) {
+        function atualizarEstadoDosCards(eventoSelecionado) {
           if (!elGrid) return;
-          const selecionado = selecoesPorData.get(chave) || null;
-          const cards = elGrid.querySelectorAll(`[data-quando="${chave}"]`);
+          resetarDisponibilidade();
+          if (!eventoSelecionado) return;
+          const cardSelecionado = encontrarCardPorId(eventoSelecionado.id);
+          if (!cardSelecionado) {
+            selecaoAtualId = null;
+            return;
+          }
+          aplicarEstadoSelecionado(cardSelecionado);
+          if (!Number.isFinite(eventoSelecionado.inicioAbsoluto)) {
+            return;
+          }
+          const cards = elGrid.querySelectorAll('[data-id]');
           cards.forEach((card) => {
-            const botao = card.querySelector('.btn-pegar-ingresso');
-            const botaoDetalhes = card.querySelector('.btn-detalhes');
+            if (card === cardSelecionado) return;
             const idCard = card.getAttribute('data-id');
-            const ativo = selecionado && selecionado === idCard;
-            if (ativo) {
-              card.classList.add('selecionado');
-              card.classList.add('is-active');
-              card.classList.remove('inativo');
-              card.classList.remove('is-muted');
-              if (botao) {
-                botao.disabled = false;
-                botao.setAttribute('aria-disabled', 'false');
-                botao.setAttribute('aria-pressed', 'true');
-                botao.classList.add('btn-success');
-                botao.classList.remove('btn-primary');
-                botao.textContent = '🎟️ Ingresso selecionado';
-              }
-              if (botaoDetalhes) {
-                configurarBotaoConfirmar(botaoDetalhes, idCard);
-                botaoDetalhes.disabled = false;
-                botaoDetalhes.setAttribute('aria-disabled', 'false');
-              }
-            } else if (selecionado) {
-              card.classList.add('inativo');
-              card.classList.add('is-muted');
-              card.classList.remove('selecionado');
-              card.classList.remove('is-active');
-              if (botao) {
-                botao.disabled = true;
-                botao.setAttribute('aria-disabled', 'true');
-                botao.setAttribute('aria-pressed', 'false');
-                botao.classList.remove('btn-success');
-                if (!botao.classList.contains('btn-primary')) {
-                  botao.classList.add('btn-primary');
-                }
-                botao.textContent = '🎟️ Pegar ingresso';
-              }
-              if (botaoDetalhes) {
-                restaurarBotaoDetalhes(botaoDetalhes, card);
-                botaoDetalhes.disabled = true;
-                botaoDetalhes.setAttribute('aria-disabled', 'true');
-              }
-            } else {
-              card.classList.remove('inativo', 'selecionado', 'is-muted', 'is-active');
-              if (botao) {
-                botao.disabled = false;
-                botao.setAttribute('aria-disabled', 'false');
-                botao.setAttribute('aria-pressed', 'false');
-                botao.classList.remove('btn-success');
-                if (!botao.classList.contains('btn-primary')) {
-                  botao.classList.add('btn-primary');
-                }
-                botao.textContent = '🎟️ Pegar ingresso';
-              }
-              if (botaoDetalhes) {
-                restaurarBotaoDetalhes(botaoDetalhes, card);
-                botaoDetalhes.disabled = false;
-                botaoDetalhes.setAttribute('aria-disabled', 'false');
-              }
+            const eventoCard = eventosPorId.get(idCard);
+            if (estaNoIntervaloDeRestricao(eventoCard, eventoSelecionado)) {
+              aplicarEstadoInativo(card);
             }
           });
         }
 
         function atualizarEstadoTodos() {
           if (!elGrid) return;
-          const chaves = new Set();
-          const todosCards = elGrid.querySelectorAll('[data-quando]');
-          todosCards.forEach((card) => {
-            chaves.add(card.getAttribute('data-quando') || DATE_KEY_EMPTY);
-          });
-          selecoesPorData.forEach((_, chave) => chaves.add(chave));
-          if (chaves.size === 0) {
-            atualizarEstadoDosCards(DATE_KEY_EMPTY);
-            return;
+          if (selecaoAtualId) {
+            const eventoSelecionado = eventosPorId.get(selecaoAtualId);
+            if (eventoSelecionado) {
+              atualizarEstadoDosCards(eventoSelecionado);
+              return;
+            }
           }
-          chaves.forEach((chave) => atualizarEstadoDosCards(chave));
+          resetarDisponibilidade();
         }
 
         function abrirModal(evento) {
@@ -1127,12 +1170,22 @@
           if (!id) return;
           const evento = eventosPorId.get(id);
           if (!evento) return;
-          const chave = evento.quandoNormalizado || DATE_KEY_EMPTY;
-          const selecionado = selecoesPorData.get(chave);
-          const ativo = selecionado === id;
-          const bloqueado = selecionado && selecionado !== id;
+          const selecionado = selecaoAtualId === id;
+          let bloqueado = false;
+          if (!selecionado && selecaoAtualId) {
+            const eventoSelecionado = eventosPorId.get(selecaoAtualId);
+            bloqueado = estaNoIntervaloDeRestricao(evento, eventoSelecionado);
+          }
 
-          if (bloqueado) {
+          if (selecionado) {
+            mTicketBtn.disabled = false;
+            mTicketBtn.setAttribute('aria-disabled', 'false');
+            mTicketBtn.setAttribute('aria-pressed', 'true');
+            mTicketBtn.textContent = '🎟️ Ingresso selecionado';
+            mTicketBtn.classList.add('btn-success');
+            mTicketBtn.classList.remove('btn-outline-secondary');
+            mTicketBtn.classList.remove('btn-outline-primary');
+          } else if (bloqueado) {
             mTicketBtn.disabled = true;
             mTicketBtn.setAttribute('aria-disabled', 'true');
             mTicketBtn.setAttribute('aria-pressed', 'false');
@@ -1141,14 +1194,6 @@
             if (!mTicketBtn.classList.contains('btn-outline-secondary')) {
               mTicketBtn.classList.add('btn-outline-secondary');
             }
-            mTicketBtn.classList.remove('btn-outline-primary');
-          } else if (ativo) {
-            mTicketBtn.disabled = false;
-            mTicketBtn.setAttribute('aria-disabled', 'false');
-            mTicketBtn.setAttribute('aria-pressed', 'true');
-            mTicketBtn.textContent = '🎟️ Ingresso selecionado';
-            mTicketBtn.classList.add('btn-success');
-            mTicketBtn.classList.remove('btn-outline-secondary');
             mTicketBtn.classList.remove('btn-outline-primary');
           } else {
             mTicketBtn.disabled = false;
@@ -1162,15 +1207,15 @@
             }
           }
           if (mConfirmBtn && mConfirmBtn.dataset.id === id) {
-            if (bloqueado || !ativo) {
-              mConfirmBtn.disabled = true;
-              mConfirmBtn.setAttribute('aria-disabled', 'true');
+            if (selecionado) {
+              mConfirmBtn.disabled = false;
+              mConfirmBtn.setAttribute('aria-disabled', 'false');
               if (mConfirmBtn.dataset.confirmar === 'true' && mConfirmBtn.textContent !== 'Confirmando…') {
                 mConfirmBtn.textContent = 'Confirmar';
               }
             } else {
-              mConfirmBtn.disabled = false;
-              mConfirmBtn.setAttribute('aria-disabled', 'false');
+              mConfirmBtn.disabled = true;
+              mConfirmBtn.setAttribute('aria-disabled', 'true');
               if (mConfirmBtn.dataset.confirmar === 'true' && mConfirmBtn.textContent !== 'Confirmando…') {
                 mConfirmBtn.textContent = 'Confirmar';
               }
@@ -1212,6 +1257,10 @@
             normalizado,
             horaCurta: `${horaParte}:${minutoParte}`
           };
+        }
+
+        function toRecifeDate(quando, horaFallback) {
+          return construirDataReferencia(quando, horaFallback);
         }
 
         function construirDataReferencia(quando, horaFallback) {
