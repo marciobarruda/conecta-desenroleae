@@ -410,8 +410,11 @@
         const INTERVALO_TRES_HORAS_MS = 3 * 60 * 60 * 1000;
         const selecoesAtuais = new Set();
         const eventosPorId = new Map();
+        const eventosBloqueadosPorId = new Map();
         let eventos = [];
         let eventosFiltrados = [];
+        let eventosJaPegos = [];
+        let eventosJaPegosFiltrados = [];
 
         let campoCPF;
         let possuiFormulario = false;
@@ -490,20 +493,23 @@
           document.body.classList.add('portal-dyn');
           injetarEstilos();
 
-          const [recebidosDisponiveis, recebidosJaPegos] = await Promise.all([
-            fetchEventos(API_URL),
-            fetchEventos(API_URL_JA_PEGOS)
-          ]);
-          const baseDisponiveis = recebidosDisponiveis.length ? recebidosDisponiveis : FALLBACK_EVENTOS;
-          const baseJaPegos = Array.isArray(recebidosJaPegos) ? recebidosJaPegos : [];
-          prepararEventos(baseDisponiveis, { resetarMapa: true });
-          prepararEventos(baseJaPegos, { extras: { jaPegou: true, apenasDetalhes: true } });
-          eventos = Array.from(eventosPorId.values());
+          eventosBloqueadosPorId.clear();
+          selecoesAtuais.clear();
+
+          const recebidosDisponiveis = await fetchEventos(API_URL);
+          const baseDisponiveis = recebidosDisponiveis.length
+            ? recebidosDisponiveis.map(adaptarEventoApi).filter(Boolean)
+            : FALLBACK_EVENTOS;
+
+          eventos = prepararEventos(baseDisponiveis, { resetarMapa: true, mapa: eventosPorId });
           eventosFiltrados = [...eventos];
+          eventosJaPegos = [];
+          eventosJaPegosFiltrados = [];
           popularFiltros(eventos);
           renderCards(eventosFiltrados);
           atualizarResultado();
           registrarEventos();
+          await carregarEventosJaPegos();
         }
 
         function injetarEstilos() {
@@ -520,6 +526,8 @@
 .portal-dyn .ticket-actions .btn-modern.btn-primary { box-shadow: 0 10px 24px rgba(0, 83, 164, 0.25); }
 .portal-dyn .ticket-actions .btn-modern.btn-primary:hover { box-shadow: 0 12px 28px rgba(0, 83, 164, 0.3); }
 .portal-dyn .ticket-card.portal-dyn-ja-pego { filter: grayscale(100%); opacity: .7; }
+.portal-dyn .ticket-card.card-bloqueado { filter: grayscale(1); opacity: .75; }
+.portal-dyn .portal-dyn-aviso-ja-pego { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600; font-size: 0.85rem; padding: 0.35rem 0.75rem; border-radius: 999px; background: rgba(27, 38, 59, 0.08); color: var(--text-strong); margin-top: 0.35rem; }
 .portal-dyn .ticket-top-flags { display: flex; align-items: center; justify-content: flex-end; gap: 0.35rem; flex-wrap: wrap; }
 .portal-dyn .portal-dyn-acc-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: 0 0 28px; padding: 2px; border-radius: 6px; background: #fff; border: 1px solid rgba(27, 38, 59, 0.15); box-shadow: none; overflow: hidden; }
 .portal-dyn .portal-dyn-acc-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
@@ -534,11 +542,15 @@
         async function fetchEventos(url = API_URL) {
           try {
             const cpf = obterCPF();
+            if (!cpf) {
+              return [];
+            }
             const resposta = await fetch(url, {
               method: 'POST',
               headers: {
                 Accept: 'application/json',
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-store'
               },
               body: JSON.stringify({ cpf })
             });
@@ -553,14 +565,84 @@
           }
         }
 
+        function adaptarEventoApi(item) {
+          if (!item || typeof item !== 'object') {
+            return null;
+          }
+          const fonte = item;
+          const adaptado = { ...fonte };
+          const ler = (...chaves) => {
+            for (const chave of chaves) {
+              if (fonte[chave] !== undefined && fonte[chave] !== null) {
+                const valor = fonte[chave];
+                if (typeof valor === 'string') {
+                  const limpo = valor.trim();
+                  if (limpo) return limpo;
+                } else if (valor !== '') {
+                  return valor;
+                }
+              }
+            }
+            return undefined;
+          };
+
+          const id = ler('id', 'slug', 'uuid', 'codigo', 'codigo_evento', 'identificador', 'evento_id');
+          if (id !== undefined) adaptado.id = id;
+          const nome = ler('nome', 'titulo', 'title', 'evento', 'name');
+          if (nome !== undefined) adaptado.nome = nome;
+          const classificacao = ler('classificacao', 'classificacao_indicativa', 'faixa_etaria', 'faixaEtaria');
+          if (classificacao !== undefined) adaptado.classificacao = classificacao;
+          const genero = ler('genero', 'categoria', 'tipo', 'segmento');
+          if (genero !== undefined) adaptado.genero = genero;
+          const local = ler('local', 'teatro', 'espaco', 'localizacao', 'casa');
+          if (local !== undefined) adaptado.local = local;
+          const quando = ler('quando', 'datahora', 'data_hora', 'dataHora', 'data_inicio', 'data');
+          if (quando !== undefined) adaptado.quando = quando;
+          const hora = ler('hora', 'horario', 'hora_inicio', 'horaInicio');
+          if (hora !== undefined) adaptado.hora = hora;
+          const poster = ler('poster', 'imagem', 'capa', 'imagem_card');
+          if (poster !== undefined) adaptado.poster = poster;
+          const posterDetalhes = ler('posterdetalhes', 'poster_detalhes', 'posterDetalhes', 'imagem_detalhes');
+          if (posterDetalhes !== undefined) adaptado.posterdetalhes = posterDetalhes;
+          const sinopse = ler('sinopse', 'descricao', 'descricao_curta', 'descricaoLonga', 'descricao_longa', 'description');
+          if (sinopse !== undefined) adaptado.sinopse = sinopse;
+          const disponibilizados = ler('disponibilizados', 'quantidade_total', 'total', 'total_disponibilizado');
+          if (disponibilizados !== undefined) adaptado.disponibilizados = disponibilizados;
+          const disponiveis = ler('disponiveis', 'quantidade_disponivel', 'ingressos_disponiveis', 'vagas_disponiveis');
+          if (disponiveis !== undefined) adaptado.disponiveis = disponiveis;
+          const acessibilidade = ler('acessibilidade', 'acessibilidades', 'recursos_acessibilidade');
+          if (acessibilidade !== undefined) adaptado.acessibilidade = acessibilidade;
+          const duracao = ler('duracao', 'duração', 'tempo', 'tempo_estimado');
+          if (duracao !== undefined) adaptado.duracao = duracao;
+          const quemFaz = ler('quem_faz', 'quemfaz', 'quemFaz', 'grupo', 'companhia', 'company', 'coletivo');
+          if (quemFaz !== undefined) adaptado.quem_faz = quemFaz;
+          const origem = ler('origem', 'origem_grupo', 'origemGrupo');
+          if (origem !== undefined) adaptado.origem = origem;
+          const origemCidade = ler('origem_cidade', 'cidade_origem', 'cidadeOrigem');
+          if (origemCidade !== undefined) adaptado.origem_cidade = origemCidade;
+          const origemLocal = ler('origem_local');
+          if (origemLocal !== undefined) adaptado.origem_local = origemLocal;
+          const cidade = ler('cidade', 'municipio', 'municipio_origem', 'municipioOrigem');
+          if (cidade !== undefined) adaptado.cidade = cidade;
+          const uf = ler('uf', 'estado', 'sigla_estado', 'siglaEstado');
+          if (uf !== undefined) adaptado.uf = uf;
+
+          return adaptado;
+        }
+
         function prepararEventos(lista, opcoes = {}) {
-          const { resetarMapa = false, extras = null } = opcoes;
+          const { resetarMapa = false, extras = null, mapa = eventosPorId } = opcoes;
+          if (!Array.isArray(lista)) {
+            return [];
+          }
           if (resetarMapa) {
-            eventosPorId.clear();
-            selecoesAtuais.clear();
+            mapa.clear();
+            if (mapa === eventosPorId) {
+              selecoesAtuais.clear();
+            }
           }
           return lista
-            .filter((item) => item && item.id)
+            .filter((item) => item && item.id !== undefined && item.id !== null)
             .map((item) => {
               const quandoValor = resolverQuando(item);
               const quemFaz = extrairQuemFaz(item);
@@ -601,7 +683,7 @@
               }
               preparado.jaPegou = Boolean(preparado.jaPegou);
               preparado.apenasDetalhes = Boolean(preparado.apenasDetalhes);
-              const existente = eventosPorId.get(preparado.id);
+              const existente = mapa.get(preparado.id);
               if (existente) {
                 Object.assign(existente, preparado);
                 if (extras && extras.apenasDetalhes) {
@@ -613,9 +695,33 @@
               if (preparado.apenasDetalhes) {
                 selecoesAtuais.delete(preparado.id);
               }
-              eventosPorId.set(preparado.id, preparado);
+              mapa.set(preparado.id, preparado);
               return preparado;
-            });
+            })
+            .filter(Boolean);
+        }
+
+        async function carregarEventosJaPegos() {
+          const recebidosJaPegos = await fetchEventos(API_URL_JA_PEGOS);
+          const baseJaPegos = Array.isArray(recebidosJaPegos)
+            ? recebidosJaPegos.map(adaptarEventoApi).filter(Boolean)
+            : [];
+
+          if (!baseJaPegos.length) {
+            eventosBloqueadosPorId.clear();
+            eventosJaPegos = [];
+            eventosJaPegosFiltrados = [];
+            renderCards(eventosFiltrados);
+            return;
+          }
+
+          eventosJaPegos = prepararEventos(baseJaPegos, {
+            resetarMapa: true,
+            extras: { jaPegou: true, apenasDetalhes: true },
+            mapa: eventosBloqueadosPorId
+          });
+          eventosJaPegosFiltrados = [...eventosJaPegos];
+          renderCards(eventosFiltrados);
         }
 
         function numeroSeguro(valor) {
@@ -801,22 +907,34 @@
           });
         }
 
+        function filtrarEventosPorCriterios(lista, termo, filtroLocal, filtroClass, filtroGenero) {
+          if (!Array.isArray(lista)) return [];
+          return lista.filter((evento) => {
+            if (!evento) return false;
+            const camposBusca = [evento.nome, evento.local, evento.sinopse, evento.genero]
+              .filter((campo) => typeof campo === 'string' && campo.trim().length);
+            const textoOk = !termo || camposBusca.some((campo) => campo.toLowerCase().includes(termo));
+            const localOk = !filtroLocal || evento.local === filtroLocal;
+            const classOk = !filtroClass || evento.classificacao === filtroClass;
+            const generoOk = !filtroGenero || evento.genero === filtroGenero;
+            return textoOk && localOk && classOk && generoOk;
+          });
+        }
+
         function aplicarFiltros() {
           const termo = (elQ ? elQ.value : '').trim().toLowerCase();
           const filtroLocal = elFLocal ? elFLocal.value : '';
           const filtroClass = elFClass ? elFClass.value : '';
           const filtroGenero = elFGenero ? elFGenero.value : '';
 
-          eventosFiltrados = eventos.filter((evento) => {
-            const textoOk = !termo ||
-              [evento.nome, evento.local, evento.sinopse, evento.genero]
-                .filter(Boolean)
-                .some((campo) => campo.toLowerCase().includes(termo));
-            const localOk = !filtroLocal || evento.local === filtroLocal;
-            const classOk = !filtroClass || evento.classificacao === filtroClass;
-            const generoOk = !filtroGenero || evento.genero === filtroGenero;
-            return textoOk && localOk && classOk && generoOk;
-          });
+          eventosFiltrados = filtrarEventosPorCriterios(eventos, termo, filtroLocal, filtroClass, filtroGenero);
+          eventosJaPegosFiltrados = filtrarEventosPorCriterios(
+            eventosJaPegos,
+            termo,
+            filtroLocal,
+            filtroClass,
+            filtroGenero
+          );
           renderCards(eventosFiltrados);
           atualizarResultado();
         }
@@ -827,6 +945,7 @@
             if (select) select.value = '';
           });
           eventosFiltrados = [...eventos];
+          eventosJaPegosFiltrados = [...eventosJaPegos];
           renderCards(eventosFiltrados);
           atualizarResultado();
         }
@@ -841,6 +960,13 @@
             fragmento.appendChild(criarCard(evento));
           });
           elGrid.appendChild(fragmento);
+          if (eventosJaPegosFiltrados.length) {
+            const bloqueadosFragmento = document.createDocumentFragment();
+            eventosJaPegosFiltrados.forEach((evento) => {
+              bloqueadosFragmento.appendChild(criarCardBloqueado(evento));
+            });
+            elGrid.appendChild(bloqueadosFragmento);
+          }
           atualizarEstadoTodos();
         }
 
@@ -926,6 +1052,43 @@
           corpo.appendChild(acoes);
           card.appendChild(corpo);
           coluna.appendChild(card);
+          return coluna;
+        }
+
+        function criarCardBloqueado(evento) {
+          const coluna = criarCard(evento);
+          const card = coluna.querySelector('.ticket-card');
+          if (!card) {
+            return coluna;
+          }
+          card.classList.add('card-bloqueado');
+          card.dataset.bloqueado = 'true';
+          card.setAttribute('aria-disabled', 'true');
+          const corpo = card.querySelector('.ticket-body');
+          const acoes = card.querySelector('.ticket-actions');
+          if (corpo && !corpo.querySelector('.portal-dyn-aviso-ja-pego')) {
+            const aviso = document.createElement('div');
+            aviso.className = 'portal-dyn-aviso-ja-pego';
+            aviso.textContent = 'Você já pegou estes ingressos';
+            if (acoes) {
+              corpo.insertBefore(aviso, acoes);
+            } else {
+              corpo.appendChild(aviso);
+            }
+          }
+          if (acoes) {
+            const botoes = acoes.querySelectorAll('button');
+            botoes.forEach((botao) => {
+              if (!botao.classList.contains('btn-detalhes')) {
+                botao.remove();
+              }
+            });
+          }
+          const botaoDetalhes = card.querySelector('.btn-detalhes');
+          if (botaoDetalhes) {
+            botaoDetalhes.disabled = false;
+            botaoDetalhes.setAttribute('aria-disabled', 'false');
+          }
           return coluna;
         }
 
@@ -1053,9 +1216,13 @@
             if (jaPegou) {
               card.classList.add('portal-dyn-ja-pego');
               card.classList.remove('inativo', 'is-muted');
+              card.setAttribute('aria-disabled', 'true');
             } else {
               card.classList.remove('inativo', 'is-muted');
               card.classList.remove('portal-dyn-ja-pego');
+              if (!card.dataset.bloqueado) {
+                card.removeAttribute('aria-disabled');
+              }
             }
             limparAvisoErro(card);
             const botao = card.querySelector('.btn-pegar-ingresso');
@@ -1171,11 +1338,18 @@
           }, atraso);
         }
 
+        function sanitizarCPF(valor) {
+          return String(valor ?? '').replace(/\D/g, '');
+        }
+
         function obterCPF() {
-          if (campoCPF && campoCPF.value) {
-            return campoCPF.value;
+          const bruto = campoCPF && campoCPF.value ? campoCPF.value : CPF_FIXO;
+          const apenasDigitos = sanitizarCPF(bruto);
+          if (apenasDigitos.length === 11) {
+            return apenasDigitos;
           }
-          return CPF_FIXO;
+          console.warn('CPF inválido fornecido para requisições do catálogo.');
+          return '';
         }
 
         async function confirmarIngresso(botao) {
@@ -1193,7 +1367,12 @@
             card = encontrarCardPorId(id);
           }
           const cpf = obterCPF();
-          if (!cpf) return;
+          if (!cpf) {
+            if (card) {
+              mostrarAvisoErro(card, 'CPF inválido.');
+            }
+            return;
+          }
           const quantidade = obterQuantidadeSelecionada();
           const payload = { id, cpf };
           if (quantidade) {
@@ -1268,7 +1447,7 @@
             const card = botaoDetalhes.closest('[data-id]');
             if (!card) return;
             const id = card.getAttribute('data-id');
-            const dados = eventosPorId.get(id);
+            const dados = eventosPorId.get(id) || eventosBloqueadosPorId.get(id);
             if (dados) {
               abrirModal(dados);
             }
