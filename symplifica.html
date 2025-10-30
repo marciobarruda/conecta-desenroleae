@@ -843,6 +843,9 @@
               }, 2000);
             }
             card.dispatchEvent(new CustomEvent('ingresso:confirmado', { detail: { id, cpf }, bubbles: true }));
+            if (typeof window !== 'undefined' && window.location) {
+              window.location.reload();
+            }
           } catch (erro) {
             console.error('Falha ao confirmar ingresso', erro);
             botao.textContent = 'Confirmar';
@@ -1089,14 +1092,29 @@
           if (!quando) return null;
           const valor = String(quando).trim();
           if (!valor) return null;
+          const horaPreferida = horaFallback !== undefined && horaFallback !== null
+            ? String(horaFallback).trim()
+            : '';
 
           if (/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
-            return criarDataComTimezone(valor, horaFallback);
+            return criarDataComTimezone(valor, horaPreferida);
           }
 
           if (/(Z|[+-]\d{2}:?\d{2})$/i.test(valor)) {
             const dataComOffset = new Date(valor);
             if (!Number.isNaN(dataComOffset.getTime())) {
+              if (horaPreferida) {
+                const dataRecife = new Intl.DateTimeFormat('en-CA', {
+                  timeZone: 'America/Recife',
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit'
+                }).format(dataComOffset);
+                const ajustada = criarDataComTimezone(dataRecife, horaPreferida);
+                if (ajustada) {
+                  return ajustada;
+                }
+              }
               return dataComOffset;
             }
           }
@@ -1113,7 +1131,7 @@
 
           const dataParte = valor.slice(0, 10);
           if (dataParte && /^\d{4}-\d{2}-\d{2}$/.test(dataParte)) {
-            return criarDataComTimezone(dataParte, horaFallback);
+            return criarDataComTimezone(dataParte, horaPreferida);
           }
 
           return null;
