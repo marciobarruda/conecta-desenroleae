@@ -196,6 +196,13 @@
           </div>
           <div class="modal-footer">
             <button id="modalTicketBtn" type="button" class="btn btn-outline-primary" aria-pressed="false">🎟️ Pegar ingresso</button>
+            <div class="d-flex align-items-center gap-2 ms-0 me-auto" id="modalQuantidadeWrapper">
+              <label for="modalQuantidade" class="form-label small mb-0">Quantidade</label>
+              <select id="modalQuantidade" class="form-select form-select-sm w-auto">
+                <option value="1" selected>1</option>
+                <option value="2">2</option>
+              </select>
+            </div>
             <button
               id="modalConfirmBtn"
               type="button"
@@ -426,6 +433,7 @@
         let mGenero;
         let mDuracao;
         let mGrupo;
+        let mQuantidadeSelect;
         let mSinopse;
         let mTicketBtn;
         let mConfirmBtn;
@@ -471,6 +479,7 @@
           mGenero = document.querySelector('#modalGenero');
           mDuracao = document.querySelector('#modalDuracao');
           mGrupo = document.querySelector('#modalGrupo');
+          mQuantidadeSelect = document.querySelector('#modalQuantidade');
           mSinopse = document.querySelector('#modalSinopse');
           mTicketBtn = document.querySelector('#modalTicketBtn');
           mConfirmBtn = document.querySelector('#modalConfirmBtn');
@@ -505,6 +514,9 @@
 .portal-dyn .portal-dyn-acc-icon { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; border-radius: 4px; background: transparent; box-shadow: none; }
 .portal-dyn .portal-dyn-acc-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .portal-dyn .portal-dyn-erro-confirmacao { display: block; margin-top: 0.25rem; font-size: 0.85rem; }
+.portal-dyn .ticket-subtitle { color: var(--text-muted); font-size: 0.9rem; }
+.portal-dyn #modalQuantidadeWrapper { flex: 1 1 auto; }
+.portal-dyn #modalQuantidadeWrapper select { min-width: 72px; }
 `;
           document.body.appendChild(estilo);
         }
@@ -530,6 +542,8 @@
             .filter((item) => item && item.id)
             .map((item) => {
               const quandoValor = resolverQuando(item);
+              const quemFaz = extrairQuemFaz(item);
+              const origem = resolverOrigem(item);
               const { texto, normalizado, horaCurta } = formatarDataHora(quandoValor, item.hora);
               const dataReferencia = toRecifeDate(quandoValor, item.hora);
               const inicioAbsoluto = dataReferencia ? dataReferencia.getTime() : NaN;
@@ -542,7 +556,8 @@
                 genero: item.genero || '',
                 local: item.local || item.teatro || '',
                 duracao: item.duracao || item.duração || '',
-                quemFaz: item.quem_faz || item.quemfaz || item.grupo || '',
+                quemFaz,
+                origem,
                 quando: quandoValor || '',
                 quandoOriginal: item.quando ?? '',
                 horaOriginal: item.hora || '',
@@ -556,6 +571,7 @@
                 disponibilizados: numeroSeguro(item.disponibilizados),
                 disponiveis: numeroSeguro(item.disponiveis)
               };
+              preparado.grupoOrigem = combinarGrupoOrigem(preparado.quemFaz, preparado.origem);
               eventosPorId.set(preparado.id, preparado);
               return preparado;
             });
@@ -575,6 +591,90 @@
             return false;
           }
           return texto === 'sim' || texto === 'true' || texto === '1';
+        }
+
+        function extrairQuemFaz(item) {
+          if (!item) return '';
+          const candidatos = [item.quem_faz, item.quemfaz, item.quemFaz, item.grupo, item.company, item.companhia];
+          for (const candidato of candidatos) {
+            if (candidato === undefined || candidato === null) continue;
+            const texto = String(candidato).trim();
+            if (texto) {
+              return texto;
+            }
+          }
+          return '';
+        }
+
+        function resolverOrigem(item) {
+          if (!item) return '';
+          const diretos = [
+            item.origem,
+            item.origem_grupo,
+            item.origemGrupo,
+            item.origem_cidade,
+            item.origemCidade,
+            item.localidade,
+            item.cidade_origem,
+            item.cidadeOrigem,
+            item.origem_local,
+            item.origemLocal,
+            item.procedencia
+          ];
+          for (const candidato of diretos) {
+            if (candidato === undefined || candidato === null) continue;
+            const texto = String(candidato).trim();
+            if (texto) {
+              return texto;
+            }
+          }
+          const cidade = extrairCampoTexto([
+            item.cidade,
+            item.municipio,
+            item.municipio_origem,
+            item.municipioOrigem,
+            item.cidade_base,
+            item.cidadeBase
+          ]);
+          const uf = extrairCampoTexto([
+            item.uf,
+            item.estado,
+            item.sigla_estado,
+            item.siglaEstado,
+            item.sigla,
+            item.estado_sigla
+          ]);
+          if (cidade && uf) {
+            return `${cidade}/${uf}`.replace(/\s*\/\s*/g, '/');
+          }
+          if (cidade) return cidade;
+          if (uf) return uf;
+          return '';
+        }
+
+        function extrairCampoTexto(lista) {
+          for (const valor of lista) {
+            if (valor === undefined || valor === null) continue;
+            const texto = String(valor).trim();
+            if (texto) {
+              return texto;
+            }
+          }
+          return '';
+        }
+
+        function combinarGrupoOrigem(grupo, origem) {
+          const partes = [];
+          if (grupo) {
+            partes.push(grupo);
+          }
+          if (origem) {
+            const origemNormalizada = origem.replace(/\s+•\s+/g, ' • ').replace(/\s{2,}/g, ' ').trim();
+            if (origemNormalizada) {
+              partes.push(origemNormalizada);
+            }
+          }
+          return partes.join(' • ');
         }
 
         function resolverQuando(item) {
@@ -742,13 +842,24 @@
           cabecalho.appendChild(topoDireita);
           corpo.appendChild(cabecalho);
 
+          const subtitulo = document.createElement('p');
+          subtitulo.className = 'ticket-subtitle mb-0 text-truncate';
+          const grupoOrigemTexto = evento.grupoOrigem || combinarGrupoOrigem(evento.quemFaz, evento.origem);
+          const textoSubtitulo = grupoOrigemTexto && grupoOrigemTexto.trim() ? grupoOrigemTexto : '—';
+          subtitulo.textContent = textoSubtitulo;
+          if (textoSubtitulo && textoSubtitulo !== '—') {
+            subtitulo.title = textoSubtitulo;
+          } else {
+            subtitulo.removeAttribute('title');
+          }
+          corpo.appendChild(subtitulo);
+
           const blocoInfo = document.createElement('div');
           blocoInfo.className = 'row g-2 mt-2';
           blocoInfo.appendChild(criarMeta('Gênero e local', montarGeneroLocal(evento)));
           const quandoTexto = evento.quandoFormatado || '—';
           blocoInfo.appendChild(criarMeta('Quando', quandoTexto));
           blocoInfo.appendChild(criarMeta('Duração', evento.duracao || '—'));
-          blocoInfo.appendChild(criarMeta('Grupo', evento.quemFaz || '—'));
           blocoInfo.appendChild(criarMeta('Ingressos', `Disponíveis: ${evento.disponiveis} / ${evento.disponibilizados}`));
           corpo.appendChild(blocoInfo);
 
@@ -779,7 +890,7 @@
           const texto = document.createElement('div');
           texto.className = 'fw-semibold small';
           texto.textContent = valor;
-          if (rotulo === 'Gênero e local' || rotulo === 'Grupo') {
+          if (rotulo === 'Gênero e local') {
             texto.classList.add('text-truncate');
             texto.title = valor;
           }
@@ -841,6 +952,12 @@
             return `${evento.genero} • ${evento.local}`;
           }
           return evento.genero || evento.local || '—';
+        }
+
+        function obterQuantidadeSelecionada() {
+          if (!mQuantidadeSelect) return 1;
+          const valor = parseInt(mQuantidadeSelect.value, 10);
+          return Number.isFinite(valor) && valor > 0 ? valor : 1;
         }
 
         function obterContainerAcoes(card) {
@@ -1008,6 +1125,11 @@
           }
           const cpf = obterCPF();
           if (!cpf) return;
+          const quantidade = obterQuantidadeSelecionada();
+          const payload = { id, cpf };
+          if (quantidade) {
+            payload.quantidade = quantidade;
+          }
 
           if (card) {
             limparAvisoErro(card);
@@ -1021,7 +1143,7 @@
             const resposta = await fetch(CONFIRMAR_URL, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ id, cpf })
+              body: JSON.stringify(payload)
             });
             if (!resposta.ok) {
               throw new Error(`HTTP ${resposta.status}`);
@@ -1036,7 +1158,7 @@
               }, 2000);
             }
             if (card) {
-              card.dispatchEvent(new CustomEvent('ingresso:confirmado', { detail: { id, cpf }, bubbles: true }));
+              card.dispatchEvent(new CustomEvent('ingresso:confirmado', { detail: { id, cpf, quantidade: payload.quantidade }, bubbles: true }));
             }
             reloadComAtraso();
           } catch (erro) {
@@ -1162,12 +1284,23 @@
           if (mQuando) mQuando.textContent = evento.quandoFormatado || '—';
           if (mGenero) mGenero.textContent = evento.genero || '—';
           if (mDuracao) mDuracao.textContent = evento.duracao || '—';
-          if (mGrupo) mGrupo.textContent = evento.quemFaz || '—';
+          if (mGrupo) {
+            const grupoOrigem = evento.grupoOrigem || combinarGrupoOrigem(evento.quemFaz, evento.origem) || '—';
+            mGrupo.textContent = grupoOrigem || '—';
+            if (grupoOrigem && grupoOrigem !== '—') {
+              mGrupo.title = grupoOrigem;
+            } else {
+              mGrupo.removeAttribute('title');
+            }
+          }
           if (mSinopse) mSinopse.textContent = evento.sinopse || '—';
           if (mTicketBtn) {
             mTicketBtn.dataset.id = evento.id;
             mTicketBtn.dataset.quando = evento.quandoNormalizado || DATE_KEY_EMPTY;
             mTicketBtn.dataset.hora = evento.horaCurta || '';
+          }
+          if (mQuantidadeSelect) {
+            mQuantidadeSelect.value = '1';
           }
           if (mConfirmBtn) {
             mConfirmBtn.dataset.id = evento.id;
@@ -1233,6 +1366,9 @@
                 mConfirmBtn.textContent = 'Confirmar';
               }
             }
+          }
+          if (mQuantidadeSelect) {
+            mQuantidadeSelect.disabled = bloqueado;
           }
         }
 
