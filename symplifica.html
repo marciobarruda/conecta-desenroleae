@@ -245,6 +245,7 @@
     <script>
       (function () {
         const API_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/2917bb59-51f3-478a-a435-0753ab258f43';
+        const API_URL_JA_PEGOS = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/d0bbd65b-b4f6-45cf-8f98-2aff0bcb03a5';
         const CONFIRMAR_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/322fa1a9-b9aa-4e22-8762-fe0e63895727';
         const CPF_FIXO = '02763108458';
         const ICON_LIBRAS_SRC = 'https://www.ufpb.br/dls/contents/noticias/resultado-do-nivelamento-do-curso-de-extensao-de-libras-2019.2/sinal-libras.png/@@images/image.png';
@@ -434,6 +435,7 @@
         let mDuracao;
         let mGrupo;
         let mQuantidadeSelect;
+        let mQuantidadeWrapper;
         let mSinopse;
         let mTicketBtn;
         let mConfirmBtn;
@@ -480,6 +482,7 @@
           mDuracao = document.querySelector('#modalDuracao');
           mGrupo = document.querySelector('#modalGrupo');
           mQuantidadeSelect = document.querySelector('#modalQuantidade');
+          mQuantidadeWrapper = document.querySelector('#modalQuantidadeWrapper');
           mSinopse = document.querySelector('#modalSinopse');
           mTicketBtn = document.querySelector('#modalTicketBtn');
           mConfirmBtn = document.querySelector('#modalConfirmBtn');
@@ -487,9 +490,15 @@
           document.body.classList.add('portal-dyn');
           injetarEstilos();
 
-          const recebidos = await fetchEventos();
-          const base = recebidos.length ? recebidos : FALLBACK_EVENTOS;
-          eventos = prepararEventos(base);
+          const [recebidosDisponiveis, recebidosJaPegos] = await Promise.all([
+            fetchEventos(API_URL),
+            fetchEventos(API_URL_JA_PEGOS)
+          ]);
+          const baseDisponiveis = recebidosDisponiveis.length ? recebidosDisponiveis : FALLBACK_EVENTOS;
+          const baseJaPegos = Array.isArray(recebidosJaPegos) ? recebidosJaPegos : [];
+          prepararEventos(baseDisponiveis, { resetarMapa: true });
+          prepararEventos(baseJaPegos, { extras: { jaPegou: true, apenasDetalhes: true } });
+          eventos = Array.from(eventosPorId.values());
           eventosFiltrados = [...eventos];
           popularFiltros(eventos);
           renderCards(eventosFiltrados);
@@ -510,6 +519,7 @@
 .portal-dyn .ticket-actions .btn-modern.btn-outline-secondary:hover { background: rgba(0, 83, 164, 0.08); }
 .portal-dyn .ticket-actions .btn-modern.btn-primary { box-shadow: 0 10px 24px rgba(0, 83, 164, 0.25); }
 .portal-dyn .ticket-actions .btn-modern.btn-primary:hover { box-shadow: 0 12px 28px rgba(0, 83, 164, 0.3); }
+.portal-dyn .ticket-card.portal-dyn-ja-pego { filter: grayscale(100%); opacity: .7; }
 .portal-dyn .ticket-top-flags { display: flex; align-items: center; justify-content: flex-end; gap: 0.35rem; flex-wrap: wrap; }
 .portal-dyn .portal-dyn-acc-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: 0 0 28px; padding: 2px; border-radius: 6px; background: #fff; border: 1px solid rgba(27, 38, 59, 0.15); box-shadow: none; overflow: hidden; }
 .portal-dyn .portal-dyn-acc-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
@@ -521,10 +531,10 @@
           document.body.appendChild(estilo);
         }
 
-        async function fetchEventos() {
+        async function fetchEventos(url = API_URL) {
           try {
             const cpf = obterCPF();
-            const resposta = await fetch(API_URL, {
+            const resposta = await fetch(url, {
               method: 'POST',
               headers: {
                 Accept: 'application/json',
@@ -543,9 +553,12 @@
           }
         }
 
-        function prepararEventos(lista) {
-          eventosPorId.clear();
-          selecoesAtuais.clear();
+        function prepararEventos(lista, opcoes = {}) {
+          const { resetarMapa = false, extras = null } = opcoes;
+          if (resetarMapa) {
+            eventosPorId.clear();
+            selecoesAtuais.clear();
+          }
           return lista
             .filter((item) => item && item.id)
             .map((item) => {
@@ -580,6 +593,26 @@
                 disponiveis: numeroSeguro(item.disponiveis)
               };
               preparado.grupoOrigem = combinarGrupoOrigem(preparado.quemFaz, preparado.origem);
+              if (extras) {
+                Object.assign(preparado, extras);
+                if (extras.apenasDetalhes) {
+                  selecoesAtuais.delete(preparado.id);
+                }
+              }
+              preparado.jaPegou = Boolean(preparado.jaPegou);
+              preparado.apenasDetalhes = Boolean(preparado.apenasDetalhes);
+              const existente = eventosPorId.get(preparado.id);
+              if (existente) {
+                Object.assign(existente, preparado);
+                if (extras && extras.apenasDetalhes) {
+                  existente.apenasDetalhes = true;
+                  existente.jaPegou = Boolean(existente.jaPegou);
+                }
+                return existente;
+              }
+              if (preparado.apenasDetalhes) {
+                selecoesAtuais.delete(preparado.id);
+              }
               eventosPorId.set(preparado.id, preparado);
               return preparado;
             });
@@ -822,6 +855,10 @@
           card.setAttribute('data-date', evento.quandoFormatado || '');
           card.setAttribute('data-quando', evento.quandoNormalizado || DATE_KEY_EMPTY);
           card.setAttribute('data-hora', evento.horaCurta || '');
+          card.setAttribute('data-ja-pegou', evento.jaPegou ? 'true' : 'false');
+          if (evento.jaPegou) {
+            card.classList.add('portal-dyn-ja-pego');
+          }
 
           const capa = document.createElement('div');
           capa.className = 'ticket-cover ratio ratio-16x9';
@@ -868,7 +905,10 @@
           const quandoTexto = evento.quandoFormatado || '—';
           blocoInfo.appendChild(criarMeta('Quando', quandoTexto));
           blocoInfo.appendChild(criarMeta('Duração', evento.duracao || '—'));
-          blocoInfo.appendChild(criarMeta('Ingressos', `Disponíveis: ${evento.disponiveis} / ${evento.disponibilizados}`));
+          const textoIngressos = evento.jaPegou
+            ? 'Você já pegou estes ingressos'
+            : `Disponíveis: ${evento.disponiveis} / ${evento.disponibilizados}`;
+          blocoInfo.appendChild(criarMeta('Ingressos', textoIngressos));
           corpo.appendChild(blocoInfo);
 
           const acoes = document.createElement('div');
@@ -1008,7 +1048,15 @@
           if (!elGrid) return;
           const cards = elGrid.querySelectorAll('[data-id]');
           cards.forEach((card) => {
-            card.classList.remove('inativo', 'selecionado', 'is-muted', 'is-active');
+            const jaPegou = card.getAttribute('data-ja-pegou') === 'true';
+            card.classList.remove('selecionado', 'is-active');
+            if (jaPegou) {
+              card.classList.add('portal-dyn-ja-pego');
+              card.classList.remove('inativo', 'is-muted');
+            } else {
+              card.classList.remove('inativo', 'is-muted');
+              card.classList.remove('portal-dyn-ja-pego');
+            }
             limparAvisoErro(card);
             const botao = card.querySelector('.btn-pegar-ingresso');
             if (botao) {
@@ -1057,6 +1105,10 @@
 
         function aplicarEstadoInativo(card) {
           if (!card) return;
+          if (card.getAttribute('data-ja-pegou') === 'true') {
+            card.classList.add('portal-dyn-ja-pego');
+            return;
+          }
           card.classList.add('inativo');
           card.classList.add('is-muted');
           card.classList.remove('selecionado', 'is-active');
@@ -1079,6 +1131,12 @@
         }
 
         function estaNoIntervaloDeRestricao(eventoAlvo, eventoSelecionado) {
+          if (
+            (eventoSelecionado && (eventoSelecionado.apenasDetalhes || eventoSelecionado.jaPegou)) ||
+            (eventoAlvo && (eventoAlvo.apenasDetalhes || eventoAlvo.jaPegou))
+          ) {
+            return false;
+          }
           if (!eventoSelecionado || !Number.isFinite(eventoSelecionado.inicioAbsoluto)) {
             return false;
           }
@@ -1089,10 +1147,13 @@
         }
 
         function eventoConflitanteComSelecoes(evento) {
-          if (!evento) return false;
+          if (!evento || evento.apenasDetalhes || evento.jaPegou) return false;
           for (const selecionadoId of selecoesAtuais) {
             if (selecionadoId === evento.id) continue;
             const selecionado = eventosPorId.get(selecionadoId);
+            if (!selecionado || selecionado.apenasDetalhes || selecionado.jaPegou) {
+              continue;
+            }
             if (estaNoIntervaloDeRestricao(evento, selecionado)) {
               return true;
             }
@@ -1225,6 +1286,14 @@
             }
             return;
           }
+          if (evento.apenasDetalhes || evento.jaPegou) {
+            if (selecoesAtuais.has(id)) {
+              selecoesAtuais.delete(id);
+              atualizarEstadoTodos();
+              atualizarBotaoModal();
+            }
+            return;
+          }
           if (selecoesAtuais.has(id)) {
             selecoesAtuais.delete(id);
           } else {
@@ -1302,21 +1371,53 @@
             }
           }
           if (mSinopse) mSinopse.textContent = evento.sinopse || '—';
+          const somenteDetalhes = Boolean(evento.apenasDetalhes || evento.jaPegou);
           if (mTicketBtn) {
-            mTicketBtn.dataset.id = evento.id;
-            mTicketBtn.dataset.quando = evento.quandoNormalizado || DATE_KEY_EMPTY;
-            mTicketBtn.dataset.hora = evento.horaCurta || '';
+            if (somenteDetalhes) {
+              mTicketBtn.classList.add('d-none');
+              mTicketBtn.disabled = true;
+              mTicketBtn.setAttribute('aria-disabled', 'true');
+              mTicketBtn.setAttribute('aria-pressed', 'false');
+              mTicketBtn.dataset.id = '';
+              mTicketBtn.dataset.quando = '';
+              mTicketBtn.dataset.hora = '';
+            } else {
+              mTicketBtn.classList.remove('d-none');
+              mTicketBtn.setAttribute('aria-pressed', 'false');
+              mTicketBtn.setAttribute('aria-disabled', 'false');
+              mTicketBtn.disabled = false;
+              mTicketBtn.dataset.id = evento.id;
+              mTicketBtn.dataset.quando = evento.quandoNormalizado || DATE_KEY_EMPTY;
+              mTicketBtn.dataset.hora = evento.horaCurta || '';
+            }
+          }
+          if (mQuantidadeWrapper) {
+            mQuantidadeWrapper.classList.toggle('d-none', somenteDetalhes);
           }
           if (mQuantidadeSelect) {
             mQuantidadeSelect.value = '1';
+            mQuantidadeSelect.disabled = somenteDetalhes;
           }
           if (mConfirmBtn) {
-            mConfirmBtn.dataset.id = evento.id;
-            mConfirmBtn.dataset.quando = evento.quandoNormalizado || DATE_KEY_EMPTY;
-            mConfirmBtn.dataset.confirmar = 'true';
-            mConfirmBtn.dataset.confirmarId = evento.id;
-            mConfirmBtn.setAttribute('aria-label', 'Confirmar ingresso');
-            mConfirmBtn.textContent = 'Confirmar';
+            if (somenteDetalhes) {
+              mConfirmBtn.classList.add('d-none');
+              mConfirmBtn.disabled = true;
+              mConfirmBtn.setAttribute('aria-disabled', 'true');
+              mConfirmBtn.dataset.id = '';
+              mConfirmBtn.dataset.quando = '';
+              mConfirmBtn.dataset.confirmar = 'false';
+              mConfirmBtn.dataset.confirmarId = '';
+            } else {
+              mConfirmBtn.classList.remove('d-none');
+              mConfirmBtn.dataset.id = evento.id;
+              mConfirmBtn.dataset.quando = evento.quandoNormalizado || DATE_KEY_EMPTY;
+              mConfirmBtn.dataset.confirmar = 'true';
+              mConfirmBtn.dataset.confirmarId = evento.id;
+              mConfirmBtn.setAttribute('aria-label', 'Confirmar ingresso');
+              if (mConfirmBtn.textContent !== 'Confirmando…') {
+                mConfirmBtn.textContent = 'Confirmar';
+              }
+            }
           }
           atualizarBotaoModal();
           modal.show();
@@ -1328,6 +1429,21 @@
           if (!id) return;
           const evento = eventosPorId.get(id);
           if (!evento) return;
+          if (evento.apenasDetalhes || evento.jaPegou) {
+            if (mTicketBtn) {
+              mTicketBtn.disabled = true;
+              mTicketBtn.setAttribute('aria-disabled', 'true');
+              mTicketBtn.setAttribute('aria-pressed', 'false');
+            }
+            if (mConfirmBtn) {
+              mConfirmBtn.disabled = true;
+              mConfirmBtn.setAttribute('aria-disabled', 'true');
+            }
+            if (mQuantidadeSelect) {
+              mQuantidadeSelect.disabled = true;
+            }
+            return;
+          }
           const selecionado = selecoesAtuais.has(id);
           const bloqueado = !selecionado && eventoConflitanteComSelecoes(evento);
 
