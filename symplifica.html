@@ -400,7 +400,7 @@
         ];
         const DATE_KEY_EMPTY = '__sem_data__';
         const INTERVALO_TRES_HORAS_MS = 3 * 60 * 60 * 1000;
-        let selecaoAtualId = null;
+        const selecoesAtuais = new Set();
         const eventosPorId = new Map();
         let eventos = [];
         let eventosFiltrados = [];
@@ -502,8 +502,8 @@
 .portal-dyn .ticket-actions .btn-modern.btn-primary { box-shadow: 0 10px 24px rgba(0, 83, 164, 0.25); }
 .portal-dyn .ticket-actions .btn-modern.btn-primary:hover { box-shadow: 0 12px 28px rgba(0, 83, 164, 0.3); }
 .portal-dyn .ticket-top-flags { display: flex; align-items: center; justify-content: flex-end; gap: 0.35rem; flex-wrap: wrap; }
-.portal-dyn .portal-dyn-acc-icon { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; overflow: hidden; background: rgba(0, 0, 0, 0.05); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); }
-.portal-dyn .portal-dyn-acc-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.portal-dyn .portal-dyn-acc-icon { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; border-radius: 4px; background: transparent; box-shadow: none; }
+.portal-dyn .portal-dyn-acc-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .portal-dyn .portal-dyn-erro-confirmacao { display: block; margin-top: 0.25rem; font-size: 0.85rem; }
 `;
           document.body.appendChild(estilo);
@@ -525,7 +525,7 @@
 
         function prepararEventos(lista) {
           eventosPorId.clear();
-          selecaoAtualId = null;
+          selecoesAtuais.clear();
           return lista
             .filter((item) => item && item.id)
             .map((item) => {
@@ -963,9 +963,21 @@
           return Math.abs(eventoAlvo.inicioAbsoluto - eventoSelecionado.inicioAbsoluto) < INTERVALO_TRES_HORAS_MS;
         }
 
-        function reloadComAtraso(ms = 1500) {
+        function eventoConflitanteComSelecoes(evento) {
+          if (!evento) return false;
+          for (const selecionadoId of selecoesAtuais) {
+            if (selecionadoId === evento.id) continue;
+            const selecionado = eventosPorId.get(selecionadoId);
+            if (estaNoIntervaloDeRestricao(evento, selecionado)) {
+              return true;
+            }
+          }
+          return false;
+        }
+
+        function reloadComAtraso(ms = 2500) {
           if (typeof window === 'undefined') return;
-          const atraso = Number.isFinite(ms) ? ms : 1500;
+          const atraso = Number.isFinite(ms) ? ms : 2500;
           window.setTimeout(() => {
             if (window.location) {
               window.location.reload();
@@ -1076,42 +1088,49 @@
           if (!id) return;
           const evento = eventosPorId.get(id);
           if (!evento) {
-            if (selecaoAtualId === id) {
-              selecaoAtualId = null;
-              resetarDisponibilidade();
+            if (selecoesAtuais.has(id)) {
+              selecoesAtuais.delete(id);
+              atualizarEstadoTodos();
               atualizarBotaoModal();
             }
             return;
           }
-          if (selecaoAtualId === id) {
-            selecaoAtualId = null;
-            resetarDisponibilidade();
+          if (selecoesAtuais.has(id)) {
+            selecoesAtuais.delete(id);
           } else {
-            selecaoAtualId = id;
-            atualizarEstadoDosCards(evento);
+            if (eventoConflitanteComSelecoes(evento)) {
+              return;
+            }
+            selecoesAtuais.add(id);
           }
+          atualizarEstadoTodos();
           atualizarBotaoModal();
         }
 
-        function atualizarEstadoDosCards(eventoSelecionado) {
+        function atualizarEstadoDosCards() {
           if (!elGrid) return;
           resetarDisponibilidade();
-          if (!eventoSelecionado) return;
-          const cardSelecionado = encontrarCardPorId(eventoSelecionado.id);
-          if (!cardSelecionado) {
-            selecaoAtualId = null;
-            return;
-          }
-          aplicarEstadoSelecionado(cardSelecionado);
-          if (!Number.isFinite(eventoSelecionado.inicioAbsoluto)) {
-            return;
-          }
+          if (!selecoesAtuais.size) return;
+          const selecionados = Array.from(selecoesAtuais)
+            .map((id) => eventosPorId.get(id))
+            .filter(Boolean);
+          if (!selecionados.length) return;
+          selecionados.forEach((eventoSelecionado) => {
+            const cardSelecionado = encontrarCardPorId(eventoSelecionado.id);
+            if (cardSelecionado) {
+              aplicarEstadoSelecionado(cardSelecionado);
+            }
+          });
           const cards = elGrid.querySelectorAll('[data-id]');
           cards.forEach((card) => {
-            if (card === cardSelecionado) return;
             const idCard = card.getAttribute('data-id');
+            if (!idCard || selecoesAtuais.has(idCard)) return;
             const eventoCard = eventosPorId.get(idCard);
-            if (estaNoIntervaloDeRestricao(eventoCard, eventoSelecionado)) {
+            if (
+              selecionados.some((eventoSelecionado) =>
+                estaNoIntervaloDeRestricao(eventoCard, eventoSelecionado)
+              )
+            ) {
               aplicarEstadoInativo(card);
             }
           });
@@ -1119,14 +1138,11 @@
 
         function atualizarEstadoTodos() {
           if (!elGrid) return;
-          if (selecaoAtualId) {
-            const eventoSelecionado = eventosPorId.get(selecaoAtualId);
-            if (eventoSelecionado) {
-              atualizarEstadoDosCards(eventoSelecionado);
-              return;
-            }
+          if (selecoesAtuais.size) {
+            atualizarEstadoDosCards();
+          } else {
+            resetarDisponibilidade();
           }
-          resetarDisponibilidade();
         }
 
         function abrirModal(evento) {
@@ -1171,12 +1187,8 @@
           if (!id) return;
           const evento = eventosPorId.get(id);
           if (!evento) return;
-          const selecionado = selecaoAtualId === id;
-          let bloqueado = false;
-          if (!selecionado && selecaoAtualId) {
-            const eventoSelecionado = eventosPorId.get(selecaoAtualId);
-            bloqueado = estaNoIntervaloDeRestricao(evento, eventoSelecionado);
-          }
+          const selecionado = selecoesAtuais.has(id);
+          const bloqueado = !selecionado && eventoConflitanteComSelecoes(evento);
 
           if (selecionado) {
             mTicketBtn.disabled = false;
