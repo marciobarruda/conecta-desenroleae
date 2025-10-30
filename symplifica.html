@@ -186,6 +186,10 @@
                 <p class="fw-semibold" id="modalQuando">—</p>
                 <p class="small text-uppercase text-muted fw-semibold mb-1">Gênero</p>
                 <p class="fw-semibold" id="modalGenero">—</p>
+                <p class="small text-uppercase text-muted fw-semibold mb-1">Duração</p>
+                <p class="fw-semibold" id="modalDuracao">—</p>
+                <p class="small text-uppercase text-muted fw-semibold mb-1">Grupo</p>
+                <p class="fw-semibold" id="modalGrupo">—</p>
                 <p class="mb-0 mt-3" id="modalSinopse">—</p>
               </div>
             </div>
@@ -236,9 +240,11 @@
         const API_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/2917bb59-51f3-478a-a435-0753ab258f43';
         const CONFIRMAR_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/322fa1a9-b9aa-4e22-8762-fe0e63895727';
         const CPF_FIXO = '02763108458';
+        const ICON_LIBRAS_SRC = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxMjggMTI4Jz4KICA8cmVjdCB3aWR0aD0nMTI4JyBoZWlnaHQ9JzEyOCcgcng9JzE4JyBmaWxsPScjMDA1N2I4Jy8+CiAgPHBhdGggZmlsbD0nI2ZmZmZmZicgZD0nTTM5LjYgMjUuMmM2LjcgMCAxMi4xIDUuNCAxMi4xIDEyLjF2MjcuOGMwIDMuMS0yLjUgNS43LTUuNyA1LjdoLTIuNmMtMy4xIDAtNS43LTIuNS01LjctNS43VjM3LjNjMC0xLjgtMS41LTMuMy0zLjMtMy4zLTEuOCAwLTMuMyAxLjUtMy4zIDMuM3YyMC40YzAgMy4xLTIuNSA1LjctNS43IDUuN2gtMi4zYy0zLjEgMC01LjctMi41LTUuNy01LjdWMzcuM2MwLTkuOSA4LTE4IDE4LTE4aDMuMXonLz4KICA8cGF0aCBmaWxsPScjZmZmZmZmJyBkPSdNOTMuNSA0My42YzQuMiAwIDcuNyAzLjQgNy43IDcuN3YxNy40YzAgMy45LTMuMiA3LjEtNy4xIDcuMWgtMi4yYy0zLjkgMC03LjEtMy4yLTcuMS03LjFWNTEuM2MwLTItMS42LTMuNi0zLjYtMy42cy0zLjYgMS42LTMuNiAzLjZ2MzEuM2MwIDEwLjUtOC41IDE5LTE5IDE5aC00LjVjLTEwLjUgMC0xOS04LjUtMTktMTl2LTQuOWMwLTMuMSAyLjUtNS43IDUuNy01LjdoMi42YzMuMSAwIDUuNyAyLjUgNS43IDUuN3Y0LjljMCAzLjEgMi41IDUuNyA1LjcgNS43aDQuNWMzLjEgMCA1LjctMi41IDUuNy01LjdWNTEuM2MwLTEwLjggOC44LTE5LjYgMTkuNi0xOS42aDMuMnonLz4KPC9zdmc+Cg=='
+        const ICON_AD_SRC = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxNjAgMTIwJz4KICA8cmVjdCB3aWR0aD0nMTYwJyBoZWlnaHQ9JzEyMCcgcng9JzE2JyBmaWxsPScjZmZmZmZmJy8+CiAgPHJlY3QgeD0nNCcgeT0nNCcgd2lkdGg9JzE1MicgaGVpZ2h0PScxMTInIHJ4PScxNCcgZmlsbD0nIzAwMDAwMCcvPgogIDx0ZXh0IHg9JzUwJScgeT0nNjIlJyBkb21pbmFudC1iYXNlbGluZT0nbWlkZGxlJyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBmaWxsPScjZmZmZmZmJyBmb250LWZhbWlseT0nIlB1YmxpYyBTYW5zIiwgQXJpYWwsIHNhbnMtc2VyaWYnIGZvbnQtc2l6ZT0nNjInIGZvbnQtd2VpZ2h0PSc3MDAnPkFEPC90ZXh0PgogIDxwYXRoIGZpbGw9J25vbmUnIHN0cm9rZT0nI2ZmZmZmZicgc3Ryb2tlLXdpZHRoPSc2JyBzdHJva2UtbGluZWNhcD0ncm91bmQnIGQ9J00xMjIgMzVjMTQgMTAgMjIgMjQgMjIgNDUgMCAxOS03IDMyLTIyIDQ0Jy8+CiAgPHBhdGggZmlsbD0nbm9uZScgc3Ryb2tlPScjZmZmZmZmJyBzdHJva2Utd2lkdGg9JzYnIHN0cm9rZS1saW5lY2FwPSdyb3VuZCcgZD0nTTExMCA0OGM5IDYgMTQgMTUgMTQgMjcgMCAxMi01IDIxLTE0IDI3Jy8+CiAgPHBhdGggZmlsbD0nbm9uZScgc3Ryb2tlPScjZmZmZmZmJyBzdHJva2Utd2lkdGg9JzYnIHN0cm9rZS1saW5lY2FwPSdyb3VuZCcgZD0nTTk2IDYwYzUgMyA4IDkgOCAxNXMtMyAxMi04IDE1Jy8+Cjwvc3ZnPgo='
         const ACESSIBILIDADE_ICONES = [
-          { chave: 'libras', rotulo: 'Libras', simbolo: '🤟' },
-          { chave: 'audiodescricao', rotulo: 'Audiodescrição', simbolo: '🎧' }
+          { chave: 'libras', rotulo: 'Libras', src: ICON_LIBRAS_SRC },
+          { chave: 'audiodescricao', rotulo: 'Audiodescrição', src: ICON_AD_SRC }
         ];
         const FALLBACK_EVENTOS = [
           {
@@ -418,6 +424,8 @@
         let mLocal;
         let mQuando;
         let mGenero;
+        let mDuracao;
+        let mGrupo;
         let mSinopse;
         let mTicketBtn;
         let mConfirmBtn;
@@ -461,6 +469,8 @@
           mLocal = document.querySelector('#modalTeatro');
           mQuando = document.querySelector('#modalQuando');
           mGenero = document.querySelector('#modalGenero');
+          mDuracao = document.querySelector('#modalDuracao');
+          mGrupo = document.querySelector('#modalGrupo');
           mSinopse = document.querySelector('#modalSinopse');
           mTicketBtn = document.querySelector('#modalTicketBtn');
           mConfirmBtn = document.querySelector('#modalConfirmBtn');
@@ -492,8 +502,8 @@
 .portal-dyn .ticket-actions .btn-modern.btn-primary { box-shadow: 0 10px 24px rgba(0, 83, 164, 0.25); }
 .portal-dyn .ticket-actions .btn-modern.btn-primary:hover { box-shadow: 0 12px 28px rgba(0, 83, 164, 0.3); }
 .portal-dyn .ticket-top-flags { display: flex; align-items: center; justify-content: flex-end; gap: 0.35rem; flex-wrap: wrap; }
-.portal-dyn .portal-dyn-acc-icon { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.15rem 0.5rem; border-radius: 999px; background: rgba(0, 163, 255, 0.14); color: var(--brand-primary); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
-.portal-dyn .portal-dyn-acc-icon .portal-dyn-acc-text { font-size: 0.7rem; letter-spacing: 0.04em; }
+.portal-dyn .portal-dyn-acc-icon { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; overflow: hidden; background: rgba(0, 0, 0, 0.05); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); }
+.portal-dyn .portal-dyn-acc-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .portal-dyn .portal-dyn-erro-confirmacao { display: block; margin-top: 0.25rem; font-size: 0.85rem; }
 `;
           document.body.appendChild(estilo);
@@ -531,6 +541,8 @@
                 temAcessibilidade: interpretarAcessibilidade(item.acessibilidade),
                 genero: item.genero || '',
                 local: item.local || item.teatro || '',
+                duracao: item.duracao || item.duração || '',
+                quemFaz: item.quem_faz || item.quemfaz || item.grupo || '',
                 quando: quandoValor || '',
                 quandoOriginal: item.quando ?? '',
                 horaOriginal: item.hora || '',
@@ -735,6 +747,8 @@
           blocoInfo.appendChild(criarMeta('Gênero e local', montarGeneroLocal(evento)));
           const quandoTexto = evento.quandoFormatado || '—';
           blocoInfo.appendChild(criarMeta('Quando', quandoTexto));
+          blocoInfo.appendChild(criarMeta('Duração', evento.duracao || '—'));
+          blocoInfo.appendChild(criarMeta('Grupo', evento.quemFaz || '—'));
           blocoInfo.appendChild(criarMeta('Ingressos', `Disponíveis: ${evento.disponiveis} / ${evento.disponibilizados}`));
           corpo.appendChild(blocoInfo);
 
@@ -779,7 +793,7 @@
           const texto = document.createElement('div');
           texto.className = 'fw-semibold small';
           texto.textContent = valor;
-          if (rotulo === 'Gênero e local') {
+          if (rotulo === 'Gênero e local' || rotulo === 'Grupo') {
             texto.classList.add('text-truncate');
             texto.title = valor;
           }
@@ -802,16 +816,15 @@
           const span = document.createElement('span');
           span.className = 'portal-dyn-acc-icon';
           span.dataset.acessibilidade = icone.chave;
+          span.setAttribute('role', 'img');
           span.setAttribute('aria-label', `${icone.rotulo} disponível`);
           span.title = `${icone.rotulo} disponível`;
-          const simbolo = document.createElement('span');
-          simbolo.setAttribute('aria-hidden', 'true');
-          simbolo.textContent = icone.simbolo;
-          const texto = document.createElement('span');
-          texto.className = 'portal-dyn-acc-text';
-          texto.textContent = icone.rotulo;
-          span.appendChild(simbolo);
-          span.appendChild(texto);
+          const imagem = document.createElement('img');
+          imagem.src = icone.src;
+          imagem.alt = `${icone.rotulo} disponível`;
+          imagem.loading = 'lazy';
+          imagem.decoding = 'async';
+          span.appendChild(imagem);
           return span;
         }
 
@@ -964,9 +977,9 @@
           return Math.abs(eventoAlvo.inicioAbsoluto - eventoSelecionado.inicioAbsoluto) < INTERVALO_TRES_HORAS_MS;
         }
 
-        function reloadComAtraso(ms = 800) {
+        function reloadComAtraso(ms = 1500) {
           if (typeof window === 'undefined') return;
-          const atraso = Number.isFinite(ms) ? ms : 800;
+          const atraso = Number.isFinite(ms) ? ms : 1500;
           window.setTimeout(() => {
             if (window.location) {
               window.location.reload();
@@ -1146,6 +1159,8 @@
           if (mLocal) mLocal.textContent = evento.local || '—';
           if (mQuando) mQuando.textContent = evento.quandoFormatado || '—';
           if (mGenero) mGenero.textContent = evento.genero || '—';
+          if (mDuracao) mDuracao.textContent = evento.duracao || '—';
+          if (mGrupo) mGrupo.textContent = evento.quemFaz || '—';
           if (mSinopse) mSinopse.textContent = evento.sinopse || '—';
           if (mTicketBtn) {
             mTicketBtn.dataset.id = evento.id;
