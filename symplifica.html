@@ -227,6 +227,10 @@
         const API_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/2917bb59-51f3-478a-a435-0753ab258f43';
         const CONFIRMAR_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/322fa1a9-b9aa-4e22-8762-fe0e63895727';
         const CPF_FIXO = '02763108458';
+        const ACESSIBILIDADE_ICONES = [
+          { chave: 'libras', rotulo: 'Libras', simbolo: '🤟' },
+          { chave: 'audiodescricao', rotulo: 'Audiodescrição', simbolo: '🎧' }
+        ];
         const FALLBACK_EVENTOS = [
           {
             id: 'aurora-nas-esquinas',
@@ -240,7 +244,8 @@
             posterdetalhes: 'https://deliriumnerd.com/wp-content/uploads/2019/08/aurora-nas-sombras-darkside-destacada-1024x538.jpg',
             sinopse: 'Uma viagem poética pelas ruas do Recife, onde memórias se cruzam com o cotidiano e cada esquina revela afetos e segredos que insistem em permanecer vivos.',
             disponibilizados: 120,
-            disponiveis: 68
+            disponiveis: 68,
+            acessibilidade: 'sim'
           },
           {
             id: 'maresia',
@@ -254,7 +259,8 @@
             posterdetalhes: 'https://www.papocult.com.br/wp-content/uploads/2023/08/Cia-Acaso-Maresia-divulgacao.jpg',
             sinopse: 'Entre calmarias e tempestades, uma família ribeirinha enfrenta mudanças climáticas e afetivas, assinando pactos silenciosos com o vento e a maré.',
             disponibilizados: 90,
-            disponiveis: 41
+            disponiveis: 41,
+            acessibilidade: 'nao'
           },
           {
             id: 'o-auto-do-frevo',
@@ -268,7 +274,8 @@
             posterdetalhes: 'https://midias.diariodepernambuco.com.br/static/app/noticia_127983242361/2016/12/15/680255/20161215172830466281i.jpg',
             sinopse: 'Musical festivo que mistura frevo, teatro e narrativa popular para contar a saga de um estandarte que ganha vida e sai em busca da sua orquestra.',
             disponibilizados: 150,
-            disponiveis: 102
+            disponiveis: 102,
+            acessibilidade: 'sim'
           },
           {
             id: 'paredes-que-falam',
@@ -282,7 +289,8 @@
             posterdetalhes: 'https://f.i.uol.com.br/fotografia/2025/04/02/174362328467ed947488792_1743623284_3x2_md.jpg',
             sinopse: 'Em um edifício histórico prestes a ruir, moradores compartilham lembranças e disputas, enquanto o passado sussurra pelos azulejos e pelas portas entreabertas.',
             disponibilizados: 110,
-            disponiveis: 36
+            disponiveis: 36,
+            acessibilidade: 'nao'
           },
           {
             id: 'cartas-para-clarice',
@@ -296,7 +304,8 @@
             posterdetalhes: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5LP_4Fc1TXjepIRxOZuSCHMFhY6yKJhRSsg&s',
             sinopse: 'Fragmentos de cartas nunca enviadas se transformam em cena, explorando silêncio, identidade e a força das pequenas escolhas que mudam destinos.',
             disponibilizados: 95,
-            disponiveis: 27
+            disponiveis: 27,
+            acessibilidade: 'sim'
           },
           {
             id: 'cidade-som',
@@ -310,7 +319,8 @@
             posterdetalhes: 'https://www.ceara.gov.br/wp-content/uploads/2024/06/2024-04-12_Orquestra_Juruviara_ThiagoMatine-22-scaled.jpeg',
             sinopse: 'Instalação cênica com música ao vivo em que o público percorre paisagens sonoras e descobre personagens escondidos no ruído da cidade.',
             disponibilizados: 200,
-            disponiveis: 140
+            disponiveis: 140,
+            acessibilidade: 'nao'
           },
           {
             id: 'o-ultimo-fio',
@@ -324,7 +334,8 @@
             posterdetalhes: 'https://www.garanhunsnoticias.com.br/images/noticias/124568/7c2c527a1ffdc43b66f3be20629667e9.jpeg',
             sinopse: 'Dois irmãos costuram lembranças para não esquecer o que o tempo tenta rasgar. Um drama íntimo sobre família, perda e possibilidades de recomeço.',
             disponibilizados: 85,
-            disponiveis: 19
+            disponiveis: 19,
+            acessibilidade: 'nao'
           },
           {
             id: 'couraça',
@@ -338,7 +349,8 @@
             posterdetalhes: 'https://www.estadao.com.br/blogs/blog/wp-content/uploads/sites/265/2015/10/Jaques-e-Seu-Amo-HugoPossolo-Ando-Camargo-Angelo-Brandini-foto-de-Jo%C3%A3o-Caldas-e1444340873610.jpg',
             sinopse: 'Corpos que dançam e falas entrecortadas constroem um mosaico sobre proteção e vulnerabilidade em tempos de urgência.',
             disponibilizados: 130,
-            disponiveis: 72
+            disponiveis: 72,
+            acessibilidade: 'sim'
           },
           {
             id: 'menina-e-o-vento',
@@ -352,7 +364,8 @@
             posterdetalhes: 'https://www.sociedadehumboldt.org.br/conteudo/comunicacao/dicas/teatro/1206294/1.jpg',
             sinopse: 'A amizade improvável entre uma criança curiosa e um vento brincalhão desafia regras e apresenta uma nova forma de habitar o mundo.',
             disponibilizados: 160,
-            disponiveis: 88
+            disponiveis: 88,
+            acessibilidade: 'nao'
           },
           {
             id: 'rio-subterraneo',
@@ -366,7 +379,8 @@
             posterdetalhes: 'https://s2-oglobo.glbimg.com/Vg94jDR50UtDXMDM39fXOg8nRU0=/0x0:4928x3280/924x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_da025474c0c44edd99332dddb09cabe8/internal_photos/bs/2023/j/q/UyrFCpTqKuAdvuqyYJYQ/perversa-monica-bittencourt-em-cena-5-credito-da-foto-bruna-diacoyannis-1-.jpeg',
             sinopse: 'Narrativa que revela um Recife oculto sob as águas, onde memórias afundadas retornam para guiar um grupo em busca de pertencimento.',
             disponibilizados: 145,
-            disponiveis: 54
+            disponiveis: 54,
+            acessibilidade: 'sim'
           }
         ];
         const DATE_KEY_EMPTY = '__sem_data__';
@@ -390,6 +404,7 @@
         let mTitle;
         let mPoster;
         let mClass;
+        let mClassWrapper;
         let mLocal;
         let mQuando;
         let mGenero;
@@ -428,6 +443,10 @@
           mTitle = document.querySelector('#modalTitulo');
           mPoster = document.querySelector('#modalPoster');
           mClass = document.querySelector('#modalClass');
+          mClassWrapper = mClass ? mClass.parentElement : null;
+          if (mClassWrapper && !mClassWrapper.classList.contains('ticket-top-flags')) {
+            mClassWrapper.classList.add('ticket-top-flags');
+          }
           mLocal = document.querySelector('#modalTeatro');
           mQuando = document.querySelector('#modalQuando');
           mGenero = document.querySelector('#modalGenero');
@@ -460,6 +479,9 @@
 .portal-dyn .ticket-actions .btn-modern.btn-outline-secondary:hover { background: rgba(0, 83, 164, 0.08); }
 .portal-dyn .ticket-actions .btn-modern.btn-primary { box-shadow: 0 10px 24px rgba(0, 83, 164, 0.25); }
 .portal-dyn .ticket-actions .btn-modern.btn-primary:hover { box-shadow: 0 12px 28px rgba(0, 83, 164, 0.3); }
+.portal-dyn .ticket-top-flags { display: flex; align-items: center; justify-content: flex-end; gap: 0.35rem; flex-wrap: wrap; }
+.portal-dyn .portal-dyn-acc-icon { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.15rem 0.5rem; border-radius: 999px; background: rgba(0, 163, 255, 0.14); color: var(--brand-primary); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+.portal-dyn .portal-dyn-acc-icon .portal-dyn-acc-text { font-size: 0.7rem; letter-spacing: 0.04em; }
 .portal-dyn .portal-dyn-erro-confirmacao { display: block; margin-top: 0.25rem; font-size: 0.85rem; }
 `;
           document.body.appendChild(estilo);
@@ -491,6 +513,8 @@
                 id: String(item.id),
                 nome: item.nome || 'Evento',
                 classificacao: item.classificacao || 'Livre',
+                acessibilidade: item.acessibilidade ?? '',
+                temAcessibilidade: interpretarAcessibilidade(item.acessibilidade),
                 genero: item.genero || '',
                 local: item.local || item.teatro || '',
                 quando: quandoValor || '',
@@ -513,6 +537,17 @@
         function numeroSeguro(valor) {
           const numero = Number(valor);
           return Number.isFinite(numero) && numero >= 0 ? numero : 0;
+        }
+
+        function interpretarAcessibilidade(valor) {
+          if (valor === undefined || valor === null) {
+            return false;
+          }
+          const texto = String(valor).trim().toLowerCase();
+          if (!texto) {
+            return false;
+          }
+          return texto === 'sim' || texto === 'true' || texto === '1';
         }
 
         function resolverQuando(item) {
@@ -668,7 +703,11 @@
           titulo.title = evento.nome;
           titulo.textContent = evento.nome;
           cabecalho.appendChild(titulo);
-          cabecalho.appendChild(criarClassificacao(evento.classificacao));
+          const topoDireita = document.createElement('div');
+          topoDireita.className = 'ticket-top-flags';
+          topoDireita.appendChild(criarClassificacao(evento.classificacao));
+          aplicarAcessibilidadeAoContainer(topoDireita, evento.temAcessibilidade);
+          cabecalho.appendChild(topoDireita);
           corpo.appendChild(cabecalho);
 
           const blocoInfo = document.createElement('div');
@@ -681,15 +720,6 @@
 
           const acoes = document.createElement('div');
           acoes.className = 'ticket-actions mt-3';
-          const botaoIngresso = document.createElement('button');
-          botaoIngresso.type = 'button';
-          botaoIngresso.className = 'btn btn-primary btn-modern btn-pegar-ingresso';
-          botaoIngresso.textContent = '🎟️ Pegar ingresso';
-          botaoIngresso.setAttribute('aria-pressed', 'false');
-          botaoIngresso.setAttribute('aria-disabled', 'false');
-          botaoIngresso.dataset.id = evento.id;
-          botaoIngresso.dataset.date = evento.quandoFormatado || '';
-          acoes.appendChild(botaoIngresso);
 
           const botaoDetalhes = document.createElement('button');
           botaoDetalhes.type = 'button';
@@ -722,6 +752,33 @@
           grupo.appendChild(label);
           grupo.appendChild(texto);
           return grupo;
+        }
+
+        function aplicarAcessibilidadeAoContainer(container, habilitado) {
+          if (!container) return;
+          const existentes = container.querySelectorAll('.portal-dyn-acc-icon');
+          existentes.forEach((icone) => icone.remove());
+          if (!habilitado) return;
+          ACESSIBILIDADE_ICONES.forEach((icone) => {
+            container.appendChild(criarIconeAcessibilidade(icone));
+          });
+        }
+
+        function criarIconeAcessibilidade(icone) {
+          const span = document.createElement('span');
+          span.className = 'portal-dyn-acc-icon';
+          span.dataset.acessibilidade = icone.chave;
+          span.setAttribute('aria-label', `${icone.rotulo} disponível`);
+          span.title = `${icone.rotulo} disponível`;
+          const simbolo = document.createElement('span');
+          simbolo.setAttribute('aria-hidden', 'true');
+          simbolo.textContent = icone.simbolo;
+          const texto = document.createElement('span');
+          texto.className = 'portal-dyn-acc-text';
+          texto.textContent = icone.rotulo;
+          span.appendChild(simbolo);
+          span.appendChild(texto);
+          return span;
         }
 
         function criarClassificacao(classificacao) {
@@ -997,6 +1054,7 @@
             mClass.className = `ci ${info.classe}`;
             mClass.textContent = info.rotulo;
           }
+          aplicarAcessibilidadeAoContainer(mClassWrapper, evento.temAcessibilidade);
           if (mLocal) mLocal.textContent = evento.local || '—';
           if (mQuando) mQuando.textContent = evento.quandoFormatado || '—';
           if (mGenero) mGenero.textContent = evento.genero || '—';
