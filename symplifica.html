@@ -643,6 +643,8 @@
           const card = document.createElement('article');
           card.className = 'ticket-card h-100 d-flex flex-column';
           card.setAttribute('data-id', evento.id);
+          card.setAttribute('data-card-id', evento.id);
+          card.setAttribute('data-date', evento.quandoFormatado || '');
           card.setAttribute('data-quando', evento.quandoNormalizado || DATE_KEY_EMPTY);
           card.setAttribute('data-hora', evento.horaCurta || '');
 
@@ -682,16 +684,17 @@
           const botaoIngresso = document.createElement('button');
           botaoIngresso.type = 'button';
           botaoIngresso.className = 'btn btn-primary btn-modern btn-pegar-ingresso';
-          botaoIngresso.textContent = 'Pegar ingresso 🎟️';
+          botaoIngresso.textContent = '🎟️ Pegar ingresso';
           botaoIngresso.setAttribute('aria-pressed', 'false');
           botaoIngresso.setAttribute('aria-disabled', 'false');
           botaoIngresso.dataset.id = evento.id;
+          botaoIngresso.dataset.date = evento.quandoFormatado || '';
           acoes.appendChild(botaoIngresso);
 
           const botaoDetalhes = document.createElement('button');
           botaoDetalhes.type = 'button';
           botaoDetalhes.className = 'btn btn-outline-secondary btn-modern btn-detalhes';
-          botaoDetalhes.setAttribute('data-detalhes', evento.id);
+          botaoDetalhes.setAttribute('data-details', evento.id);
           botaoDetalhes.setAttribute('aria-label', 'Ver detalhes');
           botaoDetalhes.setAttribute('aria-disabled', 'false');
           botaoDetalhes.textContent = 'Detalhes';
@@ -863,7 +866,7 @@
             togglePorData(chave, id);
             return;
           }
-          const botaoDetalhes = evento.target.closest('[data-detalhes]');
+          const botaoDetalhes = evento.target.closest('[data-details]');
           if (botaoDetalhes) {
             if (botaoDetalhes.dataset.confirmar === 'true') {
               evento.preventDefault();
@@ -907,14 +910,16 @@
             const ativo = selecionado && selecionado === idCard;
             if (ativo) {
               card.classList.add('selecionado');
+              card.classList.add('is-active');
               card.classList.remove('inativo');
+              card.classList.remove('is-muted');
               if (botao) {
                 botao.disabled = false;
                 botao.setAttribute('aria-disabled', 'false');
                 botao.setAttribute('aria-pressed', 'true');
                 botao.classList.add('btn-success');
                 botao.classList.remove('btn-primary');
-                botao.textContent = 'Ingresso selecionado 🎟️';
+                botao.textContent = '🎟️ Ingresso selecionado';
               }
               if (botaoDetalhes) {
                 configurarBotaoConfirmar(botaoDetalhes, idCard);
@@ -923,7 +928,9 @@
               }
             } else if (selecionado) {
               card.classList.add('inativo');
+              card.classList.add('is-muted');
               card.classList.remove('selecionado');
+              card.classList.remove('is-active');
               if (botao) {
                 botao.disabled = true;
                 botao.setAttribute('aria-disabled', 'true');
@@ -932,7 +939,7 @@
                 if (!botao.classList.contains('btn-primary')) {
                   botao.classList.add('btn-primary');
                 }
-                botao.textContent = 'Pegar ingresso 🎟️';
+                botao.textContent = '🎟️ Pegar ingresso';
               }
               if (botaoDetalhes) {
                 restaurarBotaoDetalhes(botaoDetalhes, card);
@@ -940,7 +947,7 @@
                 botaoDetalhes.setAttribute('aria-disabled', 'true');
               }
             } else {
-              card.classList.remove('inativo', 'selecionado');
+              card.classList.remove('inativo', 'selecionado', 'is-muted', 'is-active');
               if (botao) {
                 botao.disabled = false;
                 botao.setAttribute('aria-disabled', 'false');
@@ -949,7 +956,7 @@
                 if (!botao.classList.contains('btn-primary')) {
                   botao.classList.add('btn-primary');
                 }
-                botao.textContent = 'Pegar ingresso 🎟️';
+                botao.textContent = '🎟️ Pegar ingresso';
               }
               if (botaoDetalhes) {
                 restaurarBotaoDetalhes(botaoDetalhes, card);
