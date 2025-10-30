@@ -755,20 +755,6 @@
           const acoes = document.createElement('div');
           acoes.className = 'ticket-actions mt-3';
 
-          const botaoIngresso = document.createElement('button');
-          botaoIngresso.type = 'button';
-          botaoIngresso.className = 'btn btn-primary btn-modern btn-pegar-ingresso';
-          botaoIngresso.setAttribute('aria-label', 'Pegar ingresso');
-          botaoIngresso.setAttribute('aria-pressed', 'false');
-          botaoIngresso.setAttribute('aria-disabled', 'false');
-          botaoIngresso.textContent = '🎟️ Pegar ingresso';
-          botaoIngresso.dataset.id = evento.id;
-          botaoIngresso.dataset.quando = evento.quandoNormalizado || DATE_KEY_EMPTY;
-          botaoIngresso.dataset.hora = evento.horaCurta || '';
-          botaoIngresso.setAttribute('data-card-id', evento.id);
-          botaoIngresso.setAttribute('data-date', evento.quandoFormatado || '');
-          acoes.appendChild(botaoIngresso);
-
           const botaoDetalhes = document.createElement('button');
           botaoDetalhes.type = 'button';
           botaoDetalhes.className = 'btn btn-outline-secondary btn-modern btn-detalhes';
