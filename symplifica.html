@@ -192,6 +192,15 @@
           </div>
           <div class="modal-footer">
             <button id="modalTicketBtn" type="button" class="btn btn-outline-primary" aria-pressed="false">🎟️ Pegar ingresso</button>
+            <button
+              id="modalConfirmBtn"
+              type="button"
+              class="btn btn-primary"
+              aria-disabled="true"
+              disabled
+            >
+              Confirmar
+            </button>
             <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Fechar</button>
           </div>
         </div>
@@ -410,6 +419,7 @@
         let mGenero;
         let mSinopse;
         let mTicketBtn;
+        let mConfirmBtn;
 
         if (document.readyState === 'loading') {
           document.addEventListener('DOMContentLoaded', init);
@@ -452,6 +462,7 @@
           mGenero = document.querySelector('#modalGenero');
           mSinopse = document.querySelector('#modalSinopse');
           mTicketBtn = document.querySelector('#modalTicketBtn');
+          mConfirmBtn = document.querySelector('#modalConfirmBtn');
 
           document.body.classList.add('portal-dyn');
           injetarEstilos();
@@ -602,6 +613,11 @@
               if (!evento) return;
               const chave = evento.quandoNormalizado || DATE_KEY_EMPTY;
               togglePorData(chave, id);
+            });
+          }
+          if (mConfirmBtn) {
+            mConfirmBtn.addEventListener('click', () => {
+              confirmarIngresso(mConfirmBtn);
             });
           }
         }
@@ -838,6 +854,17 @@
           return card ? card.querySelector('.ticket-actions') : null;
         }
 
+        function encontrarCardPorId(id) {
+          if (!id || !elGrid) return null;
+          const todos = elGrid.querySelectorAll('[data-id]');
+          for (const candidato of todos) {
+            if (candidato.getAttribute('data-id') === id) {
+              return candidato;
+            }
+          }
+          return null;
+        }
+
         function mostrarAvisoErro(card, mensagem) {
           const container = obterContainerAcoes(card);
           if (!container) return;
@@ -868,14 +895,24 @@
 
         async function confirmarIngresso(botao) {
           if (!botao || botao.disabled) return;
-          const card = botao.closest('[data-id]');
-          if (!card) return;
-          const id = card.getAttribute('data-id');
+          let card = botao.closest('[data-id]');
+          let id = botao.dataset.id || botao.dataset.confirmarId || '';
+          if (!id && card) {
+            id = card.getAttribute('data-id') || '';
+          }
+          if (!id && botao === mConfirmBtn && mTicketBtn) {
+            id = mTicketBtn.dataset.id || '';
+          }
           if (!id) return;
+          if (!card) {
+            card = encontrarCardPorId(id);
+          }
           const cpf = obterCPF();
           if (!cpf) return;
 
-          limparAvisoErro(card);
+          if (card) {
+            limparAvisoErro(card);
+          }
 
           botao.disabled = true;
           botao.setAttribute('aria-disabled', 'true');
@@ -899,18 +936,26 @@
                 }
               }, 2000);
             }
-            card.dispatchEvent(new CustomEvent('ingresso:confirmado', { detail: { id, cpf }, bubbles: true }));
+            if (card) {
+              card.dispatchEvent(new CustomEvent('ingresso:confirmado', { detail: { id, cpf }, bubbles: true }));
+            }
             if (typeof window !== 'undefined' && window.location) {
               window.location.reload();
             }
           } catch (erro) {
             console.error('Falha ao confirmar ingresso', erro);
             botao.textContent = 'Confirmar';
-            mostrarAvisoErro(card, 'Falha ao confirmar. Tente novamente.');
+            if (card) {
+              mostrarAvisoErro(card, 'Falha ao confirmar. Tente novamente.');
+            }
           } finally {
             botao.disabled = false;
             botao.setAttribute('aria-disabled', 'false');
-            if (botao.dataset.confirmar !== 'true' && (!botao.textContent || botao.textContent === 'Confirmando…')) {
+            if (botao === mConfirmBtn) {
+              if (!botao.textContent || botao.textContent === 'Confirmando…') {
+                botao.textContent = 'Confirmar';
+              }
+            } else if (botao.dataset.confirmar !== 'true' && (!botao.textContent || botao.textContent === 'Confirmando…')) {
               botao.textContent = 'Detalhes';
             }
           }
@@ -1064,6 +1109,14 @@
             mTicketBtn.dataset.quando = evento.quandoNormalizado || DATE_KEY_EMPTY;
             mTicketBtn.dataset.hora = evento.horaCurta || '';
           }
+          if (mConfirmBtn) {
+            mConfirmBtn.dataset.id = evento.id;
+            mConfirmBtn.dataset.quando = evento.quandoNormalizado || DATE_KEY_EMPTY;
+            mConfirmBtn.dataset.confirmar = 'true';
+            mConfirmBtn.dataset.confirmarId = evento.id;
+            mConfirmBtn.setAttribute('aria-label', 'Confirmar ingresso');
+            mConfirmBtn.textContent = 'Confirmar';
+          }
           atualizarBotaoModal();
           modal.show();
         }
@@ -1106,6 +1159,21 @@
             mTicketBtn.classList.remove('btn-outline-secondary');
             if (!mTicketBtn.classList.contains('btn-outline-primary')) {
               mTicketBtn.classList.add('btn-outline-primary');
+            }
+          }
+          if (mConfirmBtn && mConfirmBtn.dataset.id === id) {
+            if (bloqueado || !ativo) {
+              mConfirmBtn.disabled = true;
+              mConfirmBtn.setAttribute('aria-disabled', 'true');
+              if (mConfirmBtn.dataset.confirmar === 'true' && mConfirmBtn.textContent !== 'Confirmando…') {
+                mConfirmBtn.textContent = 'Confirmar';
+              }
+            } else {
+              mConfirmBtn.disabled = false;
+              mConfirmBtn.setAttribute('aria-disabled', 'false');
+              if (mConfirmBtn.dataset.confirmar === 'true' && mConfirmBtn.textContent !== 'Confirmando…') {
+                mConfirmBtn.textContent = 'Confirmar';
+              }
             }
           }
         }
