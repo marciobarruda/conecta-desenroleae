@@ -523,7 +523,15 @@
 
         async function fetchEventos() {
           try {
-            const resposta = await fetch(API_URL, { headers: { Accept: 'application/json' } });
+            const cpf = obterCPF();
+            const resposta = await fetch(API_URL, {
+              method: 'POST',
+              headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ cpf })
+            });
             if (!resposta.ok) {
               throw new Error(`Erro HTTP ${resposta.status}`);
             }
