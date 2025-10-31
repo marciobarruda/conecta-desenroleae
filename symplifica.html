@@ -115,7 +115,14 @@
                 Favoritos <span class="badge text-bg-primary align-middle ms-1" id="favCount">0</span>
               </button>
             </div>
-            <img src="https://statics.recife.pe.gov.br/images/dynamics/automacao/catraca.png" alt="Catraca Conecta" class="header-brand-image" />
+            <img
+              id="logo-catraca"
+              src="https://statics.recife.pe.gov.br/images/dynamics/automacao/catraca.png?w=400"
+              alt="Catraca Conecta"
+              class="header-brand-image"
+              loading="lazy"
+              crossorigin="anonymous"
+            />
           </div>
         </div>
       </div>
@@ -425,6 +432,118 @@
             acessibilidade: 'sim'
           }
         ];
+
+        async function transparentAndTrim(img, tolerance = 20) {
+          if (!img) return;
+
+          const garantirClasseLayout = () => {
+            if (!img.classList.contains('trimmed-img')) {
+              img.classList.add('trimmed-img');
+            }
+          };
+
+          try {
+            if (img.decode) {
+              await img.decode();
+            }
+          } catch (erro) {
+            // Continua mesmo se decode falhar
+          }
+
+          const w = img.naturalWidth;
+          const h = img.naturalHeight;
+          if (!w || !h) {
+            garantirClasseLayout();
+            return;
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+
+          let imgData;
+          try {
+            imgData = ctx.getImageData(0, 0, w, h);
+          } catch (erro) {
+            console.warn('Não foi possível processar o logotipo para remoção de fundo.', erro);
+            garantirClasseLayout();
+            return;
+          }
+
+          const data = imgData.data;
+          const bg = [data[0], data[1], data[2]];
+          let minX = w;
+          let minY = h;
+          let maxX = -1;
+          let maxY = -1;
+
+          for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+              const i = (y * w + x) * 4;
+              const r = data[i];
+              const g = data[i + 1];
+              const b = data[i + 2];
+              const isBg =
+                Math.abs(r - bg[0]) <= tolerance &&
+                Math.abs(g - bg[1]) <= tolerance &&
+                Math.abs(b - bg[2]) <= tolerance;
+
+              if (isBg) {
+                data[i + 3] = 0;
+              }
+
+              if (data[i + 3] > 10) {
+                if (x < minX) minX = x;
+                if (y < minY) minY = y;
+                if (x > maxX) maxX = x;
+                if (y > maxY) maxY = y;
+              }
+            }
+          }
+
+          ctx.putImageData(imgData, 0, 0);
+
+          let outputCanvas = canvas;
+          if (maxX >= 0 && maxY >= 0) {
+            const cropWidth = maxX - minX + 1;
+            const cropHeight = maxY - minY + 1;
+            outputCanvas = document.createElement('canvas');
+            outputCanvas.width = cropWidth;
+            outputCanvas.height = cropHeight;
+            outputCanvas
+              .getContext('2d')
+              .drawImage(canvas, minX, minY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+          }
+
+          try {
+            const dataUrl = outputCanvas.toDataURL('image/png');
+            if (dataUrl) {
+              img.src = dataUrl;
+            }
+          } catch (erro) {
+            console.warn('Não foi possível aplicar o recorte transparente ao logotipo.', erro);
+          }
+
+          garantirClasseLayout();
+        }
+
+        function prepararLogoCabecalho(img) {
+          if (!img) return;
+
+          const processar = () => {
+            transparentAndTrim(img).catch((erro) => {
+              console.warn('Falha ao ajustar o logotipo do cabeçalho.', erro);
+            });
+          };
+
+          if (img.complete) {
+            processar();
+          } else {
+            img.addEventListener('load', processar, { once: true });
+          }
+        }
         const DATE_KEY_EMPTY = '__sem_data__';
         const INTERVALO_TRES_HORAS_MS = 3 * 60 * 60 * 1000;
         const selecoesAtuais = new Set();
@@ -481,6 +600,8 @@
           elFClass = document.querySelector('#fClass');
           elFGenero = document.querySelector('#fGenero');
           elBtnLimpar = document.querySelector('#btnLimpar');
+
+          prepararLogoCabecalho(document.getElementById('logo-catraca'));
 
           possuiFormulario = !!document.querySelector('form');
           campoCPF = document.querySelector('#cpf');
@@ -563,7 +684,11 @@
   background-color: transparent;
   padding: 0;
   margin: 0;
-  clip-path: inset(4% 6% 4% 6%);
+}
+.portal-dyn .trimmed-img {
+  display: block;
+  max-width: 100%;
+  height: auto;
 }
 .portal-dyn .ticket-top-flags { display: flex; align-items: center; justify-content: flex-end; gap: 0.35rem; flex-wrap: wrap; }
 .portal-dyn .portal-dyn-acc-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: 0 0 28px; padding: 2px; border-radius: 6px; background: #fff; border: 1px solid rgba(27, 38, 59, 0.15); box-shadow: none; overflow: hidden; }
