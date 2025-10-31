@@ -153,14 +153,17 @@
       </div>
     </section>
 
-    <!-- CATÁLOGO -->
+    <!-- EVENTOS DISPONÍVEIS -->
     <section class="py-3">
       <div class="container">
         <div class="d-flex align-items-center justify-content-between mb-3">
-          <div class="section-title mb-0">Catálogo de peças</div>
-          <small class="text-muted" id="resultInfo">Exibindo 0 de 0</small>
+          <div class="section-title mb-0">Eventos disponíveis</div>
+          <small class="text-muted" id="eventosDisponiveisInfo">Exibindo 0 de 0</small>
         </div>
-        <div id="grid" class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 catalog-grid"></div>
+        <div
+          id="grid-eventos-disponiveis"
+          class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 catalog-grid"
+        ></div>
       </div>
     </section>
 
@@ -425,12 +428,13 @@
         const DATE_KEY_EMPTY = '__sem_data__';
         const INTERVALO_TRES_HORAS_MS = 3 * 60 * 60 * 1000;
         const selecoesAtuais = new Set();
+        const quantidadesSelecionadas = new Map();
         const eventosPorId = new Map();
-        const eventosBloqueadosPorId = new Map();
+        const eventosAdquiridosPorId = new Map();
         let eventos = [];
         let eventosFiltrados = [];
-        let eventosJaPegos = [];
-        let eventosJaPegosFiltrados = [];
+        let eventosAdquiridos = [];
+        let eventosAdquiridosFiltrados = [];
 
         let campoCPF;
         let possuiFormulario = false;
@@ -468,9 +472,9 @@
         }
 
         async function init() {
-          elGrid = document.querySelector('#grid');
+          elGrid = document.querySelector('#grid-eventos-disponiveis');
           elGridAdquiridos = document.querySelector('#grid-adquiridos');
-          elResultInfo = document.querySelector('#resultInfo');
+          elResultInfo = document.querySelector('#eventosDisponiveisInfo');
           elAcquiredInfo = document.querySelector('#acquiredInfo');
           elQ = document.querySelector('#q');
           elFLocal = document.querySelector('#fTeatro');
@@ -513,8 +517,9 @@
           document.body.classList.add('portal-dyn');
           injetarEstilos();
 
-          eventosBloqueadosPorId.clear();
+          eventosAdquiridosPorId.clear();
           selecoesAtuais.clear();
+          quantidadesSelecionadas.clear();
 
           const recebidosDisponiveis = await fetchEventos(API_URL);
           const baseDisponiveis = recebidosDisponiveis.length
@@ -523,14 +528,14 @@
 
           eventos = prepararEventos(baseDisponiveis, { resetarMapa: true, mapa: eventosPorId });
           eventosFiltrados = [...eventos];
-          eventosJaPegos = [];
-          eventosJaPegosFiltrados = [];
+          eventosAdquiridos = [];
+          eventosAdquiridosFiltrados = [];
           popularFiltros(eventos);
           renderCards(eventosFiltrados);
-          renderCardsJaPegos(eventosJaPegosFiltrados);
+          renderCardsAdquiridos(eventosAdquiridosFiltrados);
           atualizarResultado();
           registrarEventos();
-          await carregarEventosJaPegos();
+          await carregarEventosAdquiridos();
         }
 
         function injetarEstilos() {
@@ -672,6 +677,7 @@
             mapa.clear();
             if (mapa === eventosPorId) {
               selecoesAtuais.clear();
+              quantidadesSelecionadas.clear();
             }
           }
           return lista
@@ -712,6 +718,7 @@
                 Object.assign(preparado, extras);
                 if (extras.apenasDetalhes) {
                   selecoesAtuais.delete(preparado.id);
+                  quantidadesSelecionadas.delete(preparado.id);
                 }
               }
               preparado.jaPegou = Boolean(preparado.jaPegou);
@@ -727,6 +734,7 @@
               }
               if (preparado.apenasDetalhes) {
                 selecoesAtuais.delete(preparado.id);
+                quantidadesSelecionadas.delete(preparado.id);
               }
               mapa.set(preparado.id, preparado);
               return preparado;
@@ -734,24 +742,24 @@
             .filter(Boolean);
         }
 
-        async function carregarEventosJaPegos() {
+        async function carregarEventosAdquiridos() {
           const recebidosJaPegos = await fetchEventos(API_URL_JA_PEGOS);
           const baseJaPegos = Array.isArray(recebidosJaPegos)
             ? recebidosJaPegos.map(adaptarEventoApi).filter(Boolean)
             : [];
 
           if (!baseJaPegos.length) {
-            eventosBloqueadosPorId.clear();
-            eventosJaPegos = [];
-            eventosJaPegosFiltrados = [];
+            eventosAdquiridosPorId.clear();
+            eventosAdquiridos = [];
+            eventosAdquiridosFiltrados = [];
             aplicarFiltros();
             return;
           }
 
-          eventosJaPegos = prepararEventos(baseJaPegos, {
+          eventosAdquiridos = prepararEventos(baseJaPegos, {
             resetarMapa: true,
             extras: { jaPegou: true, apenasDetalhes: true },
-            mapa: eventosBloqueadosPorId
+            mapa: eventosAdquiridosPorId
           });
           aplicarFiltros();
         }
@@ -907,15 +915,23 @@
             mTicketBtn.addEventListener('click', () => {
               const id = mTicketBtn.dataset.id;
               if (!id) return;
-              const evento = eventosPorId.get(id);
-              if (!evento) return;
-              const chave = evento.quandoNormalizado || DATE_KEY_EMPTY;
-              togglePorData(chave, id);
+              alternarIngresso(id, obterQuantidadeSelecionada());
             });
           }
           if (mConfirmBtn) {
             mConfirmBtn.addEventListener('click', () => {
-              confirmarIngresso(mConfirmBtn);
+              enviarIngressosSelecionados(mConfirmBtn);
+            });
+          }
+          if (mQuantidadeSelect) {
+            mQuantidadeSelect.addEventListener('change', () => {
+              if (!mTicketBtn) return;
+              const idAtual = mTicketBtn.dataset.id;
+              if (!idAtual) return;
+              const quantidade = obterQuantidadeSelecionada();
+              if (selecoesAtuais.has(idAtual)) {
+                quantidadesSelecionadas.set(idAtual, quantidade);
+              }
             });
           }
         }
@@ -963,15 +979,15 @@
           const filtroGenero = elFGenero ? elFGenero.value : '';
 
           eventosFiltrados = filtrarEventosPorCriterios(eventos, termo, filtroLocal, filtroClass, filtroGenero);
-          eventosJaPegosFiltrados = filtrarEventosPorCriterios(
-            eventosJaPegos,
+          eventosAdquiridosFiltrados = filtrarEventosPorCriterios(
+            eventosAdquiridos,
             termo,
             filtroLocal,
             filtroClass,
             filtroGenero
           );
           renderCards(eventosFiltrados);
-          renderCardsJaPegos(eventosJaPegosFiltrados);
+          renderCardsAdquiridos(eventosAdquiridosFiltrados);
           atualizarResultado();
         }
 
@@ -981,9 +997,9 @@
             if (select) select.value = '';
           });
           eventosFiltrados = [...eventos];
-          eventosJaPegosFiltrados = [...eventosJaPegos];
+          eventosAdquiridosFiltrados = [...eventosAdquiridos];
           renderCards(eventosFiltrados);
-          renderCardsJaPegos(eventosJaPegosFiltrados);
+          renderCardsAdquiridos(eventosAdquiridosFiltrados);
           atualizarResultado();
         }
 
@@ -1000,7 +1016,7 @@
           atualizarEstadoTodos();
         }
 
-        function renderCardsJaPegos(lista) {
+        function renderCardsAdquiridos(lista) {
           if (!elGridAdquiridos) return;
           while (elGridAdquiridos.firstChild) {
             elGridAdquiridos.removeChild(elGridAdquiridos.firstChild);
@@ -1213,10 +1229,19 @@
           return evento.genero || evento.local || '—';
         }
 
+        function normalizarQuantidade(valor) {
+          const numero = Number(valor);
+          if (!Number.isFinite(numero)) {
+            return 1;
+          }
+          if (numero < 1) return 1;
+          if (numero > 2) return 2;
+          return Math.round(numero);
+        }
+
         function obterQuantidadeSelecionada() {
           if (!mQuantidadeSelect) return 1;
-          const valor = parseInt(mQuantidadeSelect.value, 10);
-          return Number.isFinite(valor) && valor > 0 ? valor : 1;
+          return normalizarQuantidade(mQuantidadeSelect.value);
         }
 
         function obterContainerAcoes(card) {
@@ -1307,7 +1332,7 @@
             botao.disabled = false;
             botao.setAttribute('aria-disabled', 'false');
             botao.setAttribute('aria-pressed', 'true');
-            botao.textContent = '🎟️ Ingresso selecionado';
+            botao.textContent = '🎟️ Soltar ingresso';
             botao.classList.add('btn-success');
             botao.classList.remove('btn-primary');
           }
@@ -1400,80 +1425,90 @@
           return '';
         }
 
-        async function confirmarIngresso(botao) {
+        async function enviarIngressosSelecionados(botao) {
           if (!botao || botao.disabled) return;
-          let card = botao.closest('[data-id]');
-          let id = botao.dataset.id || botao.dataset.confirmarId || '';
-          if (!id && card) {
-            id = card.getAttribute('data-id') || '';
-          }
-          if (!id && botao === mConfirmBtn && mTicketBtn) {
-            id = mTicketBtn.dataset.id || '';
-          }
-          if (!id) return;
-          if (!card) {
-            card = encontrarCardPorId(id);
-          }
+          if (!selecoesAtuais.size) return;
+
           const cpf = obterCPF();
           if (!cpf) {
-            if (card) {
-              mostrarAvisoErro(card, 'CPF inválido.');
-            }
+            selecoesAtuais.forEach((id) => {
+              const card = encontrarCardPorId(id);
+              if (card) {
+                mostrarAvisoErro(card, 'CPF inválido.');
+              }
+            });
             return;
           }
-          const quantidade = obterQuantidadeSelecionada();
-          const payload = { id, cpf };
-          if (quantidade) {
-            payload.quantidade = quantidade;
+
+          const ingressos = Array.from(selecoesAtuais).map((id) => ({
+            id,
+            quantidade: quantidadesSelecionadas.get(id) || 1
+          }));
+
+          if (!ingressos.length) {
+            return;
           }
 
-          if (card) {
-            limparAvisoErro(card);
-          }
+          ingressos.forEach(({ id }) => {
+            const card = encontrarCardPorId(id);
+            if (card) {
+              limparAvisoErro(card);
+            }
+          });
 
           botao.disabled = true;
           botao.setAttribute('aria-disabled', 'true');
+          const textoOriginal = botao.textContent;
           botao.textContent = 'Confirmando…';
+          let confirmadoComSucesso = false;
 
           try {
             const resposta = await fetch(CONFIRMAR_URL, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload)
+              body: JSON.stringify({ cpf, ingressos })
             });
             if (!resposta.ok) {
               throw new Error(`HTTP ${resposta.status}`);
             }
-            if (botao.dataset.confirmar === 'true') {
-              botao.textContent = 'Confirmado!';
-              setTimeout(() => {
-                if (!botao.isConnected) return;
-                if (botao.dataset.confirmar === 'true') {
-                  botao.textContent = 'Confirmar';
-                }
-              }, 2000);
-            }
-            if (card) {
-              card.dispatchEvent(new CustomEvent('ingresso:confirmado', { detail: { id, cpf, quantidade: payload.quantidade }, bubbles: true }));
-            }
+
+            botao.textContent = 'Confirmado!';
+            confirmadoComSucesso = true;
+
+            ingressos.forEach(({ id, quantidade }) => {
+              const card = encontrarCardPorId(id);
+              if (card) {
+                card.dispatchEvent(
+                  new CustomEvent('ingresso:confirmado', {
+                    detail: { id, cpf, quantidade },
+                    bubbles: true
+                  })
+                );
+              }
+            });
+
             reloadComAtraso();
           } catch (erro) {
             console.error('Falha ao confirmar ingresso', erro);
-            botao.textContent = 'Confirmar';
-            if (card) {
-              mostrarAvisoErro(card, 'Falha ao confirmar. Tente novamente.');
-            }
-          } finally {
-            botao.disabled = false;
-            botao.setAttribute('aria-disabled', 'false');
-            if (botao === mConfirmBtn) {
-              if (!botao.textContent || botao.textContent === 'Confirmando…') {
-                botao.textContent = 'Confirmar';
+            ingressos.forEach(({ id }) => {
+              const card = encontrarCardPorId(id);
+              if (card) {
+                mostrarAvisoErro(card, 'Falha ao confirmar. Tente novamente.');
               }
-            } else if (botao.dataset.confirmar !== 'true' && (!botao.textContent || botao.textContent === 'Confirmando…')) {
-              botao.textContent = 'Detalhes';
+            });
+            botao.textContent = textoOriginal || 'Confirmar';
+          } finally {
+            if (confirmadoComSucesso) {
+              botao.disabled = true;
+              botao.setAttribute('aria-disabled', 'true');
+            } else {
+              botao.disabled = false;
+              botao.setAttribute('aria-disabled', 'false');
+              if (!botao.textContent || botao.textContent === 'Confirmando…') {
+                botao.textContent = textoOriginal || 'Confirmar';
+              }
             }
-          }
+        }
         }
 
         function aoClicarNoGrid(evento) {
@@ -1481,9 +1516,10 @@
           if (botaoIngresso) {
             const card = botaoIngresso.closest('[data-id]');
             if (!card) return;
-            const chave = card.getAttribute('data-quando') || DATE_KEY_EMPTY;
             const id = card.getAttribute('data-id');
-            togglePorData(chave, id);
+            if (!id) return;
+            const quantidadeAtual = quantidadesSelecionadas.get(id) || 1;
+            alternarIngresso(id, quantidadeAtual);
             return;
           }
           const botaoDetalhes = evento.target.closest('[data-details]');
@@ -1495,19 +1531,20 @@
             const card = botaoDetalhes.closest('[data-id]');
             if (!card) return;
             const id = card.getAttribute('data-id');
-            const dados = eventosPorId.get(id) || eventosBloqueadosPorId.get(id);
+            const dados = eventosPorId.get(id) || eventosAdquiridosPorId.get(id);
             if (dados) {
               abrirModal(dados);
             }
           }
         }
 
-        function togglePorData(_quandoNormalizado, id) {
+        function alternarIngresso(id, quantidadePreferida) {
           if (!id) return;
           const evento = eventosPorId.get(id);
           if (!evento) {
             if (selecoesAtuais.has(id)) {
               selecoesAtuais.delete(id);
+              quantidadesSelecionadas.delete(id);
               atualizarEstadoTodos();
               atualizarBotaoModal();
             }
@@ -1516,6 +1553,7 @@
           if (evento.apenasDetalhes || evento.jaPegou) {
             if (selecoesAtuais.has(id)) {
               selecoesAtuais.delete(id);
+              quantidadesSelecionadas.delete(id);
               atualizarEstadoTodos();
               atualizarBotaoModal();
             }
@@ -1523,11 +1561,18 @@
           }
           if (selecoesAtuais.has(id)) {
             selecoesAtuais.delete(id);
+            quantidadesSelecionadas.delete(id);
           } else {
             if (eventoConflitanteComSelecoes(evento)) {
               return;
             }
             selecoesAtuais.add(id);
+            const quantidadeBase =
+              quantidadePreferida !== undefined && quantidadePreferida !== null
+                ? quantidadePreferida
+                : quantidadesSelecionadas.get(id) || 1;
+            const quantidade = normalizarQuantidade(quantidadeBase);
+            quantidadesSelecionadas.set(id, quantidade);
           }
           atualizarEstadoTodos();
           atualizarBotaoModal();
@@ -1623,6 +1668,10 @@
           }
           if (mQuantidadeSelect) {
             mQuantidadeSelect.value = '1';
+            const quantidadeGuardada = quantidadesSelecionadas.get(evento.id);
+            if (quantidadeGuardada) {
+              mQuantidadeSelect.value = String(quantidadeGuardada);
+            }
             mQuantidadeSelect.disabled = somenteDetalhes;
           }
           if (mConfirmBtn) {
@@ -1678,7 +1727,7 @@
             mTicketBtn.disabled = false;
             mTicketBtn.setAttribute('aria-disabled', 'false');
             mTicketBtn.setAttribute('aria-pressed', 'true');
-            mTicketBtn.textContent = '🎟️ Ingresso selecionado';
+            mTicketBtn.textContent = '🎟️ Soltar ingresso';
             mTicketBtn.classList.add('btn-success');
             mTicketBtn.classList.remove('btn-outline-secondary');
             mTicketBtn.classList.remove('btn-outline-primary');
@@ -1703,22 +1752,22 @@
               mTicketBtn.classList.add('btn-outline-primary');
             }
           }
-          if (mConfirmBtn && mConfirmBtn.dataset.id === id) {
-            if (selecionado) {
-              mConfirmBtn.disabled = false;
-              mConfirmBtn.setAttribute('aria-disabled', 'false');
-              if (mConfirmBtn.dataset.confirmar === 'true' && mConfirmBtn.textContent !== 'Confirmando…') {
-                mConfirmBtn.textContent = 'Confirmar';
-              }
-            } else {
-              mConfirmBtn.disabled = true;
-              mConfirmBtn.setAttribute('aria-disabled', 'true');
-              if (mConfirmBtn.dataset.confirmar === 'true' && mConfirmBtn.textContent !== 'Confirmando…') {
-                mConfirmBtn.textContent = 'Confirmar';
-              }
+          if (mConfirmBtn && mConfirmBtn.dataset.confirmar === 'true') {
+            const possuiSelecao = selecoesAtuais.size > 0;
+            mConfirmBtn.disabled = !possuiSelecao;
+            mConfirmBtn.setAttribute('aria-disabled', possuiSelecao ? 'false' : 'true');
+            if (possuiSelecao && mConfirmBtn.textContent !== 'Confirmando…' && mConfirmBtn.textContent !== 'Confirmado!') {
+              mConfirmBtn.textContent = 'Confirmar';
+            }
+            if (!possuiSelecao && mConfirmBtn.textContent === 'Confirmado!') {
+              mConfirmBtn.textContent = 'Confirmar';
             }
           }
           if (mQuantidadeSelect) {
+            if (selecionado) {
+              const valorSelecionado = quantidadesSelecionadas.get(id) || 1;
+              mQuantidadeSelect.value = String(valorSelecionado);
+            }
             mQuantidadeSelect.disabled = bloqueado;
           }
         }
