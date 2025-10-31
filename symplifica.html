@@ -115,7 +115,7 @@
                 Favoritos <span class="badge text-bg-primary align-middle ms-1" id="favCount">0</span>
               </button>
             </div>
-            <img src="https://statics.recife.pe.gov.br/images/dynamics/logo_gestao_pcr_negativa_horizontal.png?w=400" alt="Catraca Conecta" class="header-brand-image" />
+            <img src="https://statics.recife.pe.gov.br/images/dynamics/automacao/catraca.png" alt="Catraca Conecta" class="header-brand-image" />
           </div>
         </div>
       </div>
@@ -554,7 +554,17 @@
 .portal-dyn .ticket-card.portal-dyn-ja-pego { filter: grayscale(100%); opacity: .7; }
 .portal-dyn .ticket-card.card-bloqueado { filter: grayscale(1); opacity: .75; }
 .portal-dyn .portal-dyn-aviso-ja-pego { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600; font-size: 0.85rem; padding: 0.35rem 0.75rem; border-radius: 999px; background: rgba(27, 38, 59, 0.08); color: var(--text-strong); margin-top: 0.35rem; }
-.portal-dyn .header-brand-image { max-width: 260px; width: 100%; height: auto; display: block; }
+.portal-dyn .header-brand-image {
+  max-width: 240px;
+  width: 100%;
+  display: block;
+  height: auto;
+  object-fit: contain;
+  background-color: transparent;
+  padding: 0;
+  margin: 0;
+  clip-path: inset(4% 6% 4% 6%);
+}
 .portal-dyn .ticket-top-flags { display: flex; align-items: center; justify-content: flex-end; gap: 0.35rem; flex-wrap: wrap; }
 .portal-dyn .portal-dyn-acc-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: 0 0 28px; padding: 2px; border-radius: 6px; background: #fff; border: 1px solid rgba(27, 38, 59, 0.15); box-shadow: none; overflow: hidden; }
 .portal-dyn .portal-dyn-acc-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
