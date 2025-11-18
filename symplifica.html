@@ -163,20 +163,6 @@
       </div>
     </section>
 
-    <!-- EVENTOS ADQUIRIDOS -->
-    <section class="py-3">
-      <div class="container">
-        <div class="d-flex align-items-center justify-content-between mb-3">
-          <div class="section-title mb-0">Eventos adquiridos</div>
-          <small class="text-muted" id="acquiredInfo">Exibindo 0</small>
-        </div>
-        <div
-          id="grid-adquiridos"
-          class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 catalog-grid"
-        ></div>
-      </div>
-    </section>
-
     <!-- MODAL: DETALHES -->
     <div class="modal fade" id="modalDetalhes" tabindex="-1" aria-labelledby="modalTitulo" aria-hidden="true">
       <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
@@ -484,9 +470,7 @@
         let possuiFormulario = false;
 
         let elGrid;
-        let elGridAdquiridos;
         let elResultInfo;
-        let elAcquiredInfo;
         let elQ;
         let elFLocal;
         let elFClass;
@@ -518,9 +502,7 @@
 
         async function init() {
           elGrid = document.querySelector('#grid-eventos-disponiveis');
-          elGridAdquiridos = document.querySelector('#grid-adquiridos');
           elResultInfo = document.querySelector('#eventosDisponiveisInfo');
-          elAcquiredInfo = document.querySelector('#acquiredInfo');
           elQ = document.querySelector('#q');
           elFLocal = document.querySelector('#fTeatro');
           elFClass = document.querySelector('#fClass');
@@ -577,8 +559,7 @@
           eventosAdquiridos = [];
           eventosAdquiridosFiltrados = [];
           popularFiltros(eventos);
-          renderCards(eventosFiltrados);
-          renderCardsAdquiridos(eventosAdquiridosFiltrados);
+          renderCatalogo(eventosFiltrados, eventosAdquiridosFiltrados);
           atualizarResultado();
           registrarEventos();
           await carregarEventosAdquiridos();
@@ -1040,8 +1021,7 @@
             filtroClass,
             filtroGenero
           );
-          renderCards(eventosFiltrados);
-          renderCardsAdquiridos(eventosAdquiridosFiltrados);
+          renderCatalogo(eventosFiltrados, eventosAdquiridosFiltrados);
           atualizarResultado();
         }
 
@@ -1052,40 +1032,24 @@
           });
           eventosFiltrados = [...eventos];
           eventosAdquiridosFiltrados = [...eventosAdquiridos];
-          renderCards(eventosFiltrados);
-          renderCardsAdquiridos(eventosAdquiridosFiltrados);
+          renderCatalogo(eventosFiltrados, eventosAdquiridosFiltrados);
           atualizarResultado();
         }
 
-        function renderCards(lista) {
+        function renderCatalogo(listaDisponiveis, listaAdquiridos = []) {
           if (!elGrid) return;
           while (elGrid.firstChild) {
             elGrid.removeChild(elGrid.firstChild);
           }
           const fragmento = document.createDocumentFragment();
-          lista.forEach((evento) => {
+          (listaDisponiveis || []).forEach((evento) => {
             fragmento.appendChild(criarCard(evento));
+          });
+          (listaAdquiridos || []).forEach((evento) => {
+            fragmento.appendChild(criarCardBloqueado(evento));
           });
           elGrid.appendChild(fragmento);
           atualizarEstadoTodos();
-        }
-
-        function renderCardsAdquiridos(lista) {
-          if (!elGridAdquiridos) return;
-          while (elGridAdquiridos.firstChild) {
-            elGridAdquiridos.removeChild(elGridAdquiridos.firstChild);
-          }
-          const quantidade = Array.isArray(lista) ? lista.length : 0;
-          if (Array.isArray(lista) && lista.length) {
-            const fragmento = document.createDocumentFragment();
-            lista.forEach((evento) => {
-              fragmento.appendChild(criarCardBloqueado(evento));
-            });
-            elGridAdquiridos.appendChild(fragmento);
-          }
-          if (elAcquiredInfo) {
-            elAcquiredInfo.textContent = `Exibindo ${quantidade}`;
-          }
         }
 
         function criarCard(evento) {
@@ -1859,7 +1823,9 @@
 
         function atualizarResultado() {
           if (!elResultInfo) return;
-          elResultInfo.textContent = `Exibindo ${eventosFiltrados.length} de ${eventos.length}`;
+          const exibindo = eventosFiltrados.length + eventosAdquiridosFiltrados.length;
+          const total = eventos.length + eventosAdquiridos.length;
+          elResultInfo.textContent = `Exibindo ${exibindo} de ${total}`;
         }
 
         function formatarDataHora(quando, hora) {
