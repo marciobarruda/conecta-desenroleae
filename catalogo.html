@@ -612,7 +612,8 @@
         }
 
         async function fetchEventos(url = API_URL, opcoes = {}) {
-          const { metodo = 'POST', incluirCpfComoQuery = false } = opcoes;
+          const metodoPadrao = 'GET';
+          const { metodo = metodoPadrao, incluirCpfComoQuery = metodo === 'GET' } = opcoes;
           try {
             const cpf = obterCPF();
             if (!cpf) {
