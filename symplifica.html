@@ -428,117 +428,47 @@
           }
         ];
 
-        async function transparentAndTrim(img, tolerance = 20) {
-          if (!img) return;
-
-          const garantirClasseLayout = () => {
-            if (!img.classList.contains('trimmed-img')) {
-              img.classList.add('trimmed-img');
-            }
-          };
-
-          try {
-            if (img.decode) {
-              await img.decode();
-            }
-          } catch (erro) {
-            // Continua mesmo se decode falhar
+        const FALLBACK_EVENTOS_ADQUIRIDOS = [
+          {
+            id: 'cartas-para-clarice',
+            nome: 'Cartas para Clarice',
+            classificacao: '16+',
+            genero: 'Drama',
+            local: 'Teatro Santa Isabel',
+            quando: '2025-10-16T03:00:00.000Z',
+            hora: '19:00:00',
+            sinopse:
+              'Fragmentos de cartas nunca enviadas se transformam em cena, explorando silêncio, identidade e a força das pequenas escolhas que mudam destinos.',
+            poster: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5LP_4Fc1TXjepIRxOZuSCHMFhY6yKJhRSsg&s',
+            posterdetalhes: 'https://flyve.com.br/app/files/67113f435f000.jpg',
+            disponibilizados: 200,
+            disponiveis: 198,
+            acessibilidade: null,
+            duracao: null,
+            quem_faz: null,
+            origem: null
+          },
+          {
+            id: 'paredes-que-falam',
+            nome: 'Paredes que Falam',
+            classificacao: '14+',
+            genero: 'Experimental',
+            local: 'Teatro Luiz Mendonça',
+            quando: '2025-10-12T03:00:00.000Z',
+            hora: '20:00:00',
+            sinopse:
+              'Em um edifício histórico prestes a ruir, moradores compartilham lembranças e disputas, enquanto o passado sussurra pelos azulejos e pelas portas entreabertas.',
+            poster: 'https://f.i.uol.com.br/fotografia/2025/04/02/174362328467ed947488792_1743623284_3x2_md.jpg',
+            posterdetalhes: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTYEm24JfCn9LdxG4f9-7Bpde734QrjM_eBQg&s',
+            disponibilizados: 500,
+            disponiveis: 498,
+            acessibilidade: 'Sim',
+            duracao: '90 min',
+            quem_faz: 'Marco Nanini, Marília Pêra e Francisco Cuoco',
+            origem: 'RJ'
           }
+        ];
 
-          const w = img.naturalWidth;
-          const h = img.naturalHeight;
-          if (!w || !h) {
-            garantirClasseLayout();
-            return;
-          }
-
-          const canvas = document.createElement('canvas');
-          canvas.width = w;
-          canvas.height = h;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0);
-
-          let imgData;
-          try {
-            imgData = ctx.getImageData(0, 0, w, h);
-          } catch (erro) {
-            console.warn('Não foi possível processar o logotipo para remoção de fundo.', erro);
-            garantirClasseLayout();
-            return;
-          }
-
-          const data = imgData.data;
-          const bg = [data[0], data[1], data[2]];
-          let minX = w;
-          let minY = h;
-          let maxX = -1;
-          let maxY = -1;
-
-          for (let y = 0; y < h; y++) {
-            for (let x = 0; x < w; x++) {
-              const i = (y * w + x) * 4;
-              const r = data[i];
-              const g = data[i + 1];
-              const b = data[i + 2];
-              const isBg =
-                Math.abs(r - bg[0]) <= tolerance &&
-                Math.abs(g - bg[1]) <= tolerance &&
-                Math.abs(b - bg[2]) <= tolerance;
-
-              if (isBg) {
-                data[i + 3] = 0;
-              }
-
-              if (data[i + 3] > 10) {
-                if (x < minX) minX = x;
-                if (y < minY) minY = y;
-                if (x > maxX) maxX = x;
-                if (y > maxY) maxY = y;
-              }
-            }
-          }
-
-          ctx.putImageData(imgData, 0, 0);
-
-          let outputCanvas = canvas;
-          if (maxX >= 0 && maxY >= 0) {
-            const cropWidth = maxX - minX + 1;
-            const cropHeight = maxY - minY + 1;
-            outputCanvas = document.createElement('canvas');
-            outputCanvas.width = cropWidth;
-            outputCanvas.height = cropHeight;
-            outputCanvas
-              .getContext('2d')
-              .drawImage(canvas, minX, minY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
-          }
-
-          try {
-            const dataUrl = outputCanvas.toDataURL('image/png');
-            if (dataUrl) {
-              img.src = dataUrl;
-            }
-          } catch (erro) {
-            console.warn('Não foi possível aplicar o recorte transparente ao logotipo.', erro);
-          }
-
-          garantirClasseLayout();
-        }
-
-        function prepararLogoCabecalho(img) {
-          if (!img) return;
-
-          const processar = () => {
-            transparentAndTrim(img).catch((erro) => {
-              console.warn('Falha ao ajustar o logotipo do cabeçalho.', erro);
-            });
-          };
-
-          if (img.complete) {
-            processar();
-          } else {
-            img.addEventListener('load', processar, { once: true });
-          }
-        }
         const DATE_KEY_EMPTY = '__sem_data__';
         const INTERVALO_TRES_HORAS_MS = 3 * 60 * 60 * 1000;
         const selecoesAtuais = new Set();
@@ -596,8 +526,6 @@
           elFClass = document.querySelector('#fClass');
           elFGenero = document.querySelector('#fGenero');
           elBtnLimpar = document.querySelector('#btnLimpar');
-
-          prepararLogoCabecalho(document.getElementById('logo-catraca'));
 
           possuiFormulario = !!document.querySelector('form');
           campoCPF = document.querySelector('#cpf');
@@ -672,21 +600,6 @@
 .portal-dyn .ticket-card.portal-dyn-ja-pego { filter: grayscale(100%); opacity: .7; }
 .portal-dyn .ticket-card.card-bloqueado { filter: grayscale(1); opacity: .75; }
 .portal-dyn .portal-dyn-aviso-ja-pego { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600; font-size: 0.85rem; padding: 0.35rem 0.75rem; border-radius: 999px; background: rgba(27, 38, 59, 0.08); color: var(--text-strong); margin-top: 0.35rem; }
-.portal-dyn .header-brand-image {
-  max-width: 240px;
-  width: 100%;
-  display: block;
-  height: auto;
-  object-fit: contain;
-  background-color: transparent;
-  padding: 0;
-  margin: 0;
-}
-.portal-dyn .trimmed-img {
-  display: block;
-  max-width: 100%;
-  height: auto;
-}
 .portal-dyn .ticket-top-flags { display: flex; align-items: center; justify-content: flex-end; gap: 0.35rem; flex-wrap: wrap; }
 .portal-dyn .portal-dyn-acc-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: 0 0 28px; padding: 2px; border-radius: 6px; background: #fff; border: 1px solid rgba(27, 38, 59, 0.15); box-shadow: none; overflow: hidden; }
 .portal-dyn .portal-dyn-acc-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
@@ -880,7 +793,11 @@
             ? recebidosJaPegos.map(adaptarEventoApi).filter(Boolean)
             : [];
 
-          if (!baseJaPegos.length) {
+          const fonteParaUsar = baseJaPegos.length
+            ? baseJaPegos
+            : FALLBACK_EVENTOS_ADQUIRIDOS.map(adaptarEventoApi).filter(Boolean);
+
+          if (!fonteParaUsar.length) {
             eventosAdquiridosPorId.clear();
             eventosAdquiridos = [];
             eventosAdquiridosFiltrados = [];
@@ -888,7 +805,7 @@
             return;
           }
 
-          eventosAdquiridos = prepararEventos(baseJaPegos, {
+          eventosAdquiridos = prepararEventos(fonteParaUsar, {
             resetarMapa: true,
             extras: { jaPegou: true, apenasDetalhes: true },
             mapa: eventosAdquiridosPorId
