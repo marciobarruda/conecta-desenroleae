@@ -172,6 +172,20 @@
       </div>
     </section>
 
+    <!-- EVENTOS ADQUIRIDOS -->
+    <section class="py-3">
+      <div class="container">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div class="section-title mb-0">Eventos adquiridos</div>
+          <small class="text-muted" id="acquiredInfo">Exibindo 0</small>
+        </div>
+        <div
+          id="grid-adquiridos"
+          class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 catalog-grid"
+        ></div>
+      </div>
+    </section>
+
     <!-- MODAL: DETALHES -->
     <div class="modal fade" id="modalDetalhes" tabindex="-1" aria-labelledby="modalTitulo" aria-hidden="true">
       <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
@@ -220,6 +234,13 @@
               disabled
             >
               Confirmar
+            </button>
+            <button
+              id="modalDevolverBtn"
+              type="button"
+              class="btn btn-outline-danger d-none"
+            >
+              Devolver ingressos
             </button>
             <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Fechar</button>
           </div>
@@ -566,6 +587,7 @@
         let mSinopse;
         let mTicketBtn;
         let mConfirmBtn;
+        let mDevolverBtn;
 
         if (document.readyState === 'loading') {
           document.addEventListener('DOMContentLoaded', init);
@@ -617,6 +639,7 @@
           mSinopse = document.querySelector('#modalSinopse');
           mTicketBtn = document.querySelector('#modalTicketBtn');
           mConfirmBtn = document.querySelector('#modalConfirmBtn');
+          mDevolverBtn = document.querySelector('#modalDevolverBtn');
 
           document.body.classList.add('portal-dyn');
           injetarEstilos();
@@ -1039,6 +1062,11 @@
           if (mConfirmBtn) {
             mConfirmBtn.addEventListener('click', () => {
               enviarIngressosSelecionados(mConfirmBtn);
+            });
+          }
+          if (mDevolverBtn) {
+            mDevolverBtn.addEventListener('click', () => {
+              aoSolicitarDevolver(mDevolverBtn);
             });
           }
           if (mQuantidadeSelect) {
@@ -1626,7 +1654,23 @@
                 botao.textContent = textoOriginal || 'Confirmar';
               }
             }
+          }
         }
+
+        function aoSolicitarDevolver(botao) {
+          if (!botao || botao.disabled) return;
+          const id = botao.dataset.id;
+          if (!id) return;
+          const textoOriginal = botao.textContent || 'Devolver ingressos';
+          botao.disabled = true;
+          botao.setAttribute('aria-disabled', 'true');
+          botao.textContent = 'Processando…';
+          window.setTimeout(() => {
+            botao.disabled = false;
+            botao.setAttribute('aria-disabled', 'false');
+            botao.textContent = textoOriginal;
+            console.info('Solicitação de devolução enviada para', id);
+          }, 800);
         }
 
         function aoClicarNoGrid(evento) {
@@ -1811,6 +1855,21 @@
               if (mConfirmBtn.textContent !== 'Confirmando…') {
                 mConfirmBtn.textContent = 'Confirmar';
               }
+            }
+          }
+          if (mDevolverBtn) {
+            const dataRecife = toRecifeDate(evento.quando, evento.hora);
+            const eventoFuturo = Boolean(dataRecife && dataRecife.getTime() > Date.now());
+            const mostrarDevolver = somenteDetalhes && eventoFuturo;
+            mDevolverBtn.classList.toggle('d-none', !mostrarDevolver);
+            mDevolverBtn.disabled = !mostrarDevolver;
+            mDevolverBtn.setAttribute('aria-disabled', mostrarDevolver ? 'false' : 'true');
+            if (mostrarDevolver) {
+              mDevolverBtn.dataset.id = evento.id || '';
+              mDevolverBtn.dataset.quando = evento.quandoNormalizado || DATE_KEY_EMPTY;
+            } else {
+              mDevolverBtn.dataset.id = '';
+              mDevolverBtn.dataset.quando = '';
             }
           }
           atualizarBotaoModal();
