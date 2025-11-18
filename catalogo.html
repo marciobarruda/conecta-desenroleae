@@ -640,22 +640,39 @@
               throw new Error(`Erro HTTP ${resposta.status}`);
             }
             const dados = await resposta.json();
-            if (Array.isArray(dados)) {
-              return dados;
-            }
-            if (dados && typeof dados === 'object') {
-              if (Array.isArray(dados.data)) {
-                return dados.data;
-              }
-              if (Array.isArray(dados.items)) {
-                return dados.items;
-              }
+            const possivelLista = extrairListaEventos(dados);
+            if (Array.isArray(possivelLista)) {
+              return possivelLista;
             }
             return [];
           } catch (erro) {
             console.error('Falha ao buscar eventos', erro);
             return [];
           }
+        }
+
+        function extrairListaEventos(dados) {
+          if (Array.isArray(dados)) return dados;
+          if (!dados || typeof dados !== 'object') return null;
+
+          const candidatas = [
+            dados.data,
+            dados.items,
+            dados.payload,
+            dados.eventos,
+            dados.body,
+            dados.response
+          ];
+
+          for (const candidata of candidatas) {
+            if (Array.isArray(candidata)) return candidata;
+            if (candidata && typeof candidata === 'object') {
+              const nested = extrairListaEventos(candidata);
+              if (Array.isArray(nested)) return nested;
+            }
+          }
+
+          return null;
         }
 
         function adaptarEventoApi(item) {
