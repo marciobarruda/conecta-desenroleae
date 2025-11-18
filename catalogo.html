@@ -1,0 +1,1971 @@
+<!doctype html>
+<html lang="pt-BR">
+  <!-- Portal do Festival de Teatro do Recife • Catálogo -->
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Catraca Conecta</title>
+    <link rel="icon" href="https://statics.recife.pe.gov.br/images/automacao/catraca-conecta/catraca-logo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --brand-primary: #0053a4;
+        --brand-secondary: #003a73;
+        --brand-highlight: #00a3ff;
+        --surface: #f4f7fb;
+        --surface-strong: #ffffff;
+        --border-color: #d0d7e2;
+        --text-strong: #1b263b;
+        --text-muted: #5b6c8c;
+        --shadow-strong: 0 14px 30px rgba(0,35,79,.15);
+      }
+      *,*::before,*::after{box-sizing:border-box}
+      body{
+        font-family:"Public Sans",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        background:var(--surface);color:var(--text-strong);min-height:100vh
+      }
+      header.site-header{
+        background:url("https://statics.recife.pe.gov.br/images/dynamics/automacao/header.png?w=3000") center/cover no-repeat;
+        color:#fff;padding:3rem 0 2.25rem
+      }
+      header .lead{color:rgba(255,255,255,.9);font-size:1rem;line-height:1.65}
+      .badge-open{display:inline-flex;align-items:center;gap:.5rem;font-size:.95rem;font-weight:600;padding:.45rem .9rem;border-radius:999px;background:rgba(255,255,255,.14)}
+      .section-title{display:flex;align-items:center;gap:.65rem;font-weight:700;font-size:1.2rem;color:var(--text-strong)}
+      .section-title::before{content:"";display:inline-block;width:32px;height:3px;border-radius:999px;background:var(--brand-highlight)}
+      .card-programa{border:1px solid rgba(0,83,164,.08);background:var(--surface-strong);box-shadow:0 16px 34px rgba(0,45,98,.08)}
+      .catalog-toolbar .form-select,.catalog-toolbar .form-control{border-color:var(--border-color)}
+      /* ===== Ticket card (estilo do exemplo) ===== */
+      .ticket-card{
+        background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:12px;box-shadow:var(--shadow-strong);overflow:hidden;position:relative
+      }
+      .ticket-cover{background:#e9eef7}
+      .poster-img{width:100%;height:100%;object-fit:cover;display:block}
+      .ticket-body{padding:1rem 1rem 1.1rem;position:relative}
+      /* Semicírculos nas laterais (efeito ‘talão’) */
+      .ticket-body::before,.ticket-body::after{
+        content:"";position:absolute;top:-12px;width:24px;height:24px;background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:50%;
+        box-shadow:0 0 0 6px #fff inset
+      }
+      .ticket-body::before{left:-12px}
+      .ticket-body::after{right:-12px}
+      .ci{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 .4rem;border-radius:6px;font-weight:800;font-size:.85rem;color:#fff}
+      .ci.l{background:#2aa84a}     /* L */
+      .ci.c10{background:#1f87c9}   /* 10 */
+      .ci.c12{background:#f4b400}   /* 12 */
+      .ci.c14{background:#ef6c00}   /* 14 */
+      .ci.c16{background:#d84315}   /* 16 */
+      .ci.c18{background:#212121}   /* 18 */
+      .meta-label{font-size:.78rem;color:var(--text-muted)}
+      .link-action{font-weight:700;text-decoration:none}
+      .link-action:hover{text-decoration:underline}
+      .btn-fav[aria-pressed="true"]{border-color:#ffc107!important}
+      .catalog-grid .col{display:flex}
+      .catalog-grid .ticket-card{display:flex;flex-direction:column;width:100%}
+      .ticket-card.is-muted{filter:grayscale(1);opacity:.55;transition:filter .2s ease,opacity .2s ease}
+      .ticket-card.is-active{box-shadow:0 0 0 .15rem rgba(0,83,164,.35)}
+      #modalDetalhes .modal-dialog{max-width:980px}
+      #modalDetalhes .modal-content{border-radius:18px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.18)}
+      #modalDetalhes .modal-header,#modalDetalhes .modal-footer{background:var(--surface);border-color:rgba(0,0,0,.05)}
+      #modalDetalhes .modal-body{padding:2rem}
+      .modal-poster{background:#e9eef7;border-radius:14px;overflow:hidden;box-shadow:0 10px 26px rgba(0,45,98,.14);min-height:360px}
+      .modal-poster img{width:100%;height:100%;object-fit:cover;display:block}
+      @media (max-width:768px){
+        header.site-header{padding:2.25rem 0 1.75rem}
+        .badge-open{width:100%;justify-content:center}
+        #modalDetalhes .modal-body{padding:1.5rem}
+      }
+      @media (max-width:576px){
+        .catalog-toolbar .row > * + *{margin-top:.5rem}
+        #modalDetalhes .modal-body{padding:1.25rem}
+      }
+    </style>
+  </head>
+  <body>
+    <input
+      type="hidden"
+      id="cpf"
+      name="cpf"
+      value="02763108458"
+      style="position: absolute; display: none;"
+    />
+    <!-- HEADER -->
+    <header class="site-header">
+      <div class="container">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+          <div>
+            <h1 class="display-5 fw-bold mb-2">Catraca Conecta</h1>
+            <p class="lead mb-0">Sua bilheteria digital de eventos gratuitos promovidos pela Prefeitura do Recife.</p>
+          </div>
+          <div class="text-md-end d-flex flex-column align-items-md-end align-items-start gap-2">
+            <span class="badge-open d-none"><span aria-hidden="true">🎭</span> Programação aberta</span>
+            <div class="mt-2 d-none">
+              <button class="btn btn-light btn-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasFav" aria-controls="offcanvasFav">
+                Favoritos <span class="badge text-bg-primary align-middle ms-1" id="favCount">0</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- FILTROS -->
+    <section class="py-4">
+      <div class="container">
+        <div class="card card-programa">
+          <div class="card-header"><div class="section-title mb-0">Filtrar programação</div></div>
+          <div class="card-body catalog-toolbar">
+            <div class="row g-3 align-items-end">
+              <div class="col-12 col-md-6 col-lg-5">
+                <label class="form-label small fw-semibold text-uppercase text-muted">Busca</label>
+                <input type="search" id="q" class="form-control" placeholder="Digite nome da peça, teatro ou trecho da sinopse…" />
+              </div>
+              <div class="col-6 col-md-3 col-lg-2">
+                <label class="form-label small fw-semibold text-uppercase text-muted">Teatro</label>
+                <select id="fTeatro" class="form-select"><option value="">Todos</option></select>
+              </div>
+              <div class="col-6 col-md-3 col-lg-2">
+                <label class="form-label small fw-semibold text-uppercase text-muted">Classificação</label>
+                <select id="fClass" class="form-select"><option value="">Todas</option></select>
+              </div>
+              <div class="col-6 col-md-3 col-lg-2">
+                <label class="form-label small fw-semibold text-uppercase text-muted">Gênero</label>
+                <select id="fGenero" class="form-select"><option value="">Todos</option></select>
+              </div>
+              <div class="col-6 col-md-3 col-lg-1 d-grid">
+                <button id="btnLimpar" class="btn btn-outline-secondary">Limpar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EVENTOS DISPONÍVEIS -->
+    <section class="py-3">
+      <div class="container">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div class="section-title mb-0">Eventos disponíveis</div>
+          <small class="text-muted" id="eventosDisponiveisInfo">Exibindo 0 de 0</small>
+        </div>
+        <div
+          id="grid-eventos-disponiveis"
+          class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 catalog-grid"
+        ></div>
+      </div>
+    </section>
+
+    <!-- EVENTOS ADQUIRIDOS -->
+    <section class="py-3">
+      <div class="container">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div class="section-title mb-0">Eventos adquiridos</div>
+          <small class="text-muted" id="acquiredInfo">Exibindo 0</small>
+        </div>
+        <div
+          id="grid-adquiridos"
+          class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 catalog-grid"
+        ></div>
+      </div>
+    </section>
+
+    <!-- MODAL: DETALHES -->
+    <div class="modal fade" id="modalDetalhes" tabindex="-1" aria-labelledby="modalTitulo" aria-hidden="true">
+      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title fw-bold" id="modalTitulo">Título da peça</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row g-4 align-items-stretch">
+              <div class="col-12 col-lg-5 d-flex">
+                <div class="modal-poster w-100 h-100">
+                  <img id="modalPoster" src="" alt="Pôster da peça" class="poster-img">
+                </div>
+              </div>
+              <div class="col-12 col-lg-7 d-flex flex-column gap-2">
+                <div class="mb-2"><span class="ci" id="modalClass">L</span></div>
+                <p class="small text-uppercase text-muted fw-semibold mb-1">Teatro</p>
+                <p class="fw-semibold" id="modalTeatro">—</p>
+                <p class="small text-uppercase text-muted fw-semibold mb-1">Data</p>
+                <p class="fw-semibold" id="modalQuando">—</p>
+                <p class="small text-uppercase text-muted fw-semibold mb-1">Gênero</p>
+                <p class="fw-semibold" id="modalGenero">—</p>
+                <p class="small text-uppercase text-muted fw-semibold mb-1">Duração</p>
+                <p class="fw-semibold" id="modalDuracao">—</p>
+                <p class="small text-uppercase text-muted fw-semibold mb-1">Grupo</p>
+                <p class="fw-semibold" id="modalGrupo">—</p>
+                <p class="mb-0 mt-3" id="modalSinopse">—</p>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button id="modalTicketBtn" type="button" class="btn btn-outline-primary" aria-pressed="false">🎟️ Pegar ingresso</button>
+            <div class="d-flex align-items-center gap-2 ms-0 me-auto" id="modalQuantidadeWrapper">
+              <label for="modalQuantidade" class="form-label small mb-0">Quantidade</label>
+              <select id="modalQuantidade" class="form-select form-select-sm w-auto">
+                <option value="1" selected>1</option>
+                <option value="2">2</option>
+              </select>
+            </div>
+            <button
+              id="modalConfirmBtn"
+              type="button"
+              class="btn btn-primary"
+              aria-disabled="true"
+              disabled
+            >
+              Confirmar
+            </button>
+            <button
+              id="modalDevolverBtn"
+              type="button"
+              class="btn btn-outline-danger d-none"
+            >
+              Devolver ingressos
+            </button>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Fechar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OFFCANVAS: FAVORITOS -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasFav" aria-labelledby="offcanvasFavLabel">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="offcanvasFavLabel">Favoritos</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
+      </div>
+      <div class="offcanvas-body">
+        <div id="favList" class="list-group"></div>
+        <div class="mt-3 d-flex gap-2">
+          <button id="btnExportFav" class="btn btn-outline-primary btn-sm">Exportar IDs</button>
+          <button id="btnClearFav" class="btn btn-outline-danger btn-sm">Limpar favoritos</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RODAPÉ -->
+    <footer class="py-5">
+      <div class="container text-center small text-muted">
+        Secretaria de Cultura do Recife • Prefeitura do Recife
+      </div>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      (function () {
+        const API_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/2917bb59-51f3-478a-a435-0753ab258f43';
+        const API_URL_JA_PEGOS = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/d0bbd65b-b4f6-45cf-8f98-2aff0bcb03a5';
+        const CONFIRMAR_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/322fa1a9-b9aa-4e22-8762-fe0e63895727';
+        const CPF_FIXO = '02763108458';
+        const ICON_LIBRAS_SRC = 'https://www.ifmg.edu.br/conselheirolafaiete/noticias/anexos-noticias/libras-768x767.png/@@images/image.png';
+        const ICON_AD_SRC = 'https://w7.pngwing.com/pngs/691/979/png-transparent-computer-icons-audio-description-pause-miscellaneous-text-trademark.png';
+        const ACESSIBILIDADE_ICONES = [
+          { chave: 'libras', rotulo: 'Libras', src: ICON_LIBRAS_SRC },
+          { chave: 'audiodescricao', rotulo: 'Audiodescrição', src: ICON_AD_SRC }
+        ];
+        const FALLBACK_EVENTOS = [
+          {
+            id: 'aurora-nas-esquinas',
+            nome: 'Aurora nas Esquinas',
+            classificacao: '12+',
+            genero: 'Drama',
+            local: 'Teatro Santa Isabel',
+            quando: '2024-10-12',
+            hora: '16:00:00',
+            poster: 'https://deliriumnerd.com/wp-content/uploads/2019/08/aurora-nas-sombras-darkside-destacada-1024x538.jpg',
+            posterdetalhes: 'https://deliriumnerd.com/wp-content/uploads/2019/08/aurora-nas-sombras-darkside-destacada-1024x538.jpg',
+            sinopse: 'Uma viagem poética pelas ruas do Recife, onde memórias se cruzam com o cotidiano e cada esquina revela afetos e segredos que insistem em permanecer vivos.',
+            disponibilizados: 120,
+            disponiveis: 68,
+            acessibilidade: 'sim'
+          },
+          {
+            id: 'maresia',
+            nome: 'Maresia',
+            classificacao: 'Livre',
+            genero: 'Teatro-dança',
+            local: 'Teatro Apolo',
+            quando: '2024-10-12',
+            hora: '19:00:00',
+            poster: 'https://www.papocult.com.br/wp-content/uploads/2023/08/Cia-Acaso-Maresia-divulgacao.jpg',
+            posterdetalhes: 'https://www.papocult.com.br/wp-content/uploads/2023/08/Cia-Acaso-Maresia-divulgacao.jpg',
+            sinopse: 'Entre calmarias e tempestades, uma família ribeirinha enfrenta mudanças climáticas e afetivas, assinando pactos silenciosos com o vento e a maré.',
+            disponibilizados: 90,
+            disponiveis: 41,
+            acessibilidade: 'nao'
+          },
+          {
+            id: 'o-auto-do-frevo',
+            nome: 'O Auto do Frevo',
+            classificacao: '10+',
+            genero: 'Musical',
+            local: 'Paço do Frevo',
+            quando: '2024-10-14',
+            hora: '18:00:00',
+            poster: 'https://midias.diariodepernambuco.com.br/static/app/noticia_127983242361/2016/12/15/680255/20161215172830466281i.jpg',
+            posterdetalhes: 'https://midias.diariodepernambuco.com.br/static/app/noticia_127983242361/2016/12/15/680255/20161215172830466281i.jpg',
+            sinopse: 'Musical festivo que mistura frevo, teatro e narrativa popular para contar a saga de um estandarte que ganha vida e sai em busca da sua orquestra.',
+            disponibilizados: 150,
+            disponiveis: 102,
+            acessibilidade: 'sim'
+          },
+          {
+            id: 'paredes-que-falam',
+            nome: 'Paredes que Falam',
+            classificacao: '14+',
+            genero: 'Experimental',
+            local: 'Teatro Luiz Mendonça',
+            quando: '2024-10-15',
+            hora: '20:00:00',
+            poster: 'https://f.i.uol.com.br/fotografia/2025/04/02/174362328467ed947488792_1743623284_3x2_md.jpg',
+            posterdetalhes: 'https://f.i.uol.com.br/fotografia/2025/04/02/174362328467ed947488792_1743623284_3x2_md.jpg',
+            sinopse: 'Em um edifício histórico prestes a ruir, moradores compartilham lembranças e disputas, enquanto o passado sussurra pelos azulejos e pelas portas entreabertas.',
+            disponibilizados: 110,
+            disponiveis: 36,
+            acessibilidade: 'nao'
+          },
+          {
+            id: 'cartas-para-clarice',
+            nome: 'Cartas para Clarice',
+            classificacao: '16+',
+            genero: 'Drama',
+            local: 'Teatro Santa Isabel',
+            quando: '2024-10-16',
+            hora: '19:00:00',
+            poster: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5LP_4Fc1TXjepIRxOZuSCHMFhY6yKJhRSsg&s',
+            posterdetalhes: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5LP_4Fc1TXjepIRxOZuSCHMFhY6yKJhRSsg&s',
+            sinopse: 'Fragmentos de cartas nunca enviadas se transformam em cena, explorando silêncio, identidade e a força das pequenas escolhas que mudam destinos.',
+            disponibilizados: 95,
+            disponiveis: 27,
+            acessibilidade: 'sim'
+          },
+          {
+            id: 'cidade-som',
+            nome: 'Cidade-Som',
+            classificacao: 'Livre',
+            genero: 'Instalação cênica',
+            local: 'Parque Dona Lindu',
+            quando: '2024-10-17',
+            hora: '17:00:00',
+            poster: 'https://www.ceara.gov.br/wp-content/uploads/2024/06/2024-04-12_Orquestra_Juruviara_ThiagoMatine-22-scaled.jpeg',
+            posterdetalhes: 'https://www.ceara.gov.br/wp-content/uploads/2024/06/2024-04-12_Orquestra_Juruviara_ThiagoMatine-22-scaled.jpeg',
+            sinopse: 'Instalação cênica com música ao vivo em que o público percorre paisagens sonoras e descobre personagens escondidos no ruído da cidade.',
+            disponibilizados: 200,
+            disponiveis: 140,
+            acessibilidade: 'nao'
+          },
+          {
+            id: 'o-ultimo-fio',
+            nome: 'O Último Fio',
+            classificacao: '18+',
+            genero: 'Tragédia',
+            local: 'Teatro Apolo',
+            quando: '2024-10-18',
+            hora: '21:00:00',
+            poster: 'https://www.garanhunsnoticias.com.br/images/noticias/124568/7c2c527a1ffdc43b66f3be20629667e9.jpeg',
+            posterdetalhes: 'https://www.garanhunsnoticias.com.br/images/noticias/124568/7c2c527a1ffdc43b66f3be20629667e9.jpeg',
+            sinopse: 'Dois irmãos costuram lembranças para não esquecer o que o tempo tenta rasgar. Um drama íntimo sobre família, perda e possibilidades de recomeço.',
+            disponibilizados: 85,
+            disponiveis: 19,
+            acessibilidade: 'nao'
+          },
+          {
+            id: 'couraça',
+            nome: 'Couraça',
+            classificacao: '14+',
+            genero: 'Teatro físico',
+            local: 'Teatro Luiz Mendonça',
+            quando: '2024-10-19',
+            hora: '20:00:00',
+            poster: 'https://www.estadao.com.br/blogs/blog/wp-content/uploads/sites/265/2015/10/Jaques-e-Seu-Amo-HugoPossolo-Ando-Camargo-Angelo-Brandini-foto-de-Jo%C3%A3o-Caldas-e1444340873610.jpg',
+            posterdetalhes: 'https://www.estadao.com.br/blogs/blog/wp-content/uploads/sites/265/2015/10/Jaques-e-Seu-Amo-HugoPossolo-Ando-Camargo-Angelo-Brandini-foto-de-Jo%C3%A3o-Caldas-e1444340873610.jpg',
+            sinopse: 'Corpos que dançam e falas entrecortadas constroem um mosaico sobre proteção e vulnerabilidade em tempos de urgência.',
+            disponibilizados: 130,
+            disponiveis: 72,
+            acessibilidade: 'sim'
+          },
+          {
+            id: 'menina-e-o-vento',
+            nome: 'A Menina e o Vento',
+            classificacao: '10+',
+            genero: 'Infantil',
+            local: 'Paço do Frevo',
+            quando: '2024-10-20',
+            hora: '16:00:00',
+            poster: 'https://www.sociedadehumboldt.org.br/conteudo/comunicacao/dicas/teatro/1206294/1.jpg',
+            posterdetalhes: 'https://www.sociedadehumboldt.org.br/conteudo/comunicacao/dicas/teatro/1206294/1.jpg',
+            sinopse: 'A amizade improvável entre uma criança curiosa e um vento brincalhão desafia regras e apresenta uma nova forma de habitar o mundo.',
+            disponibilizados: 160,
+            disponiveis: 88,
+            acessibilidade: 'nao'
+          },
+          {
+            id: 'rio-subterraneo',
+            nome: 'Rio Subterrâneo',
+            classificacao: '12+',
+            genero: 'Suspense',
+            local: 'Parque Dona Lindu',
+            quando: '2024-10-21',
+            hora: '18:00:00',
+            poster: 'https://s2-oglobo.glbimg.com/Vg94jDR50UtDXMDM39fXOg8nRU0=/0x0:4928x3280/924x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_da025474c0c44edd99332dddb09cabe8/internal_photos/bs/2023/j/q/UyrFCpTqKuAdvuqyYJYQ/perversa-monica-bittencourt-em-cena-5-credito-da-foto-bruna-diacoyannis-1-.jpeg',
+            posterdetalhes: 'https://s2-oglobo.glbimg.com/Vg94jDR50UtDXMDM39fXOg8nRU0=/0x0:4928x3280/924x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_da025474c0c44edd99332dddb09cabe8/internal_photos/bs/2023/j/q/UyrFCpTqKuAdvuqyYJYQ/perversa-monica-bittencourt-em-cena-5-credito-da-foto-bruna-diacoyannis-1-.jpeg',
+            sinopse: 'Narrativa que revela um Recife oculto sob as águas, onde memórias afundadas retornam para guiar um grupo em busca de pertencimento.',
+            disponibilizados: 145,
+            disponiveis: 54,
+            acessibilidade: 'sim'
+          }
+        ];
+
+        const FALLBACK_EVENTOS_ADQUIRIDOS = [
+          {
+            id: 'cartas-para-clarice',
+            nome: 'Cartas para Clarice',
+            classificacao: '16+',
+            genero: 'Drama',
+            local: 'Teatro Santa Isabel',
+            quando: '2025-10-16T03:00:00.000Z',
+            hora: '19:00:00',
+            sinopse:
+              'Fragmentos de cartas nunca enviadas se transformam em cena, explorando silêncio, identidade e a força das pequenas escolhas que mudam destinos.',
+            poster: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5LP_4Fc1TXjepIRxOZuSCHMFhY6yKJhRSsg&s',
+            posterdetalhes: 'https://flyve.com.br/app/files/67113f435f000.jpg',
+            disponibilizados: 200,
+            disponiveis: 198,
+            acessibilidade: null,
+            duracao: null,
+            quem_faz: null,
+            origem: null
+          },
+          {
+            id: 'paredes-que-falam',
+            nome: 'Paredes que Falam',
+            classificacao: '14+',
+            genero: 'Experimental',
+            local: 'Teatro Luiz Mendonça',
+            quando: '2025-10-12T03:00:00.000Z',
+            hora: '20:00:00',
+            sinopse:
+              'Em um edifício histórico prestes a ruir, moradores compartilham lembranças e disputas, enquanto o passado sussurra pelos azulejos e pelas portas entreabertas.',
+            poster: 'https://f.i.uol.com.br/fotografia/2025/04/02/174362328467ed947488792_1743623284_3x2_md.jpg',
+            posterdetalhes: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTYEm24JfCn9LdxG4f9-7Bpde734QrjM_eBQg&s',
+            disponibilizados: 500,
+            disponiveis: 498,
+            acessibilidade: 'Sim',
+            duracao: '90 min',
+            quem_faz: 'Marco Nanini, Marília Pêra e Francisco Cuoco',
+            origem: 'RJ'
+          }
+        ];
+
+        const DATE_KEY_EMPTY = '__sem_data__';
+        const INTERVALO_TRES_HORAS_MS = 3 * 60 * 60 * 1000;
+        const selecoesAtuais = new Set();
+        const quantidadesSelecionadas = new Map();
+        const eventosPorId = new Map();
+        const eventosAdquiridosPorId = new Map();
+        let eventos = [];
+        let eventosFiltrados = [];
+        let eventosAdquiridos = [];
+        let eventosAdquiridosFiltrados = [];
+
+        let campoCPF;
+        let possuiFormulario = false;
+
+        let elGrid;
+        let elGridAdquiridos;
+        let elResultInfo;
+        let elAcquiredInfo;
+        let elQ;
+        let elFLocal;
+        let elFClass;
+        let elFGenero;
+        let elBtnLimpar;
+
+        let modal;
+        let mTitle;
+        let mPoster;
+        let mClass;
+        let mClassWrapper;
+        let mLocal;
+        let mQuando;
+        let mGenero;
+        let mDuracao;
+        let mGrupo;
+        let mQuantidadeSelect;
+        let mQuantidadeWrapper;
+        let mSinopse;
+        let mTicketBtn;
+        let mConfirmBtn;
+        let mDevolverBtn;
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', init);
+        } else {
+          init();
+        }
+
+        async function init() {
+          elGrid = document.querySelector('#grid-eventos-disponiveis');
+          elGridAdquiridos = document.querySelector('#grid-adquiridos');
+          elResultInfo = document.querySelector('#eventosDisponiveisInfo');
+          elAcquiredInfo = document.querySelector('#acquiredInfo');
+          elQ = document.querySelector('#q');
+          elFLocal = document.querySelector('#fTeatro');
+          elFClass = document.querySelector('#fClass');
+          elFGenero = document.querySelector('#fGenero');
+          elBtnLimpar = document.querySelector('#btnLimpar');
+
+          possuiFormulario = !!document.querySelector('form');
+          campoCPF = document.querySelector('#cpf');
+          if (!campoCPF) {
+            campoCPF = document.createElement('input');
+            campoCPF.type = 'hidden';
+            campoCPF.id = 'cpf';
+            campoCPF.name = 'cpf';
+            campoCPF.value = CPF_FIXO;
+            campoCPF.style.position = 'absolute';
+            campoCPF.style.display = 'none';
+            document.body.appendChild(campoCPF);
+          }
+
+          modal = new bootstrap.Modal(document.querySelector('#modalDetalhes'));
+          mTitle = document.querySelector('#modalTitulo');
+          mPoster = document.querySelector('#modalPoster');
+          mClass = document.querySelector('#modalClass');
+          mClassWrapper = mClass ? mClass.parentElement : null;
+          if (mClassWrapper && !mClassWrapper.classList.contains('ticket-top-flags')) {
+            mClassWrapper.classList.add('ticket-top-flags');
+          }
+          mLocal = document.querySelector('#modalTeatro');
+          mQuando = document.querySelector('#modalQuando');
+          mGenero = document.querySelector('#modalGenero');
+          mDuracao = document.querySelector('#modalDuracao');
+          mGrupo = document.querySelector('#modalGrupo');
+          mQuantidadeSelect = document.querySelector('#modalQuantidade');
+          mQuantidadeWrapper = document.querySelector('#modalQuantidadeWrapper');
+          mSinopse = document.querySelector('#modalSinopse');
+          mTicketBtn = document.querySelector('#modalTicketBtn');
+          mConfirmBtn = document.querySelector('#modalConfirmBtn');
+          mDevolverBtn = document.querySelector('#modalDevolverBtn');
+
+          document.body.classList.add('portal-dyn');
+          injetarEstilos();
+
+          eventosAdquiridosPorId.clear();
+          selecoesAtuais.clear();
+          quantidadesSelecionadas.clear();
+
+          const recebidosDisponiveis = await fetchEventos(API_URL);
+          const baseDisponiveis = recebidosDisponiveis.length
+            ? recebidosDisponiveis.map(adaptarEventoApi).filter(Boolean)
+            : FALLBACK_EVENTOS;
+
+          eventos = prepararEventos(baseDisponiveis, { resetarMapa: true, mapa: eventosPorId });
+          eventosFiltrados = [...eventos];
+          eventosAdquiridos = [];
+          eventosAdquiridosFiltrados = [];
+          popularFiltros(eventos);
+          renderCards(eventosFiltrados);
+          renderCardsAdquiridos(eventosAdquiridosFiltrados);
+          atualizarResultado();
+          registrarEventos();
+          await carregarEventosAdquiridos();
+        }
+
+        function injetarEstilos() {
+          const estilo = document.createElement('style');
+          estilo.textContent = `
+.portal-dyn .inativo { filter: grayscale(100%); opacity: .6; pointer-events: none; }
+.portal-dyn .selecionado { outline: 2px solid currentColor; }
+.portal-dyn .ticket-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.portal-dyn .ticket-actions .btn-modern { flex: 1 1 160px; border-radius: 999px; font-weight: 600; padding: 0.6rem 1.1rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.portal-dyn .ticket-actions .btn-modern:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(0, 35, 79, 0.18); }
+.portal-dyn .ticket-actions .btn-modern:focus-visible { outline: 3px solid rgba(0, 163, 255, 0.35); outline-offset: 2px; }
+.portal-dyn .ticket-actions .btn-modern.btn-outline-secondary { background: #fff; border-color: rgba(27, 38, 59, 0.2); color: var(--text-strong); }
+.portal-dyn .ticket-actions .btn-modern.btn-outline-secondary:hover { background: rgba(0, 83, 164, 0.08); }
+.portal-dyn .ticket-actions .btn-modern.btn-primary { box-shadow: 0 10px 24px rgba(0, 83, 164, 0.25); }
+.portal-dyn .ticket-actions .btn-modern.btn-primary:hover { box-shadow: 0 12px 28px rgba(0, 83, 164, 0.3); }
+.portal-dyn .ticket-card.portal-dyn-ja-pego { filter: grayscale(100%); opacity: .7; }
+.portal-dyn .ticket-card.card-bloqueado { filter: grayscale(1); opacity: .75; }
+.portal-dyn .portal-dyn-aviso-ja-pego { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600; font-size: 0.85rem; padding: 0.35rem 0.75rem; border-radius: 999px; background: rgba(27, 38, 59, 0.08); color: var(--text-strong); margin-top: 0.35rem; }
+.portal-dyn .ticket-top-flags { display: flex; align-items: center; justify-content: flex-end; gap: 0.35rem; flex-wrap: wrap; }
+.portal-dyn .portal-dyn-acc-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: 0 0 28px; padding: 2px; border-radius: 6px; background: #fff; border: 1px solid rgba(27, 38, 59, 0.15); box-shadow: none; overflow: hidden; }
+.portal-dyn .portal-dyn-acc-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.portal-dyn .portal-dyn-erro-confirmacao { display: block; margin-top: 0.25rem; font-size: 0.85rem; }
+.portal-dyn .ticket-subtitle { color: var(--text-muted); font-size: 0.9rem; line-height: 1.35; white-space: normal; }
+.portal-dyn #modalQuantidadeWrapper { flex: 1 1 auto; }
+.portal-dyn #modalQuantidadeWrapper select { min-width: 72px; }
+`;
+          document.body.appendChild(estilo);
+        }
+
+        async function fetchEventos(url = API_URL) {
+          try {
+            const cpf = obterCPF();
+            if (!cpf) {
+              return [];
+            }
+            const resposta = await fetch(url, {
+              method: 'POST',
+              headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-store'
+              },
+              body: JSON.stringify({ cpf })
+            });
+            if (!resposta.ok) {
+              throw new Error(`Erro HTTP ${resposta.status}`);
+            }
+            const dados = await resposta.json();
+            if (Array.isArray(dados)) {
+              return dados;
+            }
+            if (dados && typeof dados === 'object') {
+              if (Array.isArray(dados.data)) {
+                return dados.data;
+              }
+              if (Array.isArray(dados.items)) {
+                return dados.items;
+              }
+            }
+            return [];
+          } catch (erro) {
+            console.error('Falha ao buscar eventos', erro);
+            return [];
+          }
+        }
+
+        function adaptarEventoApi(item) {
+          if (!item || typeof item !== 'object') {
+            return null;
+          }
+          const fonte = item;
+          const adaptado = { ...fonte };
+          const ler = (...chaves) => {
+            for (const chave of chaves) {
+              if (fonte[chave] !== undefined && fonte[chave] !== null) {
+                const valor = fonte[chave];
+                if (typeof valor === 'string') {
+                  const limpo = valor.trim();
+                  if (limpo) return limpo;
+                } else if (valor !== '') {
+                  return valor;
+                }
+              }
+            }
+            return undefined;
+          };
+
+          const id = ler('id', 'slug', 'uuid', 'codigo', 'codigo_evento', 'identificador', 'evento_id');
+          if (id !== undefined) adaptado.id = id;
+          const nome = ler('nome', 'titulo', 'title', 'evento', 'name');
+          if (nome !== undefined) adaptado.nome = nome;
+          const classificacao = ler('classificacao', 'classificacao_indicativa', 'faixa_etaria', 'faixaEtaria');
+          if (classificacao !== undefined) adaptado.classificacao = classificacao;
+          const genero = ler('genero', 'categoria', 'tipo', 'segmento');
+          if (genero !== undefined) adaptado.genero = genero;
+          const local = ler('local', 'teatro', 'espaco', 'localizacao', 'casa');
+          if (local !== undefined) adaptado.local = local;
+          const quando = ler('quando', 'datahora', 'data_hora', 'dataHora', 'data_inicio', 'data');
+          if (quando !== undefined) adaptado.quando = quando;
+          const hora = ler('hora', 'horario', 'hora_inicio', 'horaInicio');
+          if (hora !== undefined) adaptado.hora = hora;
+          const poster = ler('poster', 'imagem', 'capa', 'imagem_card');
+          if (poster !== undefined) adaptado.poster = poster;
+          const posterDetalhes = ler('posterdetalhes', 'poster_detalhes', 'posterDetalhes', 'imagem_detalhes');
+          if (posterDetalhes !== undefined) adaptado.posterdetalhes = posterDetalhes;
+          const sinopse = ler('sinopse', 'descricao', 'descricao_curta', 'descricaoLonga', 'descricao_longa', 'description');
+          if (sinopse !== undefined) adaptado.sinopse = sinopse;
+          const disponibilizados = ler('disponibilizados', 'quantidade_total', 'total', 'total_disponibilizado');
+          if (disponibilizados !== undefined) adaptado.disponibilizados = disponibilizados;
+          const disponiveis = ler('disponiveis', 'quantidade_disponivel', 'ingressos_disponiveis', 'vagas_disponiveis');
+          if (disponiveis !== undefined) adaptado.disponiveis = disponiveis;
+          const acessibilidade = ler('acessibilidade', 'acessibilidades', 'recursos_acessibilidade');
+          if (acessibilidade !== undefined) adaptado.acessibilidade = acessibilidade;
+          const duracao = ler('duracao', 'duração', 'tempo', 'tempo_estimado');
+          if (duracao !== undefined) adaptado.duracao = duracao;
+          const quemFaz = ler('quem_faz', 'quemfaz', 'quemFaz', 'grupo', 'companhia', 'company', 'coletivo');
+          if (quemFaz !== undefined) adaptado.quem_faz = quemFaz;
+          const origem = ler('origem', 'origem_grupo', 'origemGrupo');
+          if (origem !== undefined) adaptado.origem = origem;
+          const origemCidade = ler('origem_cidade', 'cidade_origem', 'cidadeOrigem');
+          if (origemCidade !== undefined) adaptado.origem_cidade = origemCidade;
+          const origemLocal = ler('origem_local');
+          if (origemLocal !== undefined) adaptado.origem_local = origemLocal;
+          const cidade = ler('cidade', 'municipio', 'municipio_origem', 'municipioOrigem');
+          if (cidade !== undefined) adaptado.cidade = cidade;
+          const uf = ler('uf', 'estado', 'sigla_estado', 'siglaEstado');
+          if (uf !== undefined) adaptado.uf = uf;
+
+          return adaptado;
+        }
+
+        function prepararEventos(lista, opcoes = {}) {
+          const { resetarMapa = false, extras = null, mapa = eventosPorId } = opcoes;
+          if (!Array.isArray(lista)) {
+            return [];
+          }
+          if (resetarMapa) {
+            mapa.clear();
+            if (mapa === eventosPorId) {
+              selecoesAtuais.clear();
+              quantidadesSelecionadas.clear();
+            }
+          }
+          return lista
+            .filter((item) => item && item.id !== undefined && item.id !== null)
+            .map((item) => {
+              const quandoValor = resolverQuando(item);
+              const quemFaz = extrairQuemFaz(item);
+              const origem = resolverOrigem(item);
+              const { texto, normalizado, horaCurta } = formatarDataHora(quandoValor, item.hora);
+              const dataReferencia = toRecifeDate(quandoValor, item.hora);
+              const inicioAbsoluto = dataReferencia ? dataReferencia.getTime() : NaN;
+              const preparado = {
+                id: String(item.id),
+                nome: item.nome || 'Evento',
+                classificacao: item.classificacao || 'Livre',
+                acessibilidade: item.acessibilidade ?? '',
+                temAcessibilidade: interpretarAcessibilidade(item.acessibilidade),
+                genero: item.genero || '',
+                local: item.local || item.teatro || '',
+                duracao: item.duracao || item.duração || '',
+                quemFaz,
+                origem,
+                quando: quandoValor || '',
+                quandoOriginal: item.quando ?? '',
+                horaOriginal: item.hora || '',
+                quandoFormatado: texto,
+                quandoNormalizado: normalizado || DATE_KEY_EMPTY,
+                horaCurta: horaCurta,
+                inicioAbsoluto: Number.isFinite(inicioAbsoluto) ? inicioAbsoluto : NaN,
+                poster: item.poster || '',
+                posterdetalhes: item.posterdetalhes || item.poster || '',
+                sinopse: item.sinopse || '',
+                disponibilizados: numeroSeguro(item.disponibilizados),
+                disponiveis: numeroSeguro(item.disponiveis)
+              };
+              preparado.grupoOrigem = combinarGrupoOrigem(preparado.quemFaz, preparado.origem);
+              if (extras) {
+                Object.assign(preparado, extras);
+                if (extras.apenasDetalhes) {
+                  selecoesAtuais.delete(preparado.id);
+                  quantidadesSelecionadas.delete(preparado.id);
+                }
+              }
+              preparado.jaPegou = Boolean(preparado.jaPegou);
+              preparado.apenasDetalhes = Boolean(preparado.apenasDetalhes);
+              const existente = mapa.get(preparado.id);
+              if (existente) {
+                Object.assign(existente, preparado);
+                if (extras && extras.apenasDetalhes) {
+                  existente.apenasDetalhes = true;
+                  existente.jaPegou = Boolean(existente.jaPegou);
+                }
+                return existente;
+              }
+              if (preparado.apenasDetalhes) {
+                selecoesAtuais.delete(preparado.id);
+                quantidadesSelecionadas.delete(preparado.id);
+              }
+              mapa.set(preparado.id, preparado);
+              return preparado;
+            })
+            .filter(Boolean);
+        }
+
+        async function carregarEventosAdquiridos() {
+          const recebidosJaPegos = await fetchEventos(API_URL_JA_PEGOS);
+          const baseJaPegos = Array.isArray(recebidosJaPegos)
+            ? recebidosJaPegos.map(adaptarEventoApi).filter(Boolean)
+            : [];
+
+          const fonteParaUsar = baseJaPegos.length
+            ? baseJaPegos
+            : FALLBACK_EVENTOS_ADQUIRIDOS.map(adaptarEventoApi).filter(Boolean);
+
+          if (!fonteParaUsar.length) {
+            eventosAdquiridosPorId.clear();
+            eventosAdquiridos = [];
+            eventosAdquiridosFiltrados = [];
+            aplicarFiltros();
+            return;
+          }
+
+          eventosAdquiridos = prepararEventos(fonteParaUsar, {
+            resetarMapa: true,
+            extras: { jaPegou: true, apenasDetalhes: true },
+            mapa: eventosAdquiridosPorId
+          });
+          aplicarFiltros();
+        }
+
+        function numeroSeguro(valor) {
+          const numero = Number(valor);
+          return Number.isFinite(numero) && numero >= 0 ? numero : 0;
+        }
+
+        function interpretarAcessibilidade(valor) {
+          if (valor === undefined || valor === null) {
+            return false;
+          }
+          const texto = String(valor).trim().toLowerCase();
+          if (!texto) {
+            return false;
+          }
+          return texto === 'sim' || texto === 'true' || texto === '1';
+        }
+
+        function extrairQuemFaz(item) {
+          if (!item) return '';
+          const candidatos = [item.quem_faz, item.quemfaz, item.quemFaz, item.grupo, item.company, item.companhia];
+          for (const candidato of candidatos) {
+            if (candidato === undefined || candidato === null) continue;
+            const texto = String(candidato).trim();
+            if (texto) {
+              return texto;
+            }
+          }
+          return '';
+        }
+
+        function resolverOrigem(item) {
+          if (!item) return '';
+          const diretos = [
+            item.origem,
+            item.origem_grupo,
+            item.origemGrupo,
+            item.origem_cidade,
+            item.origemCidade,
+            item.localidade,
+            item.cidade_origem,
+            item.cidadeOrigem,
+            item.origem_local,
+            item.origemLocal,
+            item.procedencia
+          ];
+          for (const candidato of diretos) {
+            if (candidato === undefined || candidato === null) continue;
+            const texto = String(candidato).trim();
+            if (texto) {
+              return texto;
+            }
+          }
+          const cidade = extrairCampoTexto([
+            item.cidade,
+            item.municipio,
+            item.municipio_origem,
+            item.municipioOrigem,
+            item.cidade_base,
+            item.cidadeBase
+          ]);
+          const uf = extrairCampoTexto([
+            item.uf,
+            item.estado,
+            item.sigla_estado,
+            item.siglaEstado,
+            item.sigla,
+            item.estado_sigla
+          ]);
+          if (cidade && uf) {
+            return `${cidade}/${uf}`.replace(/\s*\/\s*/g, '/');
+          }
+          if (cidade) return cidade;
+          if (uf) return uf;
+          return '';
+        }
+
+        function extrairCampoTexto(lista) {
+          for (const valor of lista) {
+            if (valor === undefined || valor === null) continue;
+            const texto = String(valor).trim();
+            if (texto) {
+              return texto;
+            }
+          }
+          return '';
+        }
+
+        function combinarGrupoOrigem(grupo, origem) {
+          const partes = [];
+          if (grupo) {
+            partes.push(grupo);
+          }
+          if (origem) {
+            const origemNormalizada = origem.replace(/\s+•\s+/g, ' • ').replace(/\s{2,}/g, ' ').trim();
+            if (origemNormalizada) {
+              partes.push(origemNormalizada);
+            }
+          }
+          return partes.join(' • ');
+        }
+
+        function resolverQuando(item) {
+          if (!item) return '';
+          const bruto = item.quando;
+          if (bruto !== undefined && bruto !== null) {
+            const valor = String(bruto).trim();
+            if (valor) {
+              return valor;
+            }
+          }
+          const dataCampo = [item.data, item.dataEvento, item.data_evento, item.dia]
+            .map((valor) => (valor !== undefined && valor !== null ? String(valor).trim() : ''))
+            .find((valor) => valor);
+          const horaCampo = [item.hora, item.horario]
+            .map((valor) => (valor !== undefined && valor !== null ? String(valor).trim() : ''))
+            .find((valor) => valor);
+          if (dataCampo && horaCampo) {
+            return gerarQuandoIso(dataCampo, horaCampo);
+          }
+          return '';
+        }
+
+        function gerarQuandoIso(dataCampo, horaCampo) {
+          const data = criarDataComTimezone(dataCampo, horaCampo);
+          return data ? data.toISOString() : '';
+        }
+
+        function registrarEventos() {
+          if (elGrid) {
+            elGrid.addEventListener('click', aoClicarNoGrid);
+          }
+          if (elGridAdquiridos) {
+            elGridAdquiridos.addEventListener('click', aoClicarNoGrid);
+          }
+          if (elQ) {
+            elQ.addEventListener('input', aplicarFiltros);
+          }
+          [elFLocal, elFClass, elFGenero].forEach((select) => {
+            if (select) {
+              select.addEventListener('change', aplicarFiltros);
+            }
+          });
+          if (elBtnLimpar) {
+            elBtnLimpar.addEventListener('click', (evento) => {
+              evento.preventDefault();
+              limparFiltros();
+            });
+          }
+          if (mTicketBtn) {
+            mTicketBtn.addEventListener('click', () => {
+              const id = mTicketBtn.dataset.id;
+              if (!id) return;
+              alternarIngresso(id, obterQuantidadeSelecionada());
+            });
+          }
+          if (mConfirmBtn) {
+            mConfirmBtn.addEventListener('click', () => {
+              enviarIngressosSelecionados(mConfirmBtn);
+            });
+          }
+          if (mDevolverBtn) {
+            mDevolverBtn.addEventListener('click', () => {
+              aoSolicitarDevolver(mDevolverBtn);
+            });
+          }
+          if (mQuantidadeSelect) {
+            mQuantidadeSelect.addEventListener('change', () => {
+              if (!mTicketBtn) return;
+              const idAtual = mTicketBtn.dataset.id;
+              if (!idAtual) return;
+              const quantidade = obterQuantidadeSelecionada();
+              if (selecoesAtuais.has(idAtual)) {
+                quantidadesSelecionadas.set(idAtual, quantidade);
+              }
+            });
+          }
+        }
+
+        function popularFiltros(lista) {
+          preencherSelect(elFLocal, lista.map((e) => e.local).filter(Boolean));
+          preencherSelect(elFClass, lista.map((e) => e.classificacao).filter(Boolean));
+          preencherSelect(elFGenero, lista.map((e) => e.genero).filter(Boolean));
+        }
+
+        function preencherSelect(select, valores) {
+          if (!select) return;
+          while (select.options.length > 1) {
+            select.remove(1);
+          }
+          const unicos = Array.from(new Set(valores));
+          const collator = new Intl.Collator('pt-BR');
+          unicos.sort(collator.compare);
+          unicos.forEach((valor) => {
+            const opcao = document.createElement('option');
+            opcao.value = valor;
+            opcao.textContent = valor;
+            select.appendChild(opcao);
+          });
+        }
+
+        function filtrarEventosPorCriterios(lista, termo, filtroLocal, filtroClass, filtroGenero) {
+          if (!Array.isArray(lista)) return [];
+          return lista.filter((evento) => {
+            if (!evento) return false;
+            const camposBusca = [evento.nome, evento.local, evento.sinopse, evento.genero]
+              .filter((campo) => typeof campo === 'string' && campo.trim().length);
+            const textoOk = !termo || camposBusca.some((campo) => campo.toLowerCase().includes(termo));
+            const localOk = !filtroLocal || evento.local === filtroLocal;
+            const classOk = !filtroClass || evento.classificacao === filtroClass;
+            const generoOk = !filtroGenero || evento.genero === filtroGenero;
+            return textoOk && localOk && classOk && generoOk;
+          });
+        }
+
+        function aplicarFiltros() {
+          const termo = (elQ ? elQ.value : '').trim().toLowerCase();
+          const filtroLocal = elFLocal ? elFLocal.value : '';
+          const filtroClass = elFClass ? elFClass.value : '';
+          const filtroGenero = elFGenero ? elFGenero.value : '';
+
+          eventosFiltrados = filtrarEventosPorCriterios(eventos, termo, filtroLocal, filtroClass, filtroGenero);
+          eventosAdquiridosFiltrados = filtrarEventosPorCriterios(
+            eventosAdquiridos,
+            termo,
+            filtroLocal,
+            filtroClass,
+            filtroGenero
+          );
+          renderCards(eventosFiltrados);
+          renderCardsAdquiridos(eventosAdquiridosFiltrados);
+          atualizarResultado();
+        }
+
+        function limparFiltros() {
+          if (elQ) elQ.value = '';
+          [elFLocal, elFClass, elFGenero].forEach((select) => {
+            if (select) select.value = '';
+          });
+          eventosFiltrados = [...eventos];
+          eventosAdquiridosFiltrados = [...eventosAdquiridos];
+          renderCards(eventosFiltrados);
+          renderCardsAdquiridos(eventosAdquiridosFiltrados);
+          atualizarResultado();
+        }
+
+        function renderCards(lista) {
+          if (!elGrid) return;
+          while (elGrid.firstChild) {
+            elGrid.removeChild(elGrid.firstChild);
+          }
+          const fragmento = document.createDocumentFragment();
+          lista.forEach((evento) => {
+            fragmento.appendChild(criarCard(evento));
+          });
+          elGrid.appendChild(fragmento);
+          atualizarEstadoTodos();
+        }
+
+        function renderCardsAdquiridos(lista) {
+          if (!elGridAdquiridos) return;
+          while (elGridAdquiridos.firstChild) {
+            elGridAdquiridos.removeChild(elGridAdquiridos.firstChild);
+          }
+          const quantidade = Array.isArray(lista) ? lista.length : 0;
+          if (Array.isArray(lista) && lista.length) {
+            const fragmento = document.createDocumentFragment();
+            lista.forEach((evento) => {
+              fragmento.appendChild(criarCardBloqueado(evento));
+            });
+            elGridAdquiridos.appendChild(fragmento);
+          }
+          if (elAcquiredInfo) {
+            elAcquiredInfo.textContent = `Exibindo ${quantidade}`;
+          }
+        }
+
+        function criarCard(evento) {
+          const coluna = document.createElement('div');
+          coluna.className = 'col';
+
+          const card = document.createElement('article');
+          card.className = 'ticket-card h-100 d-flex flex-column';
+          card.setAttribute('data-id', evento.id);
+          card.setAttribute('data-card-id', evento.id);
+          card.setAttribute('data-date', evento.quandoFormatado || '');
+          card.setAttribute('data-quando', evento.quandoNormalizado || DATE_KEY_EMPTY);
+          card.setAttribute('data-hora', evento.horaCurta || '');
+          card.setAttribute('data-ja-pegou', evento.jaPegou ? 'true' : 'false');
+          if (evento.jaPegou) {
+            card.classList.add('portal-dyn-ja-pego');
+          }
+
+          const capa = document.createElement('div');
+          capa.className = 'ticket-cover ratio ratio-16x9';
+          const imagem = document.createElement('img');
+          imagem.className = 'poster-img';
+          imagem.loading = 'lazy';
+          imagem.src = evento.poster || '';
+          imagem.alt = `Pôster da peça ${evento.nome}`;
+          capa.appendChild(imagem);
+          card.appendChild(capa);
+
+          const corpo = document.createElement('div');
+          corpo.className = 'ticket-body d-flex flex-column gap-2';
+
+          const cabecalho = document.createElement('div');
+          cabecalho.className = 'd-flex align-items-center justify-content-between';
+          const titulo = document.createElement('h5');
+          titulo.className = 'mb-0 fw-bold text-truncate';
+          titulo.title = evento.nome;
+          titulo.textContent = evento.nome;
+          cabecalho.appendChild(titulo);
+          const topoDireita = document.createElement('div');
+          topoDireita.className = 'ticket-top-flags';
+          topoDireita.appendChild(criarClassificacao(evento.classificacao));
+          aplicarAcessibilidadeAoContainer(topoDireita, evento.temAcessibilidade);
+          cabecalho.appendChild(topoDireita);
+          corpo.appendChild(cabecalho);
+
+          const subtitulo = document.createElement('p');
+          subtitulo.className = 'ticket-subtitle mb-0';
+          const grupoOrigemTexto = evento.grupoOrigem || combinarGrupoOrigem(evento.quemFaz, evento.origem);
+          const textoSubtitulo = grupoOrigemTexto && grupoOrigemTexto.trim() ? grupoOrigemTexto : '—';
+          subtitulo.textContent = textoSubtitulo;
+          if (textoSubtitulo && textoSubtitulo !== '—') {
+            subtitulo.title = textoSubtitulo;
+          } else {
+            subtitulo.removeAttribute('title');
+          }
+          corpo.appendChild(subtitulo);
+
+          const blocoInfo = document.createElement('div');
+          blocoInfo.className = 'row g-2 mt-2';
+          blocoInfo.appendChild(criarMeta('Gênero e local', montarGeneroLocal(evento)));
+          const quandoTexto = evento.quandoFormatado || '—';
+          blocoInfo.appendChild(criarMeta('Quando', quandoTexto));
+          blocoInfo.appendChild(criarMeta('Duração', evento.duracao || '—'));
+          const textoIngressos = evento.jaPegou
+            ? 'Você já pegou estes ingressos'
+            : `Disponíveis: ${evento.disponiveis} / ${evento.disponibilizados}`;
+          blocoInfo.appendChild(criarMeta('Ingressos', textoIngressos));
+          corpo.appendChild(blocoInfo);
+
+          const acoes = document.createElement('div');
+          acoes.className = 'ticket-actions mt-3';
+
+          const botaoDetalhes = document.createElement('button');
+          botaoDetalhes.type = 'button';
+          botaoDetalhes.className = 'btn btn-outline-secondary btn-modern btn-detalhes';
+          botaoDetalhes.setAttribute('data-details', evento.id);
+          botaoDetalhes.setAttribute('aria-label', 'Ver detalhes');
+          botaoDetalhes.setAttribute('aria-disabled', 'false');
+          botaoDetalhes.textContent = 'Detalhes';
+          acoes.appendChild(botaoDetalhes);
+
+          corpo.appendChild(acoes);
+          card.appendChild(corpo);
+          coluna.appendChild(card);
+          return coluna;
+        }
+
+        function criarCardBloqueado(evento) {
+          const coluna = criarCard(evento);
+          const card = coluna.querySelector('.ticket-card');
+          if (!card) {
+            return coluna;
+          }
+          card.classList.add('card-bloqueado');
+          card.dataset.bloqueado = 'true';
+          card.setAttribute('aria-disabled', 'true');
+          const corpo = card.querySelector('.ticket-body');
+          const acoes = card.querySelector('.ticket-actions');
+          if (corpo && !corpo.querySelector('.portal-dyn-aviso-ja-pego')) {
+            const aviso = document.createElement('div');
+            aviso.className = 'portal-dyn-aviso-ja-pego';
+            aviso.textContent = 'Você já pegou estes ingressos';
+            if (acoes) {
+              corpo.insertBefore(aviso, acoes);
+            } else {
+              corpo.appendChild(aviso);
+            }
+          }
+          if (acoes) {
+            const botoes = acoes.querySelectorAll('button');
+            botoes.forEach((botao) => {
+              if (!botao.classList.contains('btn-detalhes')) {
+                botao.remove();
+              }
+            });
+          }
+          const botaoDetalhes = card.querySelector('.btn-detalhes');
+          if (botaoDetalhes) {
+            botaoDetalhes.disabled = false;
+            botaoDetalhes.setAttribute('aria-disabled', 'false');
+          }
+          return coluna;
+        }
+
+        function criarMeta(rotulo, valor) {
+          const grupo = document.createElement('div');
+          grupo.className = 'col-12';
+          const label = document.createElement('div');
+          label.className = 'meta-label';
+          label.textContent = rotulo;
+          const texto = document.createElement('div');
+          texto.className = 'fw-semibold small';
+          texto.textContent = valor;
+          if (rotulo === 'Gênero e local') {
+            texto.classList.add('text-truncate');
+            texto.title = valor;
+          }
+          grupo.appendChild(label);
+          grupo.appendChild(texto);
+          return grupo;
+        }
+
+        function aplicarAcessibilidadeAoContainer(container, habilitado) {
+          if (!container) return;
+          const existentes = container.querySelectorAll('.portal-dyn-acc-icon');
+          existentes.forEach((icone) => icone.remove());
+          if (!habilitado) return;
+          ACESSIBILIDADE_ICONES.forEach((icone) => {
+            container.appendChild(criarIconeAcessibilidade(icone));
+          });
+        }
+
+        function criarIconeAcessibilidade(icone) {
+          const span = document.createElement('span');
+          span.className = 'portal-dyn-acc-icon';
+          span.dataset.acessibilidade = icone.chave;
+          span.setAttribute('role', 'img');
+          span.setAttribute('aria-label', `${icone.rotulo} disponível`);
+          span.title = `${icone.rotulo} disponível`;
+          const imagem = document.createElement('img');
+          imagem.src = icone.src;
+          imagem.alt = `${icone.rotulo} disponível`;
+          imagem.loading = 'lazy';
+          imagem.decoding = 'async';
+          span.appendChild(imagem);
+          return span;
+        }
+
+        function criarClassificacao(classificacao) {
+          const info = obterClassificacao(classificacao);
+          const span = document.createElement('span');
+          span.className = `ci ${info.classe}`;
+          span.title = `Classificação: ${info.rotuloCompleto}`;
+          span.setAttribute('aria-label', `Classificação ${info.rotuloCompleto}`);
+          span.textContent = info.rotulo;
+          return span;
+        }
+
+        function obterClassificacao(valor) {
+          const mapa = {
+            Livre: { classe: 'l', rotulo: 'L', rotuloCompleto: 'Livre' },
+            '10+': { classe: 'c10', rotulo: '10', rotuloCompleto: '10+' },
+            '12+': { classe: 'c12', rotulo: '12', rotuloCompleto: '12+' },
+            '14+': { classe: 'c14', rotulo: '14', rotuloCompleto: '14+' },
+            '16+': { classe: 'c16', rotulo: '16', rotuloCompleto: '16+' },
+            '18+': { classe: 'c18', rotulo: '18', rotuloCompleto: '18+' }
+          };
+          return mapa[valor] || mapa['Livre'];
+        }
+
+        function montarGeneroLocal(evento) {
+          if (evento.genero && evento.local) {
+            return `${evento.genero} • ${evento.local}`;
+          }
+          return evento.genero || evento.local || '—';
+        }
+
+        function normalizarQuantidade(valor) {
+          const numero = Number(valor);
+          if (!Number.isFinite(numero)) {
+            return 1;
+          }
+          if (numero < 1) return 1;
+          if (numero > 2) return 2;
+          return Math.round(numero);
+        }
+
+        function obterQuantidadeSelecionada() {
+          if (!mQuantidadeSelect) return 1;
+          return normalizarQuantidade(mQuantidadeSelect.value);
+        }
+
+        function obterContainerAcoes(card) {
+          return card ? card.querySelector('.ticket-actions') : null;
+        }
+
+        function encontrarCardPorId(id) {
+          if (!id || !elGrid) return null;
+          const todos = elGrid.querySelectorAll('[data-id]');
+          for (const candidato of todos) {
+            if (candidato.getAttribute('data-id') === id) {
+              return candidato;
+            }
+          }
+          return null;
+        }
+
+        function mostrarAvisoErro(card, mensagem) {
+          const container = obterContainerAcoes(card);
+          if (!container) return;
+          let aviso = container.querySelector('.portal-dyn-erro-confirmacao');
+          if (!aviso) {
+            aviso = document.createElement('small');
+            aviso.className = 'text-danger portal-dyn-erro-confirmacao';
+            container.appendChild(aviso);
+          }
+          aviso.textContent = mensagem;
+        }
+
+        function limparAvisoErro(card) {
+          const container = obterContainerAcoes(card);
+          if (!container) return;
+          const aviso = container.querySelector('.portal-dyn-erro-confirmacao');
+          if (aviso) {
+            aviso.remove();
+          }
+        }
+
+        function resetarDisponibilidade() {
+          if (!elGrid) return;
+          const cards = elGrid.querySelectorAll('[data-id]');
+          cards.forEach((card) => {
+            const jaPegou = card.getAttribute('data-ja-pegou') === 'true';
+            card.classList.remove('selecionado', 'is-active');
+            if (jaPegou) {
+              card.classList.add('portal-dyn-ja-pego');
+              card.classList.remove('inativo', 'is-muted');
+              card.setAttribute('aria-disabled', 'true');
+            } else {
+              card.classList.remove('inativo', 'is-muted');
+              card.classList.remove('portal-dyn-ja-pego');
+              if (!card.dataset.bloqueado) {
+                card.removeAttribute('aria-disabled');
+              }
+            }
+            limparAvisoErro(card);
+            const botao = card.querySelector('.btn-pegar-ingresso');
+            if (botao) {
+              resetarEstadoBotaoIngresso(botao);
+            }
+            const botaoDetalhes = card.querySelector('.btn-detalhes');
+            if (botaoDetalhes) {
+              botaoDetalhes.disabled = false;
+              botaoDetalhes.setAttribute('aria-disabled', 'false');
+              botaoDetalhes.type = 'button';
+            }
+          });
+        }
+
+        function resetarEstadoBotaoIngresso(botao) {
+          botao.disabled = false;
+          botao.setAttribute('aria-disabled', 'false');
+          botao.setAttribute('aria-pressed', 'false');
+          botao.textContent = '🎟️ Pegar ingresso';
+          botao.classList.remove('btn-success');
+          if (!botao.classList.contains('btn-primary')) {
+            botao.classList.add('btn-primary');
+          }
+        }
+
+        function aplicarEstadoSelecionado(card) {
+          if (!card) return;
+          card.classList.add('selecionado');
+          card.classList.add('is-active');
+          card.classList.remove('inativo', 'is-muted');
+          const botao = card.querySelector('.btn-pegar-ingresso');
+          if (botao) {
+            botao.disabled = false;
+            botao.setAttribute('aria-disabled', 'false');
+            botao.setAttribute('aria-pressed', 'true');
+            botao.textContent = '🎟️ Soltar ingresso';
+            botao.classList.add('btn-success');
+            botao.classList.remove('btn-primary');
+          }
+          const botaoDetalhes = card.querySelector('.btn-detalhes');
+          if (botaoDetalhes) {
+            botaoDetalhes.disabled = false;
+            botaoDetalhes.setAttribute('aria-disabled', 'false');
+          }
+        }
+
+        function aplicarEstadoInativo(card) {
+          if (!card) return;
+          if (card.getAttribute('data-ja-pegou') === 'true') {
+            card.classList.add('portal-dyn-ja-pego');
+            return;
+          }
+          card.classList.add('inativo');
+          card.classList.add('is-muted');
+          card.classList.remove('selecionado', 'is-active');
+          const botao = card.querySelector('.btn-pegar-ingresso');
+          if (botao) {
+            botao.disabled = true;
+            botao.setAttribute('aria-disabled', 'true');
+            botao.setAttribute('aria-pressed', 'false');
+            botao.textContent = '🎟️ Pegar ingresso';
+            botao.classList.remove('btn-success');
+            if (!botao.classList.contains('btn-primary')) {
+              botao.classList.add('btn-primary');
+            }
+          }
+          const botaoDetalhes = card.querySelector('.btn-detalhes');
+          if (botaoDetalhes) {
+            botaoDetalhes.disabled = true;
+            botaoDetalhes.setAttribute('aria-disabled', 'true');
+          }
+        }
+
+        function estaNoIntervaloDeRestricao(eventoAlvo, eventoSelecionado) {
+          if (
+            (eventoSelecionado && (eventoSelecionado.apenasDetalhes || eventoSelecionado.jaPegou)) ||
+            (eventoAlvo && (eventoAlvo.apenasDetalhes || eventoAlvo.jaPegou))
+          ) {
+            return false;
+          }
+          if (!eventoSelecionado || !Number.isFinite(eventoSelecionado.inicioAbsoluto)) {
+            return false;
+          }
+          if (!eventoAlvo || !Number.isFinite(eventoAlvo.inicioAbsoluto)) {
+            return false;
+          }
+          return Math.abs(eventoAlvo.inicioAbsoluto - eventoSelecionado.inicioAbsoluto) < INTERVALO_TRES_HORAS_MS;
+        }
+
+        function eventoConflitanteComSelecoes(evento) {
+          if (!evento || evento.apenasDetalhes || evento.jaPegou) return false;
+          for (const selecionadoId of selecoesAtuais) {
+            if (selecionadoId === evento.id) continue;
+            const selecionado = eventosPorId.get(selecionadoId);
+            if (!selecionado || selecionado.apenasDetalhes || selecionado.jaPegou) {
+              continue;
+            }
+            if (estaNoIntervaloDeRestricao(evento, selecionado)) {
+              return true;
+            }
+          }
+          return false;
+        }
+
+        function reloadComAtraso(ms = 2500) {
+          if (typeof window === 'undefined') return;
+          const atraso = Number.isFinite(ms) ? ms : 2500;
+          window.setTimeout(() => {
+            if (window.location) {
+              window.location.reload();
+            }
+          }, atraso);
+        }
+
+        function sanitizarCPF(valor) {
+          return String(valor ?? '').replace(/\D/g, '');
+        }
+
+        function obterCPF() {
+          const bruto = campoCPF && campoCPF.value ? campoCPF.value : CPF_FIXO;
+          const apenasDigitos = sanitizarCPF(bruto);
+          if (apenasDigitos.length === 11) {
+            return apenasDigitos;
+          }
+          console.warn('CPF inválido fornecido para requisições do catálogo.');
+          return '';
+        }
+
+        async function enviarIngressosSelecionados(botao) {
+          if (!botao || botao.disabled) return;
+          if (!selecoesAtuais.size) return;
+
+          const cpf = obterCPF();
+          if (!cpf) {
+            selecoesAtuais.forEach((id) => {
+              const card = encontrarCardPorId(id);
+              if (card) {
+                mostrarAvisoErro(card, 'CPF inválido.');
+              }
+            });
+            return;
+          }
+
+          const ingressos = Array.from(selecoesAtuais).map((id) => ({
+            id,
+            quantidade: quantidadesSelecionadas.get(id) || 1
+          }));
+
+          if (!ingressos.length) {
+            return;
+          }
+
+          ingressos.forEach(({ id }) => {
+            const card = encontrarCardPorId(id);
+            if (card) {
+              limparAvisoErro(card);
+            }
+          });
+
+          botao.disabled = true;
+          botao.setAttribute('aria-disabled', 'true');
+          const textoOriginal = botao.textContent;
+          botao.textContent = 'Confirmando…';
+          let confirmadoComSucesso = false;
+
+          try {
+            const resposta = await fetch(CONFIRMAR_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ cpf, ingressos })
+            });
+            if (!resposta.ok) {
+              throw new Error(`HTTP ${resposta.status}`);
+            }
+
+            botao.textContent = 'Confirmado!';
+            confirmadoComSucesso = true;
+
+            ingressos.forEach(({ id, quantidade }) => {
+              const card = encontrarCardPorId(id);
+              if (card) {
+                card.dispatchEvent(
+                  new CustomEvent('ingresso:confirmado', {
+                    detail: { id, cpf, quantidade },
+                    bubbles: true
+                  })
+                );
+              }
+            });
+
+            reloadComAtraso();
+          } catch (erro) {
+            console.error('Falha ao confirmar ingresso', erro);
+            ingressos.forEach(({ id }) => {
+              const card = encontrarCardPorId(id);
+              if (card) {
+                mostrarAvisoErro(card, 'Falha ao confirmar. Tente novamente.');
+              }
+            });
+            botao.textContent = textoOriginal || 'Confirmar';
+          } finally {
+            if (confirmadoComSucesso) {
+              botao.disabled = true;
+              botao.setAttribute('aria-disabled', 'true');
+            } else {
+              botao.disabled = false;
+              botao.setAttribute('aria-disabled', 'false');
+              if (!botao.textContent || botao.textContent === 'Confirmando…') {
+                botao.textContent = textoOriginal || 'Confirmar';
+              }
+            }
+          }
+        }
+
+        function aoSolicitarDevolver(botao) {
+          if (!botao || botao.disabled) return;
+          const id = botao.dataset.id;
+          if (!id) return;
+          const textoOriginal = botao.textContent || 'Devolver ingressos';
+          botao.disabled = true;
+          botao.setAttribute('aria-disabled', 'true');
+          botao.textContent = 'Processando…';
+          window.setTimeout(() => {
+            botao.disabled = false;
+            botao.setAttribute('aria-disabled', 'false');
+            botao.textContent = textoOriginal;
+            console.info('Solicitação de devolução enviada para', id);
+          }, 800);
+        }
+
+        function aoClicarNoGrid(evento) {
+          const botaoIngresso = evento.target.closest('.btn-pegar-ingresso');
+          if (botaoIngresso) {
+            const card = botaoIngresso.closest('[data-id]');
+            if (!card) return;
+            const id = card.getAttribute('data-id');
+            if (!id) return;
+            const quantidadeAtual = quantidadesSelecionadas.get(id) || 1;
+            alternarIngresso(id, quantidadeAtual);
+            return;
+          }
+          const botaoDetalhes = evento.target.closest('[data-details]');
+          if (botaoDetalhes) {
+            if (botaoDetalhes.disabled) {
+              evento.preventDefault();
+              return;
+            }
+            const card = botaoDetalhes.closest('[data-id]');
+            if (!card) return;
+            const id = card.getAttribute('data-id');
+            const dados = eventosPorId.get(id) || eventosAdquiridosPorId.get(id);
+            if (dados) {
+              abrirModal(dados);
+            }
+          }
+        }
+
+        function alternarIngresso(id, quantidadePreferida) {
+          if (!id) return;
+          const evento = eventosPorId.get(id);
+          if (!evento) {
+            if (selecoesAtuais.has(id)) {
+              selecoesAtuais.delete(id);
+              quantidadesSelecionadas.delete(id);
+              atualizarEstadoTodos();
+              atualizarBotaoModal();
+            }
+            return;
+          }
+          if (evento.apenasDetalhes || evento.jaPegou) {
+            if (selecoesAtuais.has(id)) {
+              selecoesAtuais.delete(id);
+              quantidadesSelecionadas.delete(id);
+              atualizarEstadoTodos();
+              atualizarBotaoModal();
+            }
+            return;
+          }
+          if (selecoesAtuais.has(id)) {
+            selecoesAtuais.delete(id);
+            quantidadesSelecionadas.delete(id);
+          } else {
+            if (eventoConflitanteComSelecoes(evento)) {
+              return;
+            }
+            selecoesAtuais.add(id);
+            const quantidadeBase =
+              quantidadePreferida !== undefined && quantidadePreferida !== null
+                ? quantidadePreferida
+                : quantidadesSelecionadas.get(id) || 1;
+            const quantidade = normalizarQuantidade(quantidadeBase);
+            quantidadesSelecionadas.set(id, quantidade);
+          }
+          atualizarEstadoTodos();
+          atualizarBotaoModal();
+        }
+
+        function atualizarEstadoDosCards() {
+          if (!elGrid) return;
+          resetarDisponibilidade();
+          if (!selecoesAtuais.size) return;
+          const selecionados = Array.from(selecoesAtuais)
+            .map((id) => eventosPorId.get(id))
+            .filter(Boolean);
+          if (!selecionados.length) return;
+          selecionados.forEach((eventoSelecionado) => {
+            const cardSelecionado = encontrarCardPorId(eventoSelecionado.id);
+            if (cardSelecionado) {
+              aplicarEstadoSelecionado(cardSelecionado);
+            }
+          });
+          const cards = elGrid.querySelectorAll('[data-id]');
+          cards.forEach((card) => {
+            const idCard = card.getAttribute('data-id');
+            if (!idCard || selecoesAtuais.has(idCard)) return;
+            const eventoCard = eventosPorId.get(idCard);
+            if (
+              selecionados.some((eventoSelecionado) =>
+                estaNoIntervaloDeRestricao(eventoCard, eventoSelecionado)
+              )
+            ) {
+              aplicarEstadoInativo(card);
+            }
+          });
+        }
+
+        function atualizarEstadoTodos() {
+          if (!elGrid) return;
+          if (selecoesAtuais.size) {
+            atualizarEstadoDosCards();
+          } else {
+            resetarDisponibilidade();
+          }
+        }
+
+        function abrirModal(evento) {
+          if (!mTitle) return;
+          mTitle.textContent = evento.nome;
+          if (mPoster) {
+            mPoster.src = evento.posterdetalhes || evento.poster || '';
+            mPoster.alt = `Pôster da peça ${evento.nome}`;
+          }
+          if (mClass) {
+            const info = obterClassificacao(evento.classificacao);
+            mClass.className = `ci ${info.classe}`;
+            mClass.textContent = info.rotulo;
+          }
+          aplicarAcessibilidadeAoContainer(mClassWrapper, evento.temAcessibilidade);
+          if (mLocal) mLocal.textContent = evento.local || '—';
+          if (mQuando) mQuando.textContent = evento.quandoFormatado || '—';
+          if (mGenero) mGenero.textContent = evento.genero || '—';
+          if (mDuracao) mDuracao.textContent = evento.duracao || '—';
+          if (mGrupo) {
+            const grupoOrigem = evento.grupoOrigem || combinarGrupoOrigem(evento.quemFaz, evento.origem) || '—';
+            mGrupo.textContent = grupoOrigem || '—';
+            if (grupoOrigem && grupoOrigem !== '—') {
+              mGrupo.title = grupoOrigem;
+            } else {
+              mGrupo.removeAttribute('title');
+            }
+          }
+          if (mSinopse) mSinopse.textContent = evento.sinopse || '—';
+          const somenteDetalhes = Boolean(evento.apenasDetalhes || evento.jaPegou);
+          if (mTicketBtn) {
+            if (somenteDetalhes) {
+              mTicketBtn.classList.add('d-none');
+              mTicketBtn.disabled = true;
+              mTicketBtn.setAttribute('aria-disabled', 'true');
+              mTicketBtn.setAttribute('aria-pressed', 'false');
+              mTicketBtn.dataset.id = '';
+              mTicketBtn.dataset.quando = '';
+              mTicketBtn.dataset.hora = '';
+            } else {
+              mTicketBtn.classList.remove('d-none');
+              mTicketBtn.setAttribute('aria-pressed', 'false');
+              mTicketBtn.setAttribute('aria-disabled', 'false');
+              mTicketBtn.disabled = false;
+              mTicketBtn.dataset.id = evento.id;
+              mTicketBtn.dataset.quando = evento.quandoNormalizado || DATE_KEY_EMPTY;
+              mTicketBtn.dataset.hora = evento.horaCurta || '';
+            }
+          }
+          if (mQuantidadeWrapper) {
+            mQuantidadeWrapper.classList.toggle('d-none', somenteDetalhes);
+          }
+          if (mQuantidadeSelect) {
+            mQuantidadeSelect.value = '1';
+            const quantidadeGuardada = quantidadesSelecionadas.get(evento.id);
+            if (quantidadeGuardada) {
+              mQuantidadeSelect.value = String(quantidadeGuardada);
+            }
+            mQuantidadeSelect.disabled = somenteDetalhes;
+          }
+          if (mConfirmBtn) {
+            if (somenteDetalhes) {
+              mConfirmBtn.classList.add('d-none');
+              mConfirmBtn.disabled = true;
+              mConfirmBtn.setAttribute('aria-disabled', 'true');
+              mConfirmBtn.dataset.id = '';
+              mConfirmBtn.dataset.quando = '';
+              mConfirmBtn.dataset.confirmar = 'false';
+              mConfirmBtn.dataset.confirmarId = '';
+            } else {
+              mConfirmBtn.classList.remove('d-none');
+              mConfirmBtn.dataset.id = evento.id;
+              mConfirmBtn.dataset.quando = evento.quandoNormalizado || DATE_KEY_EMPTY;
+              mConfirmBtn.dataset.confirmar = 'true';
+              mConfirmBtn.dataset.confirmarId = evento.id;
+              mConfirmBtn.setAttribute('aria-label', 'Confirmar ingresso');
+              if (mConfirmBtn.textContent !== 'Confirmando…') {
+                mConfirmBtn.textContent = 'Confirmar';
+              }
+            }
+          }
+          if (mDevolverBtn) {
+            const dataRecife = toRecifeDate(evento.quando, evento.hora);
+            const eventoFuturo = Boolean(dataRecife && dataRecife.getTime() > Date.now());
+            const mostrarDevolver = somenteDetalhes && eventoFuturo;
+            mDevolverBtn.classList.toggle('d-none', !mostrarDevolver);
+            mDevolverBtn.disabled = !mostrarDevolver;
+            mDevolverBtn.setAttribute('aria-disabled', mostrarDevolver ? 'false' : 'true');
+            if (mostrarDevolver) {
+              mDevolverBtn.dataset.id = evento.id || '';
+              mDevolverBtn.dataset.quando = evento.quandoNormalizado || DATE_KEY_EMPTY;
+            } else {
+              mDevolverBtn.dataset.id = '';
+              mDevolverBtn.dataset.quando = '';
+            }
+          }
+          atualizarBotaoModal();
+          modal.show();
+        }
+
+        function atualizarBotaoModal() {
+          if (!mTicketBtn) return;
+          const id = mTicketBtn.dataset.id;
+          if (!id) return;
+          const evento = eventosPorId.get(id);
+          if (!evento) return;
+          if (evento.apenasDetalhes || evento.jaPegou) {
+            if (mTicketBtn) {
+              mTicketBtn.disabled = true;
+              mTicketBtn.setAttribute('aria-disabled', 'true');
+              mTicketBtn.setAttribute('aria-pressed', 'false');
+            }
+            if (mConfirmBtn) {
+              mConfirmBtn.disabled = true;
+              mConfirmBtn.setAttribute('aria-disabled', 'true');
+            }
+            if (mQuantidadeSelect) {
+              mQuantidadeSelect.disabled = true;
+            }
+            return;
+          }
+          const selecionado = selecoesAtuais.has(id);
+          const bloqueado = !selecionado && eventoConflitanteComSelecoes(evento);
+
+          if (selecionado) {
+            mTicketBtn.disabled = false;
+            mTicketBtn.setAttribute('aria-disabled', 'false');
+            mTicketBtn.setAttribute('aria-pressed', 'true');
+            mTicketBtn.textContent = '🎟️ Soltar ingresso';
+            mTicketBtn.classList.add('btn-success');
+            mTicketBtn.classList.remove('btn-outline-secondary');
+            mTicketBtn.classList.remove('btn-outline-primary');
+          } else if (bloqueado) {
+            mTicketBtn.disabled = true;
+            mTicketBtn.setAttribute('aria-disabled', 'true');
+            mTicketBtn.setAttribute('aria-pressed', 'false');
+            mTicketBtn.textContent = '🎟️ Indisponível';
+            mTicketBtn.classList.remove('btn-success');
+            if (!mTicketBtn.classList.contains('btn-outline-secondary')) {
+              mTicketBtn.classList.add('btn-outline-secondary');
+            }
+            mTicketBtn.classList.remove('btn-outline-primary');
+          } else {
+            mTicketBtn.disabled = false;
+            mTicketBtn.setAttribute('aria-disabled', 'false');
+            mTicketBtn.setAttribute('aria-pressed', 'false');
+            mTicketBtn.textContent = '🎟️ Pegar ingresso';
+            mTicketBtn.classList.remove('btn-success');
+            mTicketBtn.classList.remove('btn-outline-secondary');
+            if (!mTicketBtn.classList.contains('btn-outline-primary')) {
+              mTicketBtn.classList.add('btn-outline-primary');
+            }
+          }
+          if (mConfirmBtn && mConfirmBtn.dataset.confirmar === 'true') {
+            const possuiSelecao = selecoesAtuais.size > 0;
+            mConfirmBtn.disabled = !possuiSelecao;
+            mConfirmBtn.setAttribute('aria-disabled', possuiSelecao ? 'false' : 'true');
+            if (possuiSelecao && mConfirmBtn.textContent !== 'Confirmando…' && mConfirmBtn.textContent !== 'Confirmado!') {
+              mConfirmBtn.textContent = 'Confirmar';
+            }
+            if (!possuiSelecao && mConfirmBtn.textContent === 'Confirmado!') {
+              mConfirmBtn.textContent = 'Confirmar';
+            }
+          }
+          if (mQuantidadeSelect) {
+            if (selecionado) {
+              const valorSelecionado = quantidadesSelecionadas.get(id) || 1;
+              mQuantidadeSelect.value = String(valorSelecionado);
+            }
+            mQuantidadeSelect.disabled = bloqueado;
+          }
+        }
+
+        function atualizarResultado() {
+          if (!elResultInfo) return;
+          elResultInfo.textContent = `Exibindo ${eventosFiltrados.length} de ${eventos.length}`;
+        }
+
+        function formatarDataHora(quando, hora) {
+          const dataReferencia = construirDataReferencia(quando, hora);
+          if (!dataReferencia) {
+            return { texto: '', normalizado: '', horaCurta: '' };
+          }
+          const partes = new Intl.DateTimeFormat('pt-BR', {
+            timeZone: 'America/Recife',
+            day: '2-digit',
+            month: 'long',
+            hour: '2-digit',
+            minute: '2-digit'
+          }).formatToParts(dataReferencia);
+          const dia = partes.find((p) => p.type === 'day')?.value || '';
+          const mes = (partes.find((p) => p.type === 'month')?.value || '').toLowerCase();
+          const horaParte = partes.find((p) => p.type === 'hour')?.value || '00';
+          const minutoParte = partes.find((p) => p.type === 'minute')?.value || '00';
+          const sufixoHora = minutoParte !== '00' ? `${horaParte}h${minutoParte}` : `${horaParte}h`;
+          const texto = dia && mes ? `${dia} ${mes}, ${sufixoHora}` : '';
+          const normalizado = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'America/Recife',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+          }).format(dataReferencia);
+          return {
+            texto,
+            normalizado,
+            horaCurta: `${horaParte}:${minutoParte}`
+          };
+        }
+
+        function toRecifeDate(quando, horaFallback) {
+          return construirDataReferencia(quando, horaFallback);
+        }
+
+        function construirDataReferencia(quando, horaFallback) {
+          if (!quando) return null;
+          const valor = String(quando).trim();
+          if (!valor) return null;
+          const horaPreferida = horaFallback !== undefined && horaFallback !== null
+            ? String(horaFallback).trim()
+            : '';
+
+          if (/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+            return criarDataComTimezone(valor, horaPreferida);
+          }
+
+          if (/(Z|[+-]\d{2}:?\d{2})$/i.test(valor)) {
+            const dataComOffset = new Date(valor);
+            if (!Number.isNaN(dataComOffset.getTime())) {
+              if (horaPreferida) {
+                const dataRecife = new Intl.DateTimeFormat('en-CA', {
+                  timeZone: 'America/Recife',
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit'
+                }).format(dataComOffset);
+                const ajustada = criarDataComTimezone(dataRecife, horaPreferida);
+                if (ajustada) {
+                  return ajustada;
+                }
+              }
+              return dataComOffset;
+            }
+          }
+
+          const matchSemOffset = valor.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2})(?:\.\d+)?$/);
+          if (matchSemOffset) {
+            return criarDataComTimezone(matchSemOffset[1], matchSemOffset[2]);
+          }
+
+          const dataDireta = new Date(valor);
+          if (!Number.isNaN(dataDireta.getTime())) {
+            return dataDireta;
+          }
+
+          const dataParte = valor.slice(0, 10);
+          if (dataParte && /^\d{4}-\d{2}-\d{2}$/.test(dataParte)) {
+            return criarDataComTimezone(dataParte, horaPreferida);
+          }
+
+          return null;
+        }
+
+        function criarDataComTimezone(dataStr, horaStr) {
+          if (!dataStr) return null;
+          const dataLimpa = String(dataStr).trim();
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(dataLimpa)) {
+            return null;
+          }
+          const horaNormalizada = normalizarHora(horaStr);
+          const combinada = `${dataLimpa}T${horaNormalizada}-03:00`;
+          const data = new Date(combinada);
+          return Number.isNaN(data.getTime()) ? null : data;
+        }
+
+        function normalizarHora(hora) {
+          if (!hora) return '00:00:00';
+          if (/^\d{2}:\d{2}:\d{2}$/.test(hora)) return hora;
+          if (/^\d{2}:\d{2}$/.test(hora)) return `${hora}:00`;
+          return '00:00:00';
+        }
+      })();
+    </script>
+
+  </body>
+</html>
