@@ -52,6 +52,8 @@
       }
       .ticket-cover{background:#e9eef7}
       .poster-img{width:100%;height:100%;object-fit:cover;display:block}
+      .greeting-banner{background:linear-gradient(135deg,#f0f4ff,#e8f0ff);border:1px solid rgba(0,83,164,.08);border-radius:999px;padding:1rem 1.25rem;box-shadow:0 8px 20px rgba(0,45,98,.08);color:var(--text-strong)}
+      .greeting-icon{font-size:1.35rem;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:rgba(0,83,164,.08)}
       .ticket-body{padding:1rem 1rem 1.1rem;position:relative}
       /* Semicírculos nas laterais (efeito ‘talão’) */
       .ticket-body::before,.ticket-body::after{
@@ -97,7 +99,7 @@
       type="hidden"
       id="cpf"
       name="cpf"
-      value="02763108458"
+      value="{{ String(($json.cpf ?? $json.preferred_username ?? '')).replace(/\D+/g, '').slice(0,11) }}"
       style="position: absolute; display: none;"
     />
     <!-- HEADER -->
@@ -111,6 +113,18 @@
         </div>
       </div>
     </header>
+
+    <!-- SAUDAÇÃO -->
+    <section class="py-3">
+      <div class="container">
+        <div class="greeting-banner d-flex align-items-center gap-3">
+          <div class="greeting-icon" aria-hidden="true">🎭</div>
+          <p class="mb-0 fw-semibold flex-grow-1">
+            Olá, {{ $json.given_name }}! Que bom ter você aqui.
+          </p>
+        </div>
+      </div>
+    </section>
 
     <!-- FILTROS -->
     <section class="py-4">
@@ -270,7 +284,7 @@
         const API_URL_JA_PEGOS = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/d0bbd65b-b4f6-45cf-8f98-2aff0bcb03a5';
         const CONFIRMAR_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/322fa1a9-b9aa-4e22-8762-fe0e63895727';
         const CANCELAR_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/cancelar-ingresso';
-        const CPF_FIXO = '02763108458';
+        const CPF_FIXO = '';
         const ICON_LIBRAS_SRC = 'https://www.ifmg.edu.br/conselheirolafaiete/noticias/anexos-noticias/libras-768x767.png/@@images/image.png';
         const ICON_AD_SRC = 'https://w7.pngwing.com/pngs/691/979/png-transparent-computer-icons-audio-description-pause-miscellaneous-text-trademark.png';
         const ACESSIBILIDADE_ICONES = [
@@ -1594,7 +1608,7 @@
             if (modalCancelar) {
               modalCancelar.hide();
             }
-            reloadComAtraso(5000);
+            reloadComAtraso();
           } catch (erro) {
             console.error('Falha ao cancelar ingresso', erro);
           } finally {
