@@ -340,15 +340,26 @@
                                     </select>
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="local" class="form-label">Local (teatro municipal)</label>
+                                    <label for="local" class="form-label">Local</label>
                                     <select class="form-select" id="local" name="local" required>
-                                        <option value="" disabled selected>Selecione o teatro...</option>
-                                        <option value="Teatro de Santa Isabel">Teatro de Santa Isabel</option>
+                                        <option value="" disabled selected>Selecione o local...</option>
+                                        <option value="Casa de Alzira">Casa de Alzira</option>
+                                        <option value="Centro Cultural Marco Zero">Centro Cultural Marco Zero</option>
+                                        <option value="Parque da Macaxeira">Parque da Macaxeira</option>
+                                        <option value="Parque da Tamarineira">Parque da Tamarineira</option>
+                                        <option value="Rua da Alfândega">Rua da Alfândega</option>
                                         <option value="Teatro Apolo">Teatro Apolo</option>
-                                        <option value="Teatro Hermilo Borba Filho">Teatro Hermilo Borba Filho</option>
                                         <option value="Teatro Barreto Júnior">Teatro Barreto Júnior</option>
+                                        <option value="Teatro de Santa Isabel">Teatro de Santa Isabel</option>
+                                        <option value="Teatro do Parque">Teatro do Parque</option>
+                                        <option value="Teatro Hermilo Borba Filho">Teatro Hermilo Borba Filho</option>
                                         <option value="Teatro Luiz Mendonça">Teatro Luiz Mendonça</option>
+                                        <option value="Teatro Marco Camarotti">Teatro Marco Camarotti</option>
                                     </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="endereco" class="form-label">Endereço</label>
+                                    <input type="text" class="form-control" id="endereco" name="endereco" placeholder="Selecione um local para preencher automaticamente" readonly required>
                                 </div>
                                 <div class="col-md-3">
                                     <label for="quando" class="form-label">Data da apresentação</label>
@@ -548,6 +559,8 @@
             const limiteGroup = document.getElementById('limite-leituras-group');
             const limiteInput = document.getElementById('limite_leituras');
             const idInput = document.getElementById('id');
+            const localSelect = document.getElementById('local');
+            const enderecoInput = document.getElementById('endereco');
             const tabelaBody = document.querySelector('#tabela-eventos tbody');
             const statusEventos = document.getElementById('status-eventos');
             const tabelaLeitoresBody = document.querySelector('#tabela-leitores tbody');
@@ -570,6 +583,20 @@
             const baseWebhook = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/festival-teatro2025?evento=';
             const eventosCache = [];
             const leitoresCache = [];
+            const mapaEnderecos = {
+                'Casa de Alzira': 'Rua Mariz e Barros, 328, Bairro do Recife.',
+                'Centro Cultural Marco Zero': 'Rua do Apolo, 219, Bairro do Recife.',
+                'Parque da Macaxeira': 'Av. Norte Miguel Arraes de Alencar, s/n, Macaxeira.',
+                'Parque da Tamarineira': 'Av. Conselheiro Rosa e Silva, 2130, Tamarineira.',
+                'Rua da Alfândega': 'Entre o Paço Alfândega e Igreja Madre de Deus.',
+                'Teatro Apolo': 'Rua do Apolo, 121, Bairro do Recife.',
+                'Teatro Barreto Júnior': 'Rua Estudante Jeremias Bastos, s/n, Pina.',
+                'Teatro de Santa Isabel': 'Praça da República, s/n, Santo Antônio.',
+                'Teatro do Parque': 'Rua do Hospício, 81, Boa Vista.',
+                'Teatro Hermilo Borba Filho': 'Cais do Apolo, 142, Bairro do Recife.',
+                'Teatro Luiz Mendonça': 'Av. Boa Viagem (Parque Dona Lindu), s/n, Boa Viagem.',
+                'Teatro Marco Camarotti': 'No Sesc Santo Amaro, Rua Treze de Maio, 455.'
+            };
             let eventoParaExcluir = null;
 
             function formatDateBR(valor) {
@@ -616,6 +643,16 @@
                     .replace(/[^a-z0-9_-]/g, '')
                     .replace(/-+/g, '-')
                     .replace(/^-+|-+$/g, '');
+            }
+
+            function atualizarEnderecoCampo(valorManual = '') {
+                if (!enderecoInput) return;
+                if (valorManual) {
+                    enderecoInput.value = valorManual;
+                    return;
+                }
+                const selecionado = localSelect ? localSelect.value : '';
+                enderecoInput.value = selecionado ? (mapaEnderecos[selecionado] || '') : '';
             }
 
             idInput.addEventListener('input', () => {
@@ -752,6 +789,7 @@
 
             function preencherFormulario(item) {
                 formularioEventos.reset();
+                atualizarEnderecoCampo('');
                 idInput.value = sanitizeIdentificador(item.id || '');
                 const campos = {
                     nome: 'nome',
@@ -777,6 +815,12 @@
                         campo.value = valor || '';
                     }
                 });
+
+                if (item.endereco) {
+                    atualizarEnderecoCampo(item.endereco);
+                } else {
+                    atualizarEnderecoCampo();
+                }
 
                 const nomeCampo = document.getElementById('nome');
                 if (nomeCampo && !nomeCampo.value && item.evento) {
@@ -954,7 +998,7 @@
                         eventoSelect.disabled = false;
                     })
                     .catch(() => {
-                        feedbackEvento.textContent = 'Não foi possível carregar os eventos. Tente novamente mais tarde.';
+                        feedbackEvento.textContent = 'Não existem eventos futuros cadastrados.';
                         tabelaBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Não existem eventos futuros cadastrados.</td></tr>';
                         statusEventos.textContent = 'Não existem eventos futuros cadastrados.';
                         eventoSelect.disabled = true;
@@ -984,6 +1028,9 @@
             }
 
             eventoSelect.addEventListener('change', atualizarWebhook);
+            if (localSelect) {
+                localSelect.addEventListener('change', () => atualizarEnderecoCampo());
+            }
 
             multiplasCheckbox.addEventListener('change', () => {
                 const ativo = multiplasCheckbox.checked;
@@ -1022,6 +1069,7 @@
                 }
 
                 idInput.value = sanitizeIdentificador(idInput.value || '');
+                atualizarEnderecoCampo();
                 const dados = new FormData(formularioEventos);
 
                 try {
@@ -1055,6 +1103,7 @@
 
             buscarEventos();
             buscarLeitores();
+            atualizarEnderecoCampo('');
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
