@@ -1466,9 +1466,9 @@
           return false;
         }
 
-        function reloadComAtraso(ms = 2500) {
+        function reloadComAtraso(ms = 1500) {
           if (typeof window === 'undefined') return;
-          const atraso = Number.isFinite(ms) ? ms : 2500;
+          const atraso = Number.isFinite(ms) ? ms : 1500;
           window.setTimeout(() => {
             if (window.location) {
               window.location.reload();
@@ -1603,7 +1603,7 @@
             if (modalCancelar) {
               modalCancelar.hide();
             }
-            reloadComAtraso(5000);
+            reloadComAtraso(2000);
           } catch (erro) {
             console.error('Falha ao cancelar ingresso', erro);
           } finally {
@@ -1782,7 +1782,8 @@
             mCancelarBtn.setAttribute('aria-disabled', ehSemiBlock ? 'false' : 'true');
           }
           if (mConfirmBtn) {
-            if (somenteDetalhes || ehBlock) {
+            const esconderConfirmar = somenteDetalhes || ehBlock || ehSemiBlock;
+            if (esconderConfirmar) {
               mConfirmBtn.classList.add('d-none');
               mConfirmBtn.disabled = true;
               mConfirmBtn.setAttribute('aria-disabled', 'true');
@@ -1867,20 +1868,28 @@
             }
           }
           if (mConfirmBtn && mConfirmBtn.dataset.id === id) {
-            if (selecionado) {
-              mConfirmBtn.disabled = false;
-              mConfirmBtn.setAttribute('aria-disabled', 'false');
-              if (mConfirmBtn.dataset.confirmar === 'true' && mConfirmBtn.textContent !== 'Confirmando…') {
-                mConfirmBtn.textContent = rotuloConfirmar;
-              }
+            if (ehSemiBlock) {
+              mConfirmBtn.classList.add('d-none');
+              mConfirmBtn.disabled = true;
+              mConfirmBtn.setAttribute('aria-disabled', 'true');
+              mConfirmBtn.dataset.labelPadrao = rotuloConfirmar;
             } else {
-              mConfirmBtn.disabled = ehSemiBlock ? false : true;
-              mConfirmBtn.setAttribute('aria-disabled', ehSemiBlock ? 'false' : 'true');
-              if (mConfirmBtn.dataset.confirmar === 'true' && mConfirmBtn.textContent !== 'Confirmando…') {
-                mConfirmBtn.textContent = rotuloConfirmar;
+              mConfirmBtn.classList.remove('d-none');
+              if (selecionado) {
+                mConfirmBtn.disabled = false;
+                mConfirmBtn.setAttribute('aria-disabled', 'false');
+                if (mConfirmBtn.dataset.confirmar === 'true' && mConfirmBtn.textContent !== 'Confirmando…') {
+                  mConfirmBtn.textContent = rotuloConfirmar;
+                }
+              } else {
+                mConfirmBtn.disabled = true;
+                mConfirmBtn.setAttribute('aria-disabled', 'true');
+                if (mConfirmBtn.dataset.confirmar === 'true' && mConfirmBtn.textContent !== 'Confirmando…') {
+                  mConfirmBtn.textContent = rotuloConfirmar;
+                }
               }
+              mConfirmBtn.dataset.labelPadrao = rotuloConfirmar;
             }
-            mConfirmBtn.dataset.labelPadrao = rotuloConfirmar;
           }
           if (mQuantidadeSelect) {
             mQuantidadeSelect.disabled = bloqueado || ehBlock;
