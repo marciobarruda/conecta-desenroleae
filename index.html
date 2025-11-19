@@ -1,44 +1,276 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <!--#include file="head.txt" -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Festival de Teatro do Recife – Painel Técnico</title>
+    <link
+      rel="icon"
+      href="https://statics.recife.pe.gov.br/images/automacao/catraca-conecta/catraca-logo.png"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --brand-primary: #0053a4;
+        --brand-secondary: #003a73;
+        --brand-highlight: #00a3ff;
+        --surface: #f4f7fb;
+        --surface-strong: #ffffff;
+        --border-color: #d0d7e2;
+        --text-strong: #1b263b;
+        --text-muted: #5b6c8c;
+        --shadow-strong: 0 14px 30px rgba(0, 35, 79, 0.15);
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Public Sans", system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        background: var(--surface);
+        color: var(--text-strong);
+        min-height: 100vh;
+        padding-top: 80px;
+      }
+      header.site-header {
+        background: url("https://statics.recife.pe.gov.br/images/dynamics/automacao/header.png?w=3000")
+          center/cover no-repeat;
+        color: #fff;
+        padding: 3rem 0 2.25rem;
+      }
+      header .lead {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1rem;
+        line-height: 1.65;
+      }
+      .badge-open {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        padding: 0.45rem 0.9rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.14);
+      }
+      .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: var(--text-strong);
+      }
+      .section-title::before {
+        content: "";
+        display: inline-block;
+        width: 32px;
+        height: 3px;
+        border-radius: 999px;
+        background: var(--brand-highlight);
+      }
+      .card-programa {
+        border: 1px solid rgba(0, 83, 164, 0.08);
+        background: var(--surface-strong);
+        box-shadow: 0 16px 34px rgba(0, 45, 98, 0.08);
+      }
+      .catalog-toolbar .form-select,
+      .catalog-toolbar .form-control {
+        border-color: var(--border-color);
+      }
+      .ticket-card {
+        background: #fff;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        border-radius: 12px;
+        box-shadow: var(--shadow-strong);
+        overflow: hidden;
+        position: relative;
+      }
+      .ticket-cover {
+        background: #e9eef7;
+      }
+      .poster-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .ticket-body {
+        padding: 1rem 1rem 1.1rem;
+        position: relative;
+      }
+      .ticket-body::before,
+      .ticket-body::after {
+        content: "";
+        position: absolute;
+        top: -12px;
+        width: 24px;
+        height: 24px;
+        background: #fff;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        border-radius: 50%;
+        box-shadow: 0 0 0 6px #fff inset;
+      }
+      .ticket-body::before {
+        left: -12px;
+      }
+      .ticket-body::after {
+        right: -12px;
+      }
+      .ci {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 28px;
+        height: 28px;
+        padding: 0 0.4rem;
+        border-radius: 6px;
+        font-weight: 800;
+        font-size: 0.85rem;
+        color: #fff;
+      }
+      .ci.l {
+        background: #2aa84a;
+      }
+      .ci.c10 {
+        background: #1f87c9;
+      }
+      .ci.c12 {
+        background: #f4b400;
+      }
+      .ci.c14 {
+        background: #ef6c00;
+      }
+      .ci.c16 {
+        background: #d84315;
+      }
+      .ci.c18 {
+        background: #212121;
+      }
+      .meta-label {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+      }
+      .link-action {
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .link-action:hover {
+        text-decoration: underline;
+      }
+      .btn-fav[aria-pressed="true"] {
+        border-color: #ffc107 !important;
+      }
+      .catalog-grid .col {
+        display: flex;
+      }
+      .catalog-grid .ticket-card {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+      }
+      .ticket-card.is-muted {
+        filter: grayscale(1);
+        opacity: 0.55;
+        transition: filter 0.2s ease, opacity 0.2s ease;
+      }
+      .ticket-card.is-active {
+        box-shadow: 0 0 0 0.15rem rgba(0, 83, 164, 0.35);
+      }
+      #modalDetalhes .modal-dialog {
+        max-width: 980px;
+      }
+      #modalDetalhes .modal-content {
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+      }
+      #modalDetalhes .modal-header,
+      #modalDetalhes .modal-footer {
+        background: var(--surface);
+        border-color: rgba(0, 0, 0, 0.05);
+      }
+      #modalDetalhes .modal-body {
+        padding: 2rem;
+      }
+      .modal-poster {
+        background: #e9eef7;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 10px 26px rgba(0, 45, 98, 0.14);
+        min-height: 360px;
+      }
+      .modal-poster img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      @media (max-width: 768px) {
+        header.site-header {
+          padding: 2.25rem 0 1.75rem;
+        }
+        .badge-open {
+          width: 100%;
+          justify-content: center;
+        }
+        #modalDetalhes .modal-body {
+          padding: 1.5rem;
+        }
+      }
+      @media (max-width: 576px) {
+        .catalog-toolbar .row > * + * {
+          margin-top: 0.5rem;
+        }
+        #modalDetalhes .modal-body {
+          padding: 1.25rem;
+        }
+      }
+    </style>
 </head>
 <body>
     <style>
-        body {
-            padding-top: 80px;
-            background: #f5f6fa;
-        }
         header.topo {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             z-index: 1030;
-            background: linear-gradient(90deg, #004080, #0066cc);
+            background: linear-gradient(90deg, #0053a4, #0073ce);
             color: #ffffff;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
         }
         header.topo h1 {
             font-size: 1.4rem;
             margin: 0;
         }
         .nav-pills .nav-link {
-            color: #004080;
+            color: #0053a4;
+            font-weight: 600;
         }
         .nav-pills .nav-link.active {
-            background-color: #004080;
+            background-color: #0053a4;
         }
         .card {
             border: 1px solid #e2e6ea;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-        .section-title {
-            font-weight: 700;
-            color: #003366;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
         .helper-text {
             font-size: 0.9rem;
+        }
+        .table-action button + button {
+            margin-left: 0.35rem;
         }
     </style>
 
@@ -68,8 +300,8 @@
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label for="id" class="form-label">Identificador do evento</label>
-                                    <input type="text" class="form-control" id="id" name="id" required placeholder="Ex.: cidade-som" aria-describedby="ajuda-id">
-                                    <div id="ajuda-id" class="form-text">Usado na URL, sem espaços ou acentuação (ex.: cidade-som).</div>
+                                    <input type="text" class="form-control" id="id" name="id" required placeholder="Ex.: cidade-som" aria-describedby="ajuda-id" inputmode="latin">
+                                    <div id="ajuda-id" class="form-text">Usado na URL. Remove acentos e espaços automaticamente; permitido apenas letras, números, hífen (-) e underline (_).</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="nome" class="form-label">Título do evento</label>
@@ -90,15 +322,16 @@
                                     <label for="genero" class="form-label">Gênero</label>
                                     <select class="form-select" id="genero" name="genero" required>
                                         <option value="" disabled selected>Selecione um gênero...</option>
-                                        <option value="Drama">Drama</option>
                                         <option value="Comédia">Comédia</option>
-                                        <option value="Tragédia">Tragédia</option>
-                                        <option value="Musical">Musical</option>
-                                        <option value="Infantil">Infantil</option>
-                                        <option value="Performance">Performance</option>
+                                        <option value="Drama">Drama</option>
                                         <option value="Experimental">Experimental</option>
-                                        <option value="Monólogo">Monólogo</option>
                                         <option value="Improviso">Improviso</option>
+                                        <option value="Infantil">Infantil</option>
+                                        <option value="Monólogo">Monólogo</option>
+                                        <option value="Musical">Musical</option>
+                                        <option value="Performance">Performance</option>
+                                        <option value="Romance">Romance</option>
+                                        <option value="Tragédia">Tragédia</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6">
@@ -163,6 +396,34 @@
                         </form>
                     </div>
                 </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                            <h3 class="section-title h5 mb-0">Eventos cadastrados</h3>
+                            <span id="status-eventos" class="text-muted small">Carregando eventos...</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle" id="tabela-eventos">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th scope="col">Identificador</th>
+                                        <th scope="col">Evento</th>
+                                        <th scope="col">Data</th>
+                                        <th scope="col">Hora</th>
+                                        <th scope="col">Local</th>
+                                        <th scope="col" class="text-end">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted">Aguardando carregamento...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="tab-pane fade" id="leitor-pane" role="tabpanel" aria-labelledby="leitor-tab">
@@ -215,9 +476,43 @@
             const multiplasCheckbox = document.getElementById('multiplas_leituras');
             const limiteGroup = document.getElementById('limite-leituras-group');
             const limiteInput = document.getElementById('limite_leituras');
+            const idInput = document.getElementById('id');
+            const tabelaBody = document.querySelector('#tabela-eventos tbody');
+            const statusEventos = document.getElementById('status-eventos');
+            const formularioEventos = document.querySelector('#evento-pane form');
             const baseWebhook = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/festival-teatro2025?evento=';
+            const eventosCache = [];
+
+            function sanitizeIdentificador(valor) {
+                const semAcentos = valor
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .replace(/ç/gi, 'c');
+                return semAcentos
+                    .toLowerCase()
+                    .replace(/\s+/g, '-')
+                    .replace(/[^a-z0-9_-]/g, '')
+                    .replace(/-+/g, '-')
+                    .replace(/^-+|-+$/g, '');
+            }
+
+            idInput.addEventListener('input', () => {
+                const cursorPos = idInput.selectionStart;
+                const valorLimpo = sanitizeIdentificador(idInput.value);
+                idInput.value = valorLimpo;
+                if (cursorPos !== null) {
+                    idInput.setSelectionRange(cursorPos, cursorPos);
+                }
+            });
+
+            function limparSelect() {
+                while (eventoSelect.options.length > 1) {
+                    eventoSelect.remove(1);
+                }
+            }
 
             function preencherEventos(lista) {
+                limparSelect();
                 lista.forEach(item => {
                     const option = document.createElement('option');
                     option.value = item.id;
@@ -226,7 +521,133 @@
                 });
             }
 
+            function criarBotao(icone, titulo, classe, onClick) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `btn btn-sm ${classe}`;
+                btn.innerHTML = icone;
+                btn.title = titulo;
+                btn.addEventListener('click', onClick);
+                return btn;
+            }
+
+            function preencherTabela(lista) {
+                tabelaBody.innerHTML = '';
+                if (!lista.length) {
+                    const linha = document.createElement('tr');
+                    const celula = document.createElement('td');
+                    celula.colSpan = 6;
+                    celula.className = 'text-center text-muted';
+                    celula.textContent = 'Nenhum evento cadastrado até o momento.';
+                    linha.appendChild(celula);
+                    tabelaBody.appendChild(linha);
+                    return;
+                }
+
+                lista.forEach(item => {
+                    const linha = document.createElement('tr');
+                    const dataApresentacao = item.quando || item.data || '';
+                    const horario = item.hora || '';
+                    const local = item.local || '';
+
+                    [item.id, item.evento, dataApresentacao, horario, local].forEach(valor => {
+                        const td = document.createElement('td');
+                        td.textContent = valor || '-';
+                        linha.appendChild(td);
+                    });
+
+                    const acao = document.createElement('td');
+                    acao.className = 'text-end table-action';
+
+                    const visualizar = criarBotao('🔍', 'Visualizar', 'btn-outline-secondary', () => {
+                        const detalhes = `Identificador: ${item.id}\nEvento: ${item.evento || '-'}\nData: ${dataApresentacao || '-'}\nHora: ${horario || '-'}\nLocal: ${local || '-'}`;
+                        alert(detalhes);
+                    });
+
+                    const editar = criarBotao('✏️', 'Editar', 'btn-outline-primary', () => preencherFormulario(item));
+
+                    const excluir = criarBotao('🗑️', 'Excluir', 'btn-outline-danger', () => deletarEvento(item));
+
+                    [visualizar, editar, excluir].forEach(btn => acao.appendChild(btn));
+                    linha.appendChild(acao);
+                    tabelaBody.appendChild(linha);
+                });
+            }
+
+            function preencherFormulario(item) {
+                formularioEventos.reset();
+                idInput.value = sanitizeIdentificador(item.id || '');
+                const campos = {
+                    nome: 'nome',
+                    classificacao: 'classificacao',
+                    genero: 'genero',
+                    local: 'local',
+                    quando: 'quando',
+                    hora: 'hora',
+                    sinopse: 'sinopse',
+                    disponibilizados: 'disponibilizados',
+                    acessibilidade: 'acessibilidade',
+                    duracao: 'duracao',
+                    quem_faz: 'quem_faz',
+                    origem: 'origem'
+                };
+
+                Object.entries(campos).forEach(([prop, idCampo]) => {
+                    const campo = document.getElementById(idCampo);
+                    if (campo && item[prop] !== undefined) {
+                        campo.value = item[prop];
+                    }
+                });
+
+                const nomeCampo = document.getElementById('nome');
+                if (nomeCampo && !nomeCampo.value && item.evento) {
+                    nomeCampo.value = item.evento;
+                }
+
+                document.getElementById('sinopse').value = item.sinopse || '';
+                document.getElementById('duracao').placeholder = 'Ex.: 60min';
+                window.scrollTo({ top: formularioEventos.offsetTop - 80, behavior: 'smooth' });
+            }
+
+            function deletarEvento(item) {
+                const payload = {
+                    identificador: item.id,
+                    data: item.quando || item.data || '',
+                    hora: item.hora || ''
+                };
+
+                if (!confirm(`Deseja realmente excluir o evento "${item.evento}"?`)) {
+                    return;
+                }
+
+                fetch('https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/gerenciar-eventos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                    .then(resposta => {
+                        if (!resposta.ok) {
+                            throw new Error('Falha ao excluir.');
+                        }
+                        return resposta.json().catch(() => ({}));
+                    })
+                    .then(() => {
+                        location.reload();
+                    })
+                    .catch(() => {
+                        alert('Não foi possível excluir o evento. Tente novamente.');
+                    });
+            }
+
+            function atualizarWebhook() {
+                const valor = eventoSelect.value;
+                webhookInput.value = valor ? baseWebhook + encodeURIComponent(valor) : '';
+            }
+
             function buscarEventos() {
+                statusEventos.textContent = 'Carregando eventos...';
+                eventoSelect.disabled = true;
+
                 fetch('https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/listar-id-eventos')
                     .then(resposta => {
                         if (!resposta.ok) {
@@ -235,24 +656,20 @@
                         return resposta.json();
                     })
                     .then(dados => {
-                        preencherEventos(dados);
+                        eventosCache.length = 0;
+                        dados.forEach(item => eventosCache.push(item));
+                        preencherEventos(eventosCache);
+                        preencherTabela(eventosCache);
                         feedbackEvento.textContent = '';
+                        statusEventos.textContent = `${eventosCache.length} evento(s) carregado(s).`;
                         eventoSelect.disabled = false;
                     })
                     .catch(() => {
                         feedbackEvento.textContent = 'Não foi possível carregar os eventos. Tente novamente mais tarde.';
+                        tabelaBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Erro ao carregar eventos.</td></tr>';
+                        statusEventos.textContent = 'Erro ao carregar eventos.';
                         eventoSelect.disabled = true;
                     });
-            }
-
-            function atualizarWebhook() {
-                const valor = eventoSelect.value;
-                if (valor) {
-                    const url = baseWebhook + encodeURIComponent(valor);
-                    webhookInput.value = url;
-                } else {
-                    webhookInput.value = '';
-                }
             }
 
             eventoSelect.addEventListener('change', atualizarWebhook);
@@ -271,5 +688,6 @@
             buscarEventos();
         });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
