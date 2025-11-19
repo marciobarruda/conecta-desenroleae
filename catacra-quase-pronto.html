@@ -50,9 +50,17 @@
       .ticket-card{
         background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:12px;box-shadow:var(--shadow-strong);overflow:hidden;position:relative
       }
-      .ticket-cover{background:#e9eef7}
+      .ticket-cover{
+        background:#e9eef7;width:100%;aspect-ratio:2/3;display:block;overflow:hidden
+      }
       .poster-img{width:100%;height:100%;object-fit:cover;display:block}
       .ticket-body{padding:1rem 1rem 1.1rem;position:relative}
+      .ticket-meta-toggle{color:var(--brand-primary);font-weight:600;display:inline-flex;align-items:center;gap:.35rem}
+      .ticket-meta-toggle:focus{box-shadow:none}
+      .ticket-meta-toggle-icon{transition:transform .2s ease}
+      .ticket-meta-toggle[aria-expanded="true"] .ticket-meta-toggle-icon{transform:rotate(180deg)}
+      .ticket-meta{display:none}
+      .ticket-meta.is-open{display:flex}
       /* Semicírculos nas laterais (efeito ‘talão’) */
       .ticket-body::before,.ticket-body::after{
         content:"";position:absolute;top:-12px;width:24px;height:24px;background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:50%;
@@ -79,8 +87,8 @@
       #modalDetalhes .modal-content{border-radius:18px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.18)}
       #modalDetalhes .modal-header,#modalDetalhes .modal-footer{background:var(--surface);border-color:rgba(0,0,0,.05)}
       #modalDetalhes .modal-body{padding:2rem}
-      .modal-poster{background:#e9eef7;border-radius:14px;overflow:hidden;box-shadow:0 10px 26px rgba(0,45,98,.14);min-height:360px}
-      .modal-poster img{width:100%;height:100%;object-fit:cover;display:block}
+      .modal-poster{background:#e9eef7;border-radius:14px;overflow:hidden;box-shadow:0 10px 26px rgba(0,45,98,.14);min-height:360px;display:flex;align-items:center;justify-content:center}
+      .modal-poster img{width:100%;height:auto;max-height:100%;object-fit:contain;display:block}
       @media (max-width:768px){
         header.site-header{padding:2.25rem 0 1.75rem}
         .badge-open{width:100%;justify-content:center}
@@ -97,7 +105,7 @@
       type="hidden"
       id="cpf"
       name="cpf"
-      value="02763108458"
+      value="{{ String(($json.cpf ?? $json.preferred_username ?? '')).replace(/\D+/g, '').slice(0,11) }}"
       style="position: absolute; display: none;"
     />
     <!-- HEADER -->
@@ -111,6 +119,14 @@
         </div>
       </div>
     </header>
+
+    <section class="py-3">
+      <div class="container">
+        <div class="alert alert-primary mb-0" role="status">
+          🎭 Olá, {{ (() => { const nome = String($json.given_name ?? '').trim(); return nome ? nome[0].toUpperCase() + nome.slice(1).toLowerCase() : 'Visitante'; })() }}! ✨ Seja bem-vindo(a) à programação do Festival de Teatro do Recife — escolha seu espetáculo e aproveite o show!
+        </div>
+      </div>
+    </section>
 
     <!-- FILTROS -->
     <section class="py-4">
@@ -270,165 +286,41 @@
         const API_URL_JA_PEGOS = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/d0bbd65b-b4f6-45cf-8f98-2aff0bcb03a5';
         const CONFIRMAR_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/322fa1a9-b9aa-4e22-8762-fe0e63895727';
         const CANCELAR_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/cancelar-ingresso';
-        const CPF_FIXO = '02763108458';
+        const CPF_FIXO = '{{ String(($json.cpf ?? $json.preferred_username ?? '')).replace(/\D+/g, '').slice(0,11) }}';
         const ICON_LIBRAS_SRC = 'https://www.ifmg.edu.br/conselheirolafaiete/noticias/anexos-noticias/libras-768x767.png/@@images/image.png';
         const ICON_AD_SRC = 'https://w7.pngwing.com/pngs/691/979/png-transparent-computer-icons-audio-description-pause-miscellaneous-text-trademark.png';
         const ACESSIBILIDADE_ICONES = [
           { chave: 'libras', rotulo: 'Libras', src: ICON_LIBRAS_SRC },
           { chave: 'audiodescricao', rotulo: 'Audiodescrição', src: ICON_AD_SRC }
         ];
-        const FALLBACK_EVENTOS = [
-          {
-            id: 'aurora-nas-esquinas',
-            nome: 'Aurora nas Esquinas',
-            classificacao: '12+',
-            genero: 'Drama',
-            local: 'Teatro Santa Isabel',
-            quando: '2024-10-12',
-            hora: '16:00:00',
-            poster: 'https://deliriumnerd.com/wp-content/uploads/2019/08/aurora-nas-sombras-darkside-destacada-1024x538.jpg',
-            posterdetalhes: 'https://deliriumnerd.com/wp-content/uploads/2019/08/aurora-nas-sombras-darkside-destacada-1024x538.jpg',
-            sinopse: 'Uma viagem poética pelas ruas do Recife, onde memórias se cruzam com o cotidiano e cada esquina revela afetos e segredos que insistem em permanecer vivos.',
-            disponibilizados: 120,
-            disponiveis: 68,
-            acessibilidade: 'sim'
-          },
-          {
-            id: 'maresia',
-            nome: 'Maresia',
-            classificacao: 'Livre',
-            genero: 'Teatro-dança',
-            local: 'Teatro Apolo',
-            quando: '2024-10-12',
-            hora: '19:00:00',
-            poster: 'https://www.papocult.com.br/wp-content/uploads/2023/08/Cia-Acaso-Maresia-divulgacao.jpg',
-            posterdetalhes: 'https://www.papocult.com.br/wp-content/uploads/2023/08/Cia-Acaso-Maresia-divulgacao.jpg',
-            sinopse: 'Entre calmarias e tempestades, uma família ribeirinha enfrenta mudanças climáticas e afetivas, assinando pactos silenciosos com o vento e a maré.',
-            disponibilizados: 90,
-            disponiveis: 41,
-            acessibilidade: 'nao'
-          },
-          {
-            id: 'o-auto-do-frevo',
-            nome: 'O Auto do Frevo',
-            classificacao: '10+',
-            genero: 'Musical',
-            local: 'Paço do Frevo',
-            quando: '2024-10-14',
-            hora: '18:00:00',
-            poster: 'https://midias.diariodepernambuco.com.br/static/app/noticia_127983242361/2016/12/15/680255/20161215172830466281i.jpg',
-            posterdetalhes: 'https://midias.diariodepernambuco.com.br/static/app/noticia_127983242361/2016/12/15/680255/20161215172830466281i.jpg',
-            sinopse: 'Musical festivo que mistura frevo, teatro e narrativa popular para contar a saga de um estandarte que ganha vida e sai em busca da sua orquestra.',
-            disponibilizados: 150,
-            disponiveis: 102,
-            acessibilidade: 'sim'
-          },
-          {
-            id: 'paredes-que-falam',
-            nome: 'Paredes que Falam',
-            classificacao: '14+',
-            genero: 'Experimental',
-            local: 'Teatro Luiz Mendonça',
-            quando: '2024-10-15',
-            hora: '20:00:00',
-            poster: 'https://f.i.uol.com.br/fotografia/2025/04/02/174362328467ed947488792_1743623284_3x2_md.jpg',
-            posterdetalhes: 'https://f.i.uol.com.br/fotografia/2025/04/02/174362328467ed947488792_1743623284_3x2_md.jpg',
-            sinopse: 'Em um edifício histórico prestes a ruir, moradores compartilham lembranças e disputas, enquanto o passado sussurra pelos azulejos e pelas portas entreabertas.',
-            disponibilizados: 110,
-            disponiveis: 36,
-            acessibilidade: 'nao'
-          },
-          {
-            id: 'cartas-para-clarice',
-            nome: 'Cartas para Clarice',
-            classificacao: '16+',
-            genero: 'Drama',
-            local: 'Teatro Santa Isabel',
-            quando: '2024-10-16',
-            hora: '19:00:00',
-            poster: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5LP_4Fc1TXjepIRxOZuSCHMFhY6yKJhRSsg&s',
-            posterdetalhes: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5LP_4Fc1TXjepIRxOZuSCHMFhY6yKJhRSsg&s',
-            sinopse: 'Fragmentos de cartas nunca enviadas se transformam em cena, explorando silêncio, identidade e a força das pequenas escolhas que mudam destinos.',
-            disponibilizados: 95,
-            disponiveis: 27,
-            acessibilidade: 'sim'
-          },
-          {
-            id: 'cidade-som',
-            nome: 'Cidade-Som',
-            classificacao: 'Livre',
-            genero: 'Instalação cênica',
-            local: 'Parque Dona Lindu',
-            quando: '2024-10-17',
-            hora: '17:00:00',
-            poster: 'https://www.ceara.gov.br/wp-content/uploads/2024/06/2024-04-12_Orquestra_Juruviara_ThiagoMatine-22-scaled.jpeg',
-            posterdetalhes: 'https://www.ceara.gov.br/wp-content/uploads/2024/06/2024-04-12_Orquestra_Juruviara_ThiagoMatine-22-scaled.jpeg',
-            sinopse: 'Instalação cênica com música ao vivo em que o público percorre paisagens sonoras e descobre personagens escondidos no ruído da cidade.',
-            disponibilizados: 200,
-            disponiveis: 140,
-            acessibilidade: 'nao'
-          },
-          {
-            id: 'o-ultimo-fio',
-            nome: 'O Último Fio',
-            classificacao: '18+',
-            genero: 'Tragédia',
-            local: 'Teatro Apolo',
-            quando: '2024-10-18',
-            hora: '21:00:00',
-            poster: 'https://www.garanhunsnoticias.com.br/images/noticias/124568/7c2c527a1ffdc43b66f3be20629667e9.jpeg',
-            posterdetalhes: 'https://www.garanhunsnoticias.com.br/images/noticias/124568/7c2c527a1ffdc43b66f3be20629667e9.jpeg',
-            sinopse: 'Dois irmãos costuram lembranças para não esquecer o que o tempo tenta rasgar. Um drama íntimo sobre família, perda e possibilidades de recomeço.',
-            disponibilizados: 85,
-            disponiveis: 19,
-            acessibilidade: 'nao'
-          },
-          {
-            id: 'couraça',
-            nome: 'Couraça',
-            classificacao: '14+',
-            genero: 'Teatro físico',
-            local: 'Teatro Luiz Mendonça',
-            quando: '2024-10-19',
-            hora: '20:00:00',
-            poster: 'https://www.estadao.com.br/blogs/blog/wp-content/uploads/sites/265/2015/10/Jaques-e-Seu-Amo-HugoPossolo-Ando-Camargo-Angelo-Brandini-foto-de-Jo%C3%A3o-Caldas-e1444340873610.jpg',
-            posterdetalhes: 'https://www.estadao.com.br/blogs/blog/wp-content/uploads/sites/265/2015/10/Jaques-e-Seu-Amo-HugoPossolo-Ando-Camargo-Angelo-Brandini-foto-de-Jo%C3%A3o-Caldas-e1444340873610.jpg',
-            sinopse: 'Corpos que dançam e falas entrecortadas constroem um mosaico sobre proteção e vulnerabilidade em tempos de urgência.',
-            disponibilizados: 130,
-            disponiveis: 72,
-            acessibilidade: 'sim'
-          },
-          {
-            id: 'menina-e-o-vento',
-            nome: 'A Menina e o Vento',
-            classificacao: '10+',
-            genero: 'Infantil',
-            local: 'Paço do Frevo',
-            quando: '2024-10-20',
-            hora: '16:00:00',
-            poster: 'https://www.sociedadehumboldt.org.br/conteudo/comunicacao/dicas/teatro/1206294/1.jpg',
-            posterdetalhes: 'https://www.sociedadehumboldt.org.br/conteudo/comunicacao/dicas/teatro/1206294/1.jpg',
-            sinopse: 'A amizade improvável entre uma criança curiosa e um vento brincalhão desafia regras e apresenta uma nova forma de habitar o mundo.',
-            disponibilizados: 160,
-            disponiveis: 88,
-            acessibilidade: 'nao'
-          },
-          {
-            id: 'rio-subterraneo',
-            nome: 'Rio Subterrâneo',
-            classificacao: '12+',
-            genero: 'Suspense',
-            local: 'Parque Dona Lindu',
-            quando: '2024-10-21',
-            hora: '18:00:00',
-            poster: 'https://s2-oglobo.glbimg.com/Vg94jDR50UtDXMDM39fXOg8nRU0=/0x0:4928x3280/924x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_da025474c0c44edd99332dddb09cabe8/internal_photos/bs/2023/j/q/UyrFCpTqKuAdvuqyYJYQ/perversa-monica-bittencourt-em-cena-5-credito-da-foto-bruna-diacoyannis-1-.jpeg',
-            posterdetalhes: 'https://s2-oglobo.glbimg.com/Vg94jDR50UtDXMDM39fXOg8nRU0=/0x0:4928x3280/924x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_da025474c0c44edd99332dddb09cabe8/internal_photos/bs/2023/j/q/UyrFCpTqKuAdvuqyYJYQ/perversa-monica-bittencourt-em-cena-5-credito-da-foto-bruna-diacoyannis-1-.jpeg',
-            sinopse: 'Narrativa que revela um Recife oculto sob as águas, onde memórias afundadas retornam para guiar um grupo em busca de pertencimento.',
-            disponibilizados: 145,
-            disponiveis: 54,
-            acessibilidade: 'sim'
+
+        function detectarMimeBase64(conteudo) {
+          if (!conteudo || typeof conteudo !== 'string') return 'image/jpeg';
+          const prefixo = conteudo.slice(0, 10);
+          if (prefixo.startsWith('/9j/')) return 'image/jpeg';
+          if (prefixo.startsWith('iVBOR')) return 'image/png';
+          if (prefixo.startsWith('R0lGOD')) return 'image/gif';
+          if (prefixo.startsWith('PHN2Zy')) return 'image/svg+xml';
+          return 'image/jpeg';
+        }
+
+        function normalizarImagem(valor) {
+          if (!valor) return '';
+          if (typeof valor !== 'string') return '';
+          const limpo = valor.trim();
+          if (!limpo) return '';
+          if (/^https?:\/\//i.test(limpo)) return limpo;
+          if (limpo.startsWith('data:image/')) return limpo;
+          if (limpo.includes(';base64,')) {
+            if (limpo.startsWith('data:')) return limpo;
+            return `data:image/jpeg;${limpo}`;
           }
-        ];
+          const mime = detectarMimeBase64(limpo);
+          return `data:${mime};base64,${limpo}`;
+        }
+        const FALLBACK_EVENTOS = [];
+        const FALLBACK_EVENTOS_MENSAGEM =
+          'Sem eventos pintando no momento 😔 Volta daqui a pouquinho pra conferir as novidades quentinhas da cena! ✨';
         const DATE_KEY_EMPTY = '__sem_data__';
         const INTERVALO_TRES_HORAS_MS = 3 * 60 * 60 * 1000;
         const selecoesAtuais = new Set();
@@ -438,6 +330,7 @@
         let eventosFiltrados = [];
         let eventosJaPegos = [];
         let eventosJaPegosFiltrados = [];
+        let exibindoFallbackSemEventos = false;
 
         let campoCPF;
         let possuiFormulario = false;
@@ -537,9 +430,10 @@
           selecoesAtuais.clear();
 
           const recebidosDisponiveis = await fetchEventos(API_URL);
-          const baseDisponiveis = recebidosDisponiveis.length
-            ? recebidosDisponiveis.map(adaptarEventoApi).filter(Boolean)
-            : FALLBACK_EVENTOS;
+          exibindoFallbackSemEventos = recebidosDisponiveis.length === 0;
+          const baseDisponiveis = exibindoFallbackSemEventos
+            ? FALLBACK_EVENTOS
+            : recebidosDisponiveis.map(adaptarEventoApi).filter(Boolean);
 
           eventos = prepararEventos(baseDisponiveis, { resetarMapa: true, mapa: eventosPorId });
           eventosFiltrados = [...eventos];
@@ -567,6 +461,8 @@
 .portal-dyn .ticket-actions .btn-modern.btn-primary:hover { box-shadow: 0 12px 28px rgba(0, 83, 164, 0.3); }
 .portal-dyn .ticket-card.portal-dyn-ja-pego { filter: grayscale(100%); opacity: .7; }
 .portal-dyn .ticket-card.card-bloqueado { filter: grayscale(1); opacity: .75; }
+.portal-dyn .portal-dyn-empty { padding: 3rem 1rem; border-radius: 1rem; background: rgba(27, 38, 59, 0.05); border: 1px dashed rgba(27, 38, 59, 0.2); color: var(--text-strong); display: flex; align-items: center; justify-content: center; min-height: 220px; }
+.portal-dyn .portal-dyn-empty-text { font-size: 1.1rem; font-weight: 600; line-height: 1.4; }
 .portal-dyn .portal-dyn-aviso-ja-pego { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600; font-size: 0.85rem; padding: 0.35rem 0.75rem; border-radius: 999px; background: rgba(27, 38, 59, 0.08); color: var(--text-strong); margin-top: 0.35rem; }
 .portal-dyn .ticket-top-flags { display: flex; align-items: center; justify-content: flex-end; gap: 0.35rem; flex-wrap: wrap; }
 .portal-dyn .portal-dyn-acc-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: 0 0 28px; padding: 2px; border-radius: 6px; background: #fff; border: 1px solid rgba(27, 38, 59, 0.15); box-shadow: none; overflow: hidden; }
@@ -647,14 +543,18 @@
           if (genero !== undefined) adaptado.genero = genero;
           const local = ler('local', 'teatro', 'espaco', 'localizacao', 'casa');
           if (local !== undefined) adaptado.local = local;
+          const onde = ler('onde');
+          if (onde !== undefined) adaptado.onde = onde;
           const quando = ler('quando', 'datahora', 'data_hora', 'dataHora', 'data_inicio', 'data');
           if (quando !== undefined) adaptado.quando = quando;
           const hora = ler('hora', 'horario', 'hora_inicio', 'horaInicio');
           if (hora !== undefined) adaptado.hora = hora;
-          const poster = ler('poster', 'imagem', 'capa', 'imagem_card');
-          if (poster !== undefined) adaptado.poster = poster;
-          const posterDetalhes = ler('posterdetalhes', 'poster_detalhes', 'posterDetalhes', 'imagem_detalhes');
-          if (posterDetalhes !== undefined) adaptado.posterdetalhes = posterDetalhes;
+          const poster = normalizarImagem(ler('poster', 'imagem', 'capa', 'imagem_card'));
+          if (poster) adaptado.poster = poster;
+          const posterDetalhes = normalizarImagem(
+            ler('posterdetalhes', 'poster_detalhes', 'posterDetalhes', 'imagem_detalhes')
+          );
+          if (posterDetalhes) adaptado.posterdetalhes = posterDetalhes;
           const sinopse = ler('sinopse', 'descricao', 'descricao_curta', 'descricaoLonga', 'descricao_longa', 'description');
           if (sinopse !== undefined) adaptado.sinopse = sinopse;
           const disponibilizados = ler('disponibilizados', 'quantidade_total', 'total', 'total_disponibilizado');
@@ -711,6 +611,7 @@
                 temAcessibilidade: interpretarAcessibilidade(item.acessibilidade),
                 genero: item.genero || '',
                 local: item.local || item.teatro || '',
+                onde: item.onde || '',
                 duracao: item.duracao || item.duração || '',
                 quemFaz,
                 origem,
@@ -722,8 +623,8 @@
                 quandoNormalizado: normalizado || DATE_KEY_EMPTY,
                 horaCurta: horaCurta,
                 inicioAbsoluto: Number.isFinite(inicioAbsoluto) ? inicioAbsoluto : NaN,
-                poster: item.poster || '',
-                posterdetalhes: item.posterdetalhes || item.poster || '',
+                poster: normalizarImagem(item.poster) || '',
+                posterdetalhes: normalizarImagem(item.posterdetalhes || item.poster) || '',
                 sinopse: item.sinopse || '',
                 disponibilizados: numeroSeguro(item.disponibilizados),
                 disponiveis: numeroSeguro(item.disponiveis)
@@ -1047,6 +948,17 @@
           while (elGrid.firstChild) {
             elGrid.removeChild(elGrid.firstChild);
           }
+          if (exibindoFallbackSemEventos) {
+            const aviso = document.createElement('div');
+            aviso.className = 'portal-dyn-empty text-center w-100';
+            const avisoTexto = document.createElement('p');
+            avisoTexto.className = 'portal-dyn-empty-text mb-0';
+            avisoTexto.textContent = FALLBACK_EVENTOS_MENSAGEM;
+            aviso.appendChild(avisoTexto);
+            elGrid.appendChild(aviso);
+            atualizarEstadoTodos();
+            return;
+          }
           const fragmento = document.createDocumentFragment();
           lista.forEach((evento) => {
             fragmento.appendChild(criarCard(evento));
@@ -1084,7 +996,7 @@
           }
 
           const capa = document.createElement('div');
-          capa.className = 'ticket-cover ratio ratio-16x9';
+          capa.className = 'ticket-cover';
           const imagem = document.createElement('img');
           imagem.className = 'poster-img';
           imagem.loading = 'lazy';
@@ -1122,9 +1034,16 @@
           }
           corpo.appendChild(subtitulo);
 
+          const infoId = `ticket-meta-${(String(evento.id || Date.now())
+            .toLowerCase()
+            .replace(/[^a-z0-9_-]/g, '') || 'evento')}-${Math.random().toString(36).slice(2, 6)}`;
+
           const blocoInfo = document.createElement('div');
-          blocoInfo.className = 'row g-2 mt-2';
+          blocoInfo.className = 'row g-2 mt-2 ticket-meta';
+          blocoInfo.id = infoId;
           blocoInfo.appendChild(criarMeta('Gênero e local', montarGeneroLocal(evento)));
+          const textoOnde = (evento.onde || '').trim() || evento.local || '—';
+          blocoInfo.appendChild(criarMeta('Onde', textoOnde));
           const quandoTexto = evento.quandoFormatado || '—';
           blocoInfo.appendChild(criarMeta('Quando', quandoTexto));
           blocoInfo.appendChild(criarMeta('Duração', evento.duracao || '—'));
@@ -1132,6 +1051,32 @@
             ? 'Você já pegou estes ingressos'
             : `Disponíveis: ${evento.disponiveis} / ${evento.disponibilizados}`;
           blocoInfo.appendChild(criarMeta('Ingressos', textoIngressos));
+
+          const toggleMeta = document.createElement('button');
+          toggleMeta.type = 'button';
+          toggleMeta.className = 'btn btn-link btn-sm px-0 text-decoration-none ticket-meta-toggle';
+          toggleMeta.setAttribute('aria-controls', infoId);
+          toggleMeta.setAttribute('aria-expanded', 'false');
+
+          const toggleMetaText = document.createElement('span');
+          toggleMetaText.className = 'ticket-meta-toggle-text';
+          toggleMetaText.textContent = '➕ informações';
+          toggleMeta.appendChild(toggleMetaText);
+
+          const toggleMetaIcon = document.createElement('span');
+          toggleMetaIcon.className = 'ticket-meta-toggle-icon';
+          toggleMetaIcon.setAttribute('aria-hidden', 'true');
+          toggleMetaIcon.textContent = '▼';
+          toggleMeta.appendChild(toggleMetaIcon);
+
+          toggleMeta.addEventListener('click', () => {
+            const isOpen = blocoInfo.classList.toggle('is-open');
+            toggleMeta.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            toggleMetaText.textContent = isOpen ? '➖ informações' : '➕ informações';
+            toggleMetaIcon.textContent = isOpen ? '▲' : '▼';
+          });
+
+          corpo.appendChild(toggleMeta);
           corpo.appendChild(blocoInfo);
 
           const acoes = document.createElement('div');
@@ -1197,10 +1142,13 @@
           label.textContent = rotulo;
           const texto = document.createElement('div');
           texto.className = 'fw-semibold small';
-          texto.textContent = valor;
-          if (rotulo === 'Gênero e local') {
+          const conteudo = valor ?? '—';
+          texto.textContent = conteudo;
+          if (rotulo === 'Gênero e local' || rotulo === 'Onde') {
             texto.classList.add('text-truncate');
-            texto.title = valor;
+            if (conteudo && conteudo !== '—') {
+              texto.title = conteudo;
+            }
           }
           grupo.appendChild(label);
           grupo.appendChild(texto);
@@ -1466,9 +1414,9 @@
           return false;
         }
 
-        function reloadComAtraso(ms = 2500) {
+        function reloadComAtraso(ms = 1500) {
           if (typeof window === 'undefined') return;
-          const atraso = Number.isFinite(ms) ? ms : 2500;
+          const atraso = Number.isFinite(ms) ? ms : 1500;
           window.setTimeout(() => {
             if (window.location) {
               window.location.reload();
@@ -1603,7 +1551,7 @@
             if (modalCancelar) {
               modalCancelar.hide();
             }
-            reloadComAtraso(5000);
+            reloadComAtraso(2000);
           } catch (erro) {
             console.error('Falha ao cancelar ingresso', erro);
           } finally {
@@ -1782,7 +1730,8 @@
             mCancelarBtn.setAttribute('aria-disabled', ehSemiBlock ? 'false' : 'true');
           }
           if (mConfirmBtn) {
-            if (somenteDetalhes || ehBlock) {
+            const esconderConfirmar = somenteDetalhes || ehBlock || ehSemiBlock;
+            if (esconderConfirmar) {
               mConfirmBtn.classList.add('d-none');
               mConfirmBtn.disabled = true;
               mConfirmBtn.setAttribute('aria-disabled', 'true');
@@ -1867,20 +1816,28 @@
             }
           }
           if (mConfirmBtn && mConfirmBtn.dataset.id === id) {
-            if (selecionado) {
-              mConfirmBtn.disabled = false;
-              mConfirmBtn.setAttribute('aria-disabled', 'false');
-              if (mConfirmBtn.dataset.confirmar === 'true' && mConfirmBtn.textContent !== 'Confirmando…') {
-                mConfirmBtn.textContent = rotuloConfirmar;
-              }
+            if (ehSemiBlock) {
+              mConfirmBtn.classList.add('d-none');
+              mConfirmBtn.disabled = true;
+              mConfirmBtn.setAttribute('aria-disabled', 'true');
+              mConfirmBtn.dataset.labelPadrao = rotuloConfirmar;
             } else {
-              mConfirmBtn.disabled = ehSemiBlock ? false : true;
-              mConfirmBtn.setAttribute('aria-disabled', ehSemiBlock ? 'false' : 'true');
-              if (mConfirmBtn.dataset.confirmar === 'true' && mConfirmBtn.textContent !== 'Confirmando…') {
-                mConfirmBtn.textContent = rotuloConfirmar;
+              mConfirmBtn.classList.remove('d-none');
+              if (selecionado) {
+                mConfirmBtn.disabled = false;
+                mConfirmBtn.setAttribute('aria-disabled', 'false');
+                if (mConfirmBtn.dataset.confirmar === 'true' && mConfirmBtn.textContent !== 'Confirmando…') {
+                  mConfirmBtn.textContent = rotuloConfirmar;
+                }
+              } else {
+                mConfirmBtn.disabled = true;
+                mConfirmBtn.setAttribute('aria-disabled', 'true');
+                if (mConfirmBtn.dataset.confirmar === 'true' && mConfirmBtn.textContent !== 'Confirmando…') {
+                  mConfirmBtn.textContent = rotuloConfirmar;
+                }
               }
+              mConfirmBtn.dataset.labelPadrao = rotuloConfirmar;
             }
-            mConfirmBtn.dataset.labelPadrao = rotuloConfirmar;
           }
           if (mQuantidadeSelect) {
             mQuantidadeSelect.disabled = bloqueado || ehBlock;
