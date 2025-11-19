@@ -571,6 +571,39 @@
             const leitoresCache = [];
             let eventoParaExcluir = null;
 
+            function formatDateBR(valor) {
+                if (!valor) return '';
+                if (/^\d{2}\/\d{2}\/\d{4}$/.test(valor)) return valor;
+                if (/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+                    const [ano, mes, dia] = valor.split('-');
+                    return `${dia}/${mes}/${ano}`;
+                }
+                const data = new Date(valor);
+                if (Number.isNaN(data.getTime())) return valor;
+                const dia = String(data.getDate()).padStart(2, '0');
+                const mes = String(data.getMonth() + 1).padStart(2, '0');
+                const ano = data.getFullYear();
+                return `${dia}/${mes}/${ano}`;
+            }
+
+            function formatDateInput(valor) {
+                if (!valor) return '';
+                if (/^\d{4}-\d{2}-\d{2}$/.test(valor)) return valor;
+                const partes = valor.split(/[\/]/);
+                if (partes.length === 3) {
+                    const [dia, mes, ano] = partes;
+                    if (ano && mes && dia) {
+                        return `${ano.padStart(4, '0')}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+                    }
+                }
+                const data = new Date(valor);
+                if (Number.isNaN(data.getTime())) return '';
+                const dia = String(data.getDate()).padStart(2, '0');
+                const mes = String(data.getMonth() + 1).padStart(2, '0');
+                const ano = data.getFullYear();
+                return `${ano}-${mes}-${dia}`;
+            }
+
             function sanitizeIdentificador(valor) {
                 const semAcentos = valor
                     .normalize('NFD')
@@ -652,7 +685,7 @@
 
                 lista.forEach(item => {
                     const linha = document.createElement('tr');
-                    const dataApresentacao = item.quando || item.data || '';
+                    const dataApresentacao = formatDateBR(item.quando || item.data || '');
                     const horario = item.hora || '';
                     const local = item.local || '';
 
@@ -737,7 +770,10 @@
                 Object.entries(campos).forEach(([prop, idCampo]) => {
                     const campo = document.getElementById(idCampo);
                     if (campo && item[prop] !== undefined) {
-                        campo.value = item[prop];
+                        const valor = idCampo === 'quando'
+                            ? formatDateInput(item[prop] || item.data)
+                            : item[prop];
+                        campo.value = valor || '';
                     }
                 });
 
@@ -781,7 +817,7 @@
                         </div>
                         <div class="col-md-4">
                             <strong>Data:</strong>
-                            <div>${item.quando || item.data || '-'}</div>
+                            <div>${formatDateBR(item.quando || item.data || '-') || '-'}</div>
                         </div>
                         <div class="col-md-4">
                             <strong>Hora:</strong>
