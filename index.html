@@ -1154,6 +1154,14 @@
                     });
             }
 
+            function aplicarPayloadLeitores(dados) {
+                const lista = Array.isArray(dados) ? dados : dados ? [dados] : [];
+                leitoresCache.length = 0;
+                lista.forEach(item => leitoresCache.push(item));
+                preencherTabelaLeitores(leitoresCache);
+                statusLeitores.textContent = `${leitoresCache.length} leitor(es) carregado(s).`;
+            }
+
             function buscarLeitores() {
                 statusLeitores.textContent = 'Carregando leitores...';
 
@@ -1166,12 +1174,7 @@
                         }
                         return resposta.json();
                     })
-                    .then(dados => {
-                        leitoresCache.length = 0;
-                        dados.forEach(item => leitoresCache.push(item));
-                        preencherTabelaLeitores(leitoresCache);
-                        statusLeitores.textContent = `${leitoresCache.length} leitor(es) carregado(s).`;
-                    })
+                    .then(aplicarPayloadLeitores)
                     .catch(() => {
                         tabelaLeitoresBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Não há leitores cadastrados.</td></tr>';
                         statusLeitores.textContent = 'Não há leitores cadastrados.';
@@ -1308,9 +1311,14 @@
                         throw new Error('Falha ao cadastrar.');
                     }
 
+                    const dadosResposta = await resposta.json().catch(() => null);
+                    aplicarPayloadLeitores(dadosResposta || []);
+                    formularioLeitor.reset();
+                    limiteGroup.classList.add('d-none');
+                    limiteInput.value = '';
                     mensagemLeitor.classList.add('text-success');
-                    mensagemLeitor.textContent = 'Leitor cadastrado com sucesso. Recarregando...';
-                    setTimeout(() => location.reload(), 600);
+                    mensagemLeitor.textContent = 'Leitor cadastrado com sucesso.';
+                    atualizarNomeAplicacao();
                 } catch (erro) {
                     mensagemLeitor.classList.add('text-danger');
                     mensagemLeitor.textContent = 'Não foi possível salvar o leitor. Tente novamente.';
@@ -1323,7 +1331,6 @@
             });
 
             buscarEventos();
-            buscarLeitores();
             atualizarEnderecoCampo('');
             atualizarNomeAplicacao();
         });
