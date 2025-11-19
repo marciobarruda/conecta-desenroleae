@@ -976,6 +976,16 @@
                 abrirModalCancelar(evento);
                 return;
               }
+              if (!selecoesAtuais.has(id)) {
+                if (eventoConflitanteComSelecoes(evento)) {
+                  const card = encontrarCardPorId(id);
+                  mostrarAvisoErro(card, 'Seleção conflita com outro horário.');
+                  return;
+                }
+                selecoesAtuais.add(id);
+                atualizarEstadoTodos();
+                atualizarBotaoModal();
+              }
               confirmarIngresso(mConfirmBtn);
             });
           }
@@ -1807,6 +1817,8 @@
               if (mConfirmBtn.textContent !== 'Confirmando…') {
                 mConfirmBtn.textContent = rotuloConfirmar;
               }
+              mConfirmBtn.disabled = false;
+              mConfirmBtn.setAttribute('aria-disabled', 'false');
             }
           }
           atualizarBotaoModal();
@@ -1872,18 +1884,11 @@
             }
           }
           if (mConfirmBtn && mConfirmBtn.dataset.id === id) {
-            if (selecionado) {
-              mConfirmBtn.disabled = false;
-              mConfirmBtn.setAttribute('aria-disabled', 'false');
-              if (mConfirmBtn.dataset.confirmar === 'true' && mConfirmBtn.textContent !== 'Confirmando…') {
-                mConfirmBtn.textContent = rotuloConfirmar;
-              }
-            } else {
-              mConfirmBtn.disabled = ehSemiBlock ? false : true;
-              mConfirmBtn.setAttribute('aria-disabled', ehSemiBlock ? 'false' : 'true');
-              if (mConfirmBtn.dataset.confirmar === 'true' && mConfirmBtn.textContent !== 'Confirmando…') {
-                mConfirmBtn.textContent = rotuloConfirmar;
-              }
+            const podeConfirmar = !ehBlock && !bloqueado;
+            mConfirmBtn.disabled = !podeConfirmar;
+            mConfirmBtn.setAttribute('aria-disabled', podeConfirmar ? 'false' : 'true');
+            if (mConfirmBtn.dataset.confirmar === 'true' && mConfirmBtn.textContent !== 'Confirmando…') {
+              mConfirmBtn.textContent = rotuloConfirmar;
             }
             mConfirmBtn.dataset.labelPadrao = rotuloConfirmar;
           }
