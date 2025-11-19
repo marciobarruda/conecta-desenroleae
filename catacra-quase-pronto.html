@@ -87,8 +87,8 @@
       #modalDetalhes .modal-content{border-radius:18px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.18)}
       #modalDetalhes .modal-header,#modalDetalhes .modal-footer{background:var(--surface);border-color:rgba(0,0,0,.05)}
       #modalDetalhes .modal-body{padding:2rem}
-      .modal-poster{background:#e9eef7;border-radius:14px;overflow:hidden;box-shadow:0 10px 26px rgba(0,45,98,.14);min-height:360px}
-      .modal-poster img{width:100%;height:100%;object-fit:cover;display:block}
+      .modal-poster{background:#e9eef7;border-radius:14px;overflow:hidden;box-shadow:0 10px 26px rgba(0,45,98,.14);min-height:360px;display:flex;align-items:center;justify-content:center}
+      .modal-poster img{width:100%;height:auto;max-height:100%;object-fit:contain;display:block}
       @media (max-width:768px){
         header.site-header{padding:2.25rem 0 1.75rem}
         .badge-open{width:100%;justify-content:center}
