@@ -758,7 +758,7 @@
                 lista.forEach(item => {
                     const option = document.createElement('option');
                     option.value = item.id;
-                    option.textContent = item.evento;
+                    option.textContent = `[${item.id}] ${item.evento}`;
                     eventoSelect.appendChild(option);
                 });
             }
