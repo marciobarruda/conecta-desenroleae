@@ -1466,14 +1466,11 @@
           return false;
         }
 
-        function reloadComAtraso(ms = 2500) {
+        function reloadComAtraso() {
           if (typeof window === 'undefined') return;
-          const atraso = Number.isFinite(ms) ? ms : 2500;
-          window.setTimeout(() => {
-            if (window.location) {
-              window.location.reload();
-            }
-          }, atraso);
+          if (window.location) {
+            window.location.reload();
+          }
         }
 
         function sanitizarCPF(valor) {
@@ -1537,12 +1534,6 @@
             }
             if (botao.dataset.confirmar === 'true') {
               botao.textContent = 'Confirmado!';
-              setTimeout(() => {
-                if (!botao.isConnected) return;
-                if (botao.dataset.confirmar === 'true') {
-                  botao.textContent = rotuloPadrao;
-                }
-              }, 2000);
             }
             if (card) {
               card.dispatchEvent(new CustomEvent('ingresso:confirmado', { detail: { id, cpf, quantidade: payload.quantidade }, bubbles: true }));
