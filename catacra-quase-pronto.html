@@ -318,158 +318,9 @@
           const mime = detectarMimeBase64(limpo);
           return `data:${mime};base64,${limpo}`;
         }
-        const FALLBACK_EVENTOS = [
-          {
-            id: 'aurora-nas-esquinas',
-            nome: 'Aurora nas Esquinas',
-            classificacao: '12+',
-            genero: 'Drama',
-            local: 'Teatro Santa Isabel',
-            quando: '2024-10-12',
-            hora: '16:00:00',
-            poster: 'https://deliriumnerd.com/wp-content/uploads/2019/08/aurora-nas-sombras-darkside-destacada-1024x538.jpg',
-            posterdetalhes: 'https://deliriumnerd.com/wp-content/uploads/2019/08/aurora-nas-sombras-darkside-destacada-1024x538.jpg',
-            sinopse: 'Uma viagem poética pelas ruas do Recife, onde memórias se cruzam com o cotidiano e cada esquina revela afetos e segredos que insistem em permanecer vivos.',
-            disponibilizados: 120,
-            disponiveis: 68,
-            acessibilidade: 'sim'
-          },
-          {
-            id: 'maresia',
-            nome: 'Maresia',
-            classificacao: 'Livre',
-            genero: 'Teatro-dança',
-            local: 'Teatro Apolo',
-            quando: '2024-10-12',
-            hora: '19:00:00',
-            poster: 'https://www.papocult.com.br/wp-content/uploads/2023/08/Cia-Acaso-Maresia-divulgacao.jpg',
-            posterdetalhes: 'https://www.papocult.com.br/wp-content/uploads/2023/08/Cia-Acaso-Maresia-divulgacao.jpg',
-            sinopse: 'Entre calmarias e tempestades, uma família ribeirinha enfrenta mudanças climáticas e afetivas, assinando pactos silenciosos com o vento e a maré.',
-            disponibilizados: 90,
-            disponiveis: 41,
-            acessibilidade: 'nao'
-          },
-          {
-            id: 'o-auto-do-frevo',
-            nome: 'O Auto do Frevo',
-            classificacao: '10+',
-            genero: 'Musical',
-            local: 'Paço do Frevo',
-            quando: '2024-10-14',
-            hora: '18:00:00',
-            poster: 'https://midias.diariodepernambuco.com.br/static/app/noticia_127983242361/2016/12/15/680255/20161215172830466281i.jpg',
-            posterdetalhes: 'https://midias.diariodepernambuco.com.br/static/app/noticia_127983242361/2016/12/15/680255/20161215172830466281i.jpg',
-            sinopse: 'Musical festivo que mistura frevo, teatro e narrativa popular para contar a saga de um estandarte que ganha vida e sai em busca da sua orquestra.',
-            disponibilizados: 150,
-            disponiveis: 102,
-            acessibilidade: 'sim'
-          },
-          {
-            id: 'paredes-que-falam',
-            nome: 'Paredes que Falam',
-            classificacao: '14+',
-            genero: 'Experimental',
-            local: 'Teatro Luiz Mendonça',
-            quando: '2024-10-15',
-            hora: '20:00:00',
-            poster: 'https://f.i.uol.com.br/fotografia/2025/04/02/174362328467ed947488792_1743623284_3x2_md.jpg',
-            posterdetalhes: 'https://f.i.uol.com.br/fotografia/2025/04/02/174362328467ed947488792_1743623284_3x2_md.jpg',
-            sinopse: 'Em um edifício histórico prestes a ruir, moradores compartilham lembranças e disputas, enquanto o passado sussurra pelos azulejos e pelas portas entreabertas.',
-            disponibilizados: 110,
-            disponiveis: 36,
-            acessibilidade: 'nao'
-          },
-          {
-            id: 'cartas-para-clarice',
-            nome: 'Cartas para Clarice',
-            classificacao: '16+',
-            genero: 'Drama',
-            local: 'Teatro Santa Isabel',
-            quando: '2024-10-16',
-            hora: '19:00:00',
-            poster: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5LP_4Fc1TXjepIRxOZuSCHMFhY6yKJhRSsg&s',
-            posterdetalhes: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5LP_4Fc1TXjepIRxOZuSCHMFhY6yKJhRSsg&s',
-            sinopse: 'Fragmentos de cartas nunca enviadas se transformam em cena, explorando silêncio, identidade e a força das pequenas escolhas que mudam destinos.',
-            disponibilizados: 95,
-            disponiveis: 27,
-            acessibilidade: 'sim'
-          },
-          {
-            id: 'cidade-som',
-            nome: 'Cidade-Som',
-            classificacao: 'Livre',
-            genero: 'Instalação cênica',
-            local: 'Parque Dona Lindu',
-            quando: '2024-10-17',
-            hora: '17:00:00',
-            poster: 'https://www.ceara.gov.br/wp-content/uploads/2024/06/2024-04-12_Orquestra_Juruviara_ThiagoMatine-22-scaled.jpeg',
-            posterdetalhes: 'https://www.ceara.gov.br/wp-content/uploads/2024/06/2024-04-12_Orquestra_Juruviara_ThiagoMatine-22-scaled.jpeg',
-            sinopse: 'Instalação cênica com música ao vivo em que o público percorre paisagens sonoras e descobre personagens escondidos no ruído da cidade.',
-            disponibilizados: 200,
-            disponiveis: 140,
-            acessibilidade: 'nao'
-          },
-          {
-            id: 'o-ultimo-fio',
-            nome: 'O Último Fio',
-            classificacao: '18+',
-            genero: 'Tragédia',
-            local: 'Teatro Apolo',
-            quando: '2024-10-18',
-            hora: '21:00:00',
-            poster: 'https://www.garanhunsnoticias.com.br/images/noticias/124568/7c2c527a1ffdc43b66f3be20629667e9.jpeg',
-            posterdetalhes: 'https://www.garanhunsnoticias.com.br/images/noticias/124568/7c2c527a1ffdc43b66f3be20629667e9.jpeg',
-            sinopse: 'Dois irmãos costuram lembranças para não esquecer o que o tempo tenta rasgar. Um drama íntimo sobre família, perda e possibilidades de recomeço.',
-            disponibilizados: 85,
-            disponiveis: 19,
-            acessibilidade: 'nao'
-          },
-          {
-            id: 'couraça',
-            nome: 'Couraça',
-            classificacao: '14+',
-            genero: 'Teatro físico',
-            local: 'Teatro Luiz Mendonça',
-            quando: '2024-10-19',
-            hora: '20:00:00',
-            poster: 'https://www.estadao.com.br/blogs/blog/wp-content/uploads/sites/265/2015/10/Jaques-e-Seu-Amo-HugoPossolo-Ando-Camargo-Angelo-Brandini-foto-de-Jo%C3%A3o-Caldas-e1444340873610.jpg',
-            posterdetalhes: 'https://www.estadao.com.br/blogs/blog/wp-content/uploads/sites/265/2015/10/Jaques-e-Seu-Amo-HugoPossolo-Ando-Camargo-Angelo-Brandini-foto-de-Jo%C3%A3o-Caldas-e1444340873610.jpg',
-            sinopse: 'Corpos que dançam e falas entrecortadas constroem um mosaico sobre proteção e vulnerabilidade em tempos de urgência.',
-            disponibilizados: 130,
-            disponiveis: 72,
-            acessibilidade: 'sim'
-          },
-          {
-            id: 'menina-e-o-vento',
-            nome: 'A Menina e o Vento',
-            classificacao: '10+',
-            genero: 'Infantil',
-            local: 'Paço do Frevo',
-            quando: '2024-10-20',
-            hora: '16:00:00',
-            poster: 'https://www.sociedadehumboldt.org.br/conteudo/comunicacao/dicas/teatro/1206294/1.jpg',
-            posterdetalhes: 'https://www.sociedadehumboldt.org.br/conteudo/comunicacao/dicas/teatro/1206294/1.jpg',
-            sinopse: 'A amizade improvável entre uma criança curiosa e um vento brincalhão desafia regras e apresenta uma nova forma de habitar o mundo.',
-            disponibilizados: 160,
-            disponiveis: 88,
-            acessibilidade: 'nao'
-          },
-          {
-            id: 'rio-subterraneo',
-            nome: 'Rio Subterrâneo',
-            classificacao: '12+',
-            genero: 'Suspense',
-            local: 'Parque Dona Lindu',
-            quando: '2024-10-21',
-            hora: '18:00:00',
-            poster: 'https://s2-oglobo.glbimg.com/Vg94jDR50UtDXMDM39fXOg8nRU0=/0x0:4928x3280/924x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_da025474c0c44edd99332dddb09cabe8/internal_photos/bs/2023/j/q/UyrFCpTqKuAdvuqyYJYQ/perversa-monica-bittencourt-em-cena-5-credito-da-foto-bruna-diacoyannis-1-.jpeg',
-            posterdetalhes: 'https://s2-oglobo.glbimg.com/Vg94jDR50UtDXMDM39fXOg8nRU0=/0x0:4928x3280/924x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_da025474c0c44edd99332dddb09cabe8/internal_photos/bs/2023/j/q/UyrFCpTqKuAdvuqyYJYQ/perversa-monica-bittencourt-em-cena-5-credito-da-foto-bruna-diacoyannis-1-.jpeg',
-            sinopse: 'Narrativa que revela um Recife oculto sob as águas, onde memórias afundadas retornam para guiar um grupo em busca de pertencimento.',
-            disponibilizados: 145,
-            disponiveis: 54,
-            acessibilidade: 'sim'
-          }
-        ];
+        const FALLBACK_EVENTOS = [];
+        const FALLBACK_EVENTOS_MENSAGEM =
+          'Sem eventos pintando no momento 😔 Volta daqui a pouquinho pra conferir as novidades quentinhas da cena! ✨';
         const DATE_KEY_EMPTY = '__sem_data__';
         const INTERVALO_TRES_HORAS_MS = 3 * 60 * 60 * 1000;
         const selecoesAtuais = new Set();
@@ -479,6 +330,7 @@
         let eventosFiltrados = [];
         let eventosJaPegos = [];
         let eventosJaPegosFiltrados = [];
+        let exibindoFallbackSemEventos = false;
 
         let campoCPF;
         let possuiFormulario = false;
@@ -578,9 +430,10 @@
           selecoesAtuais.clear();
 
           const recebidosDisponiveis = await fetchEventos(API_URL);
-          const baseDisponiveis = recebidosDisponiveis.length
-            ? recebidosDisponiveis.map(adaptarEventoApi).filter(Boolean)
-            : FALLBACK_EVENTOS;
+          exibindoFallbackSemEventos = recebidosDisponiveis.length === 0;
+          const baseDisponiveis = exibindoFallbackSemEventos
+            ? FALLBACK_EVENTOS
+            : recebidosDisponiveis.map(adaptarEventoApi).filter(Boolean);
 
           eventos = prepararEventos(baseDisponiveis, { resetarMapa: true, mapa: eventosPorId });
           eventosFiltrados = [...eventos];
@@ -608,6 +461,8 @@
 .portal-dyn .ticket-actions .btn-modern.btn-primary:hover { box-shadow: 0 12px 28px rgba(0, 83, 164, 0.3); }
 .portal-dyn .ticket-card.portal-dyn-ja-pego { filter: grayscale(100%); opacity: .7; }
 .portal-dyn .ticket-card.card-bloqueado { filter: grayscale(1); opacity: .75; }
+.portal-dyn .portal-dyn-empty { padding: 3rem 1rem; border-radius: 1rem; background: rgba(27, 38, 59, 0.05); border: 1px dashed rgba(27, 38, 59, 0.2); color: var(--text-strong); display: flex; align-items: center; justify-content: center; min-height: 220px; }
+.portal-dyn .portal-dyn-empty-text { font-size: 1.1rem; font-weight: 600; line-height: 1.4; }
 .portal-dyn .portal-dyn-aviso-ja-pego { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600; font-size: 0.85rem; padding: 0.35rem 0.75rem; border-radius: 999px; background: rgba(27, 38, 59, 0.08); color: var(--text-strong); margin-top: 0.35rem; }
 .portal-dyn .ticket-top-flags { display: flex; align-items: center; justify-content: flex-end; gap: 0.35rem; flex-wrap: wrap; }
 .portal-dyn .portal-dyn-acc-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: 0 0 28px; padding: 2px; border-radius: 6px; background: #fff; border: 1px solid rgba(27, 38, 59, 0.15); box-shadow: none; overflow: hidden; }
@@ -1092,6 +947,17 @@
           if (!elGrid) return;
           while (elGrid.firstChild) {
             elGrid.removeChild(elGrid.firstChild);
+          }
+          if (exibindoFallbackSemEventos) {
+            const aviso = document.createElement('div');
+            aviso.className = 'portal-dyn-empty text-center w-100';
+            const avisoTexto = document.createElement('p');
+            avisoTexto.className = 'portal-dyn-empty-text mb-0';
+            avisoTexto.textContent = FALLBACK_EVENTOS_MENSAGEM;
+            aviso.appendChild(avisoTexto);
+            elGrid.appendChild(aviso);
+            atualizarEstadoTodos();
+            return;
           }
           const fragmento = document.createDocumentFragment();
           lista.forEach((evento) => {
