@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Symplifica Conecta</title>
+    <title>Catraca Conecta</title>
     <link
       rel="icon"
-      href="https://statics.recife.pe.gov.br/images/dynamics/conecta/icons/favicon.png?w=32&h=32&fit=fill&border=2,transparent,shrink"
+      href="https://statics.recife.pe.gov.br/images/automacao/catraca-conecta/catraca-logo.png"
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -105,16 +105,8 @@
       <div class="container">
         <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
           <div>
-            <h1 class="display-5 fw-bold mb-2">Desenrole aê • Symplifica Conecta</h1>
+            <h1 class="display-5 fw-bold mb-2">Catraca Conecta • Sua bilheteria eletrônica gratuita</h1>
             <p class="lead mb-0">Programação oficial da Secretaria de Cultura do Recife • Explore as peças e escolha seu teatro.</p>
-          </div>
-          <div class="text-md-end">
-            <span class="badge-open"><span aria-hidden="true">🎭</span> Programação aberta</span>
-            <div class="mt-2">
-              <button class="btn btn-light btn-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasFav" aria-controls="offcanvasFav">
-                Favoritos <span class="badge text-bg-primary align-middle ms-1" id="favCount">0</span>
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -623,6 +615,8 @@
           if (disponiveis !== undefined) adaptado.disponiveis = disponiveis;
           const acessibilidade = ler('acessibilidade', 'acessibilidades', 'recursos_acessibilidade');
           if (acessibilidade !== undefined) adaptado.acessibilidade = acessibilidade;
+          const status = ler('status');
+          if (status !== undefined) adaptado.status = status;
           const duracao = ler('duracao', 'duração', 'tempo', 'tempo_estimado');
           if (duracao !== undefined) adaptado.duracao = duracao;
           const quemFaz = ler('quem_faz', 'quemfaz', 'quemFaz', 'grupo', 'companhia', 'company', 'coletivo');
@@ -672,6 +666,7 @@
                 duracao: item.duracao || item.duração || '',
                 quemFaz,
                 origem,
+                status: normalizarStatus(item.status),
                 quando: quandoValor || '',
                 quandoOriginal: item.quando ?? '',
                 horaOriginal: item.hora || '',
@@ -737,6 +732,23 @@
         function numeroSeguro(valor) {
           const numero = Number(valor);
           return Number.isFinite(numero) && numero >= 0 ? numero : 0;
+        }
+
+        function normalizarStatus(valor) {
+          if (valor === undefined || valor === null) return 'ok';
+          const texto = String(valor).trim().toLowerCase();
+          if (texto === 'block' || texto === 'semi-block') {
+            return texto;
+          }
+          return 'ok';
+        }
+
+        function rotuloPrincipalPorStatus(status) {
+          return normalizarStatus(status) === 'block' ? '🎟️ Devolver ingresso' : '🎟️ Pegar ingresso';
+        }
+
+        function rotuloConfirmarPorStatus(status) {
+          return normalizarStatus(status) === 'semi-block' ? 'Devolver ingresso' : 'Confirmar';
         }
 
         function interpretarAcessibilidade(valor) {
@@ -992,6 +1004,11 @@
           card.setAttribute('data-quando', evento.quandoNormalizado || DATE_KEY_EMPTY);
           card.setAttribute('data-hora', evento.horaCurta || '');
           card.setAttribute('data-ja-pegou', evento.jaPegou ? 'true' : 'false');
+          const status = normalizarStatus(evento.status);
+          card.dataset.status = status;
+          if (status === 'block') {
+            card.classList.add('is-muted');
+          }
           if (evento.jaPegou) {
             card.classList.add('portal-dyn-ja-pego');
           }
@@ -1181,8 +1198,34 @@
           return Number.isFinite(valor) && valor > 0 ? valor : 1;
         }
 
+        function configurarSelectQuantidade(status) {
+          if (!mQuantidadeSelect) return;
+          const apenasUm = normalizarStatus(status) === 'semi-block';
+          while (mQuantidadeSelect.firstChild) {
+            mQuantidadeSelect.removeChild(mQuantidadeSelect.firstChild);
+          }
+          const opcoes = ['1'];
+          if (!apenasUm) {
+            opcoes.push('2');
+          }
+          opcoes.forEach((valor) => {
+            const option = document.createElement('option');
+            option.value = valor;
+            option.textContent = valor;
+            if (valor === '1') {
+              option.selected = true;
+            }
+            mQuantidadeSelect.appendChild(option);
+          });
+        }
+
         function obterContainerAcoes(card) {
           return card ? card.querySelector('.ticket-actions') : null;
+        }
+
+        function obterStatusDoCard(card) {
+          if (!card) return 'ok';
+          return normalizarStatus(card.dataset.status);
         }
 
         function encontrarCardPorId(id) {
@@ -1222,13 +1265,20 @@
           const cards = elGrid.querySelectorAll('[data-id]');
           cards.forEach((card) => {
             const jaPegou = card.getAttribute('data-ja-pegou') === 'true';
+            const statusCard = obterStatusDoCard(card);
+            const ehBlock = statusCard === 'block';
             card.classList.remove('selecionado', 'is-active');
             if (jaPegou) {
               card.classList.add('portal-dyn-ja-pego');
               card.classList.remove('inativo', 'is-muted');
               card.setAttribute('aria-disabled', 'true');
             } else {
-              card.classList.remove('inativo', 'is-muted');
+              card.classList.remove('inativo');
+              if (ehBlock) {
+                card.classList.add('is-muted');
+              } else {
+                card.classList.remove('is-muted');
+              }
               card.classList.remove('portal-dyn-ja-pego');
               if (!card.dataset.bloqueado) {
                 card.removeAttribute('aria-disabled');
@@ -1249,10 +1299,12 @@
         }
 
         function resetarEstadoBotaoIngresso(botao) {
+          const status = obterStatusDoCard(botao.closest('[data-status]'));
+          const rotulo = rotuloPrincipalPorStatus(status);
           botao.disabled = false;
           botao.setAttribute('aria-disabled', 'false');
           botao.setAttribute('aria-pressed', 'false');
-          botao.textContent = '🎟️ Pegar ingresso';
+          botao.textContent = rotulo;
           botao.classList.remove('btn-success');
           if (!botao.classList.contains('btn-primary')) {
             botao.classList.add('btn-primary');
@@ -1261,9 +1313,13 @@
 
         function aplicarEstadoSelecionado(card) {
           if (!card) return;
+          const status = obterStatusDoCard(card);
           card.classList.add('selecionado');
           card.classList.add('is-active');
-          card.classList.remove('inativo', 'is-muted');
+          card.classList.remove('inativo');
+          if (status !== 'block') {
+            card.classList.remove('is-muted');
+          }
           const botao = card.querySelector('.btn-pegar-ingresso');
           if (botao) {
             botao.disabled = false;
@@ -1282,6 +1338,8 @@
 
         function aplicarEstadoInativo(card) {
           if (!card) return;
+          const status = obterStatusDoCard(card);
+          const rotulo = rotuloPrincipalPorStatus(status);
           if (card.getAttribute('data-ja-pegou') === 'true') {
             card.classList.add('portal-dyn-ja-pego');
             return;
@@ -1294,7 +1352,7 @@
             botao.disabled = true;
             botao.setAttribute('aria-disabled', 'true');
             botao.setAttribute('aria-pressed', 'false');
-            botao.textContent = '🎟️ Pegar ingresso';
+            botao.textContent = rotulo;
             botao.classList.remove('btn-success');
             if (!botao.classList.contains('btn-primary')) {
               botao.classList.add('btn-primary');
@@ -1383,6 +1441,7 @@
             }
             return;
           }
+          const rotuloPadrao = botao.dataset.labelPadrao || 'Confirmar';
           const quantidade = obterQuantidadeSelecionada();
           const payload = { id, cpf };
           if (quantidade) {
@@ -1411,7 +1470,7 @@
               setTimeout(() => {
                 if (!botao.isConnected) return;
                 if (botao.dataset.confirmar === 'true') {
-                  botao.textContent = 'Confirmar';
+                  botao.textContent = rotuloPadrao;
                 }
               }, 2000);
             }
@@ -1421,7 +1480,7 @@
             reloadComAtraso();
           } catch (erro) {
             console.error('Falha ao confirmar ingresso', erro);
-            botao.textContent = 'Confirmar';
+            botao.textContent = rotuloPadrao;
             if (card) {
               mostrarAvisoErro(card, 'Falha ao confirmar. Tente novamente.');
             }
@@ -1430,7 +1489,7 @@
             botao.setAttribute('aria-disabled', 'false');
             if (botao === mConfirmBtn) {
               if (!botao.textContent || botao.textContent === 'Confirmando…') {
-                botao.textContent = 'Confirmar';
+                botao.textContent = rotuloPadrao;
               }
             } else if (botao.dataset.confirmar !== 'true' && (!botao.textContent || botao.textContent === 'Confirmando…')) {
               botao.textContent = 'Detalhes';
@@ -1473,6 +1532,9 @@
               atualizarEstadoTodos();
               atualizarBotaoModal();
             }
+            return;
+          }
+          if (evento.status === 'block') {
             return;
           }
           if (evento.apenasDetalhes || evento.jaPegou) {
@@ -1535,6 +1597,8 @@
 
         function abrirModal(evento) {
           if (!mTitle) return;
+          const status = normalizarStatus(evento.status);
+          const ehBlock = status === 'block';
           mTitle.textContent = evento.nome;
           if (mPoster) {
             mPoster.src = evento.posterdetalhes || evento.poster || '';
@@ -1578,14 +1642,17 @@
               mTicketBtn.dataset.id = evento.id;
               mTicketBtn.dataset.quando = evento.quandoNormalizado || DATE_KEY_EMPTY;
               mTicketBtn.dataset.hora = evento.horaCurta || '';
+              mTicketBtn.textContent = rotuloPrincipalPorStatus(status);
             }
           }
+          const esconderQuantidade = somenteDetalhes || ehBlock;
+          configurarSelectQuantidade(status);
           if (mQuantidadeWrapper) {
-            mQuantidadeWrapper.classList.toggle('d-none', somenteDetalhes);
+            mQuantidadeWrapper.classList.toggle('d-none', esconderQuantidade);
           }
           if (mQuantidadeSelect) {
             mQuantidadeSelect.value = '1';
-            mQuantidadeSelect.disabled = somenteDetalhes;
+            mQuantidadeSelect.disabled = esconderQuantidade;
           }
           if (mConfirmBtn) {
             if (somenteDetalhes) {
@@ -1603,8 +1670,10 @@
               mConfirmBtn.dataset.confirmar = 'true';
               mConfirmBtn.dataset.confirmarId = evento.id;
               mConfirmBtn.setAttribute('aria-label', 'Confirmar ingresso');
+              const rotuloConfirmar = rotuloConfirmarPorStatus(status);
+              mConfirmBtn.dataset.labelPadrao = rotuloConfirmar;
               if (mConfirmBtn.textContent !== 'Confirmando…') {
-                mConfirmBtn.textContent = 'Confirmar';
+                mConfirmBtn.textContent = rotuloConfirmar;
               }
             }
           }
@@ -1618,6 +1687,10 @@
           if (!id) return;
           const evento = eventosPorId.get(id);
           if (!evento) return;
+          const status = normalizarStatus(evento.status);
+          const rotuloPrincipal = rotuloPrincipalPorStatus(status);
+          const rotuloConfirmar = rotuloConfirmarPorStatus(status);
+          const ehBlock = status === 'block';
           if (evento.apenasDetalhes || evento.jaPegou) {
             if (mTicketBtn) {
               mTicketBtn.disabled = true;
@@ -1634,7 +1707,7 @@
             return;
           }
           const selecionado = selecoesAtuais.has(id);
-          const bloqueado = !selecionado && eventoConflitanteComSelecoes(evento);
+          const bloqueado = ehBlock || (!selecionado && eventoConflitanteComSelecoes(evento));
 
           if (selecionado) {
             mTicketBtn.disabled = false;
@@ -1648,7 +1721,7 @@
             mTicketBtn.disabled = true;
             mTicketBtn.setAttribute('aria-disabled', 'true');
             mTicketBtn.setAttribute('aria-pressed', 'false');
-            mTicketBtn.textContent = '🎟️ Indisponível';
+            mTicketBtn.textContent = ehBlock ? rotuloPrincipal : '🎟️ Indisponível';
             mTicketBtn.classList.remove('btn-success');
             if (!mTicketBtn.classList.contains('btn-outline-secondary')) {
               mTicketBtn.classList.add('btn-outline-secondary');
@@ -1658,7 +1731,7 @@
             mTicketBtn.disabled = false;
             mTicketBtn.setAttribute('aria-disabled', 'false');
             mTicketBtn.setAttribute('aria-pressed', 'false');
-            mTicketBtn.textContent = '🎟️ Pegar ingresso';
+            mTicketBtn.textContent = rotuloPrincipal;
             mTicketBtn.classList.remove('btn-success');
             mTicketBtn.classList.remove('btn-outline-secondary');
             if (!mTicketBtn.classList.contains('btn-outline-primary')) {
@@ -1670,18 +1743,19 @@
               mConfirmBtn.disabled = false;
               mConfirmBtn.setAttribute('aria-disabled', 'false');
               if (mConfirmBtn.dataset.confirmar === 'true' && mConfirmBtn.textContent !== 'Confirmando…') {
-                mConfirmBtn.textContent = 'Confirmar';
+                mConfirmBtn.textContent = rotuloConfirmar;
               }
             } else {
               mConfirmBtn.disabled = true;
               mConfirmBtn.setAttribute('aria-disabled', 'true');
               if (mConfirmBtn.dataset.confirmar === 'true' && mConfirmBtn.textContent !== 'Confirmando…') {
-                mConfirmBtn.textContent = 'Confirmar';
+                mConfirmBtn.textContent = rotuloConfirmar;
               }
             }
+            mConfirmBtn.dataset.labelPadrao = rotuloConfirmar;
           }
           if (mQuantidadeSelect) {
-            mQuantidadeSelect.disabled = bloqueado;
+            mQuantidadeSelect.disabled = bloqueado || ehBlock;
           }
         }
 
