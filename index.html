@@ -464,7 +464,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h2 class="section-title h4 mb-3">Cadastro de leitor de QRCode</h2>
-                        <form action="https://conectarecifeservicos.recife.pe.gov.br/qrcode/api/leitorqrcode/create" class="gy-3">
+                        <form action="https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/criar-leitor-qr-code" class="gy-3">
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label for="evento" class="form-label">Evento</label>
@@ -1267,9 +1267,28 @@
                         throw new Error('Falha ao cadastrar.');
                     }
 
+                    let dadosResposta = null;
+                    try {
+                        dadosResposta = await resposta.json();
+                    } catch (erroJson) {
+                        dadosResposta = null;
+                    }
+
+                    if (Array.isArray(dadosResposta)) {
+                        leitoresCache.length = 0;
+                        dadosResposta.forEach(item => leitoresCache.push(item));
+                        preencherTabelaLeitores(leitoresCache);
+                        statusLeitores.textContent = `${leitoresCache.length} leitor(es) carregado(s).`;
+                    } else if (dadosResposta && typeof dadosResposta === 'object') {
+                        leitoresCache.push(dadosResposta);
+                        preencherTabelaLeitores(leitoresCache);
+                        statusLeitores.textContent = `${leitoresCache.length} leitor(es) carregado(s).`;
+                    } else {
+                        await buscarLeitores();
+                    }
+
                     mensagemLeitor.classList.add('text-success');
-                    mensagemLeitor.textContent = 'Leitor cadastrado com sucesso. Recarregando...';
-                    setTimeout(() => location.reload(), 800);
+                    mensagemLeitor.textContent = 'Leitor cadastrado com sucesso.';
                 } catch (erro) {
                     mensagemLeitor.classList.add('text-danger');
                     mensagemLeitor.textContent = 'Não foi possível salvar o leitor. Tente novamente.';
