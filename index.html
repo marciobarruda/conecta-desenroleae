@@ -519,12 +519,11 @@
                                         <th scope="col">Múltiplas leituras</th>
                                         <th scope="col">Limite</th>
                                         <th scope="col">Link do leitor</th>
-                                        <th scope="col" class="text-end">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td colspan="6" class="text-center text-muted">Aguardando carregamento...</td>
+                                        <td colspan="5" class="text-center text-muted">Aguardando carregamento...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -819,7 +818,7 @@
                 if (!lista.length) {
                     const linha = document.createElement('tr');
                     const celula = document.createElement('td');
-                    celula.colSpan = 6;
+                    celula.colSpan = 5;
                     celula.className = 'text-center text-muted';
                     celula.textContent = 'Nenhum leitor cadastrado até o momento.';
                     linha.appendChild(celula);
@@ -858,15 +857,6 @@
                     }
                     linha.appendChild(linkTd);
 
-                    const acao = document.createElement('td');
-                    acao.className = 'text-end table-action';
-
-                    const visualizar = criarBotao('🔍', 'Visualizar', 'btn-outline-secondary', () => mostrarDetalhesLeitor(item));
-                    const editar = criarBotao('✏️', 'Editar', 'btn-outline-primary', () => preencherFormularioLeitor(item));
-                    const excluir = criarBotao('🗑️', 'Excluir', 'btn-outline-danger', () => prepararExclusaoLeitor(item));
-
-                    [visualizar, editar, excluir].forEach(btn => acao.appendChild(btn));
-                    linha.appendChild(acao);
                     tabelaLeitoresBody.appendChild(linha);
                 });
             }
@@ -1139,7 +1129,7 @@
                         statusLeitores.textContent = `${leitoresCache.length} leitor(es) carregado(s).`;
                     })
                     .catch(() => {
-                        tabelaLeitoresBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Não há leitores cadastrados.</td></tr>';
+                        tabelaLeitoresBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Não há leitores cadastrados.</td></tr>';
                         statusLeitores.textContent = 'Não há leitores cadastrados.';
                     });
             }
@@ -1289,6 +1279,7 @@
 
                     mensagemLeitor.classList.add('text-success');
                     mensagemLeitor.textContent = 'Leitor cadastrado com sucesso.';
+                    setTimeout(() => location.reload(), 700);
                 } catch (erro) {
                     mensagemLeitor.classList.add('text-danger');
                     mensagemLeitor.textContent = 'Não foi possível salvar o leitor. Tente novamente.';
