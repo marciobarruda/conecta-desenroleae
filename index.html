@@ -863,18 +863,8 @@
                     });
 
                     const linkTd = document.createElement('td');
-                    linkTd.className = 'text-center';
-                    if (linkGerado) {
-                        const botaoLink = document.createElement('button');
-                        botaoLink.type = 'button';
-                        botaoLink.className = 'btn btn-link p-0 copy-link-btn';
-                        botaoLink.textContent = '🔗';
-                        botaoLink.title = 'Copiar link do leitor';
-                        botaoLink.addEventListener('click', () => copiarLink(linkGerado, linkTd));
-                        linkTd.appendChild(botaoLink);
-                    } else {
-                        linkTd.textContent = '-';
-                    }
+                    linkTd.className = 'text-break';
+                    linkTd.textContent = linkGerado || '-';
                     linha.appendChild(linkTd);
 
                     tabelaLeitoresBody.appendChild(linha);
@@ -1284,32 +1274,9 @@
                         throw new Error('Falha ao cadastrar.');
                     }
 
-                    let dadosResposta = null;
-                    try {
-                        dadosResposta = await resposta.json();
-                    } catch (erroJson) {
-                        dadosResposta = null;
-                    }
-
-                    if (Array.isArray(dadosResposta)) {
-                        leitoresCache.length = 0;
-                        dadosResposta.forEach(item => leitoresCache.push(item));
-                    } else if (dadosResposta && typeof dadosResposta === 'object') {
-                        leitoresCache.push(dadosResposta);
-                    } else {
-                        await buscarLeitores();
-                    }
-
-                    preencherTabelaLeitores(leitoresCache);
-                    statusLeitores.textContent = `${leitoresCache.length} leitor(es) carregado(s).`;
-
-                    formularioLeitor.reset();
-                    webhookInput.value = '';
-                    nomeAplicacaoInput.value = '';
-                    limiteGroup.classList.add('d-none');
-                    limiteInput.required = false;
                     mensagemLeitor.classList.add('text-success');
-                    mensagemLeitor.textContent = 'Leitor cadastrado com sucesso.';
+                    mensagemLeitor.textContent = 'Leitor cadastrado com sucesso. Recarregando...';
+                    setTimeout(() => location.reload(), 600);
                 } catch (erro) {
                     mensagemLeitor.classList.add('text-danger');
                     mensagemLeitor.textContent = 'Não foi possível salvar o leitor. Tente novamente.';
