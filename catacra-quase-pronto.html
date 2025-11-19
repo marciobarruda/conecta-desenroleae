@@ -115,7 +115,7 @@
     <section class="py-3">
       <div class="container">
         <div class="alert alert-primary mb-0" role="status">
-          Olá, {{ $json.given_name }}! Bem-vindo(a) à programação do Festival de Teatro do Recife.
+          🎭 Olá, {{ (() => { const nome = String($json.given_name ?? '').trim(); return nome ? nome[0].toUpperCase() + nome.slice(1).toLowerCase() : 'Visitante'; })() }}! ✨ Seja bem-vindo(a) à programação do Festival de Teatro do Recife — escolha seu espetáculo e aproveite o show!
         </div>
       </div>
     </section>
