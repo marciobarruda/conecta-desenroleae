@@ -534,6 +534,7 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th scope="col">Evento</th>
+                                        <th scope="col">Data</th>
                                         <th scope="col">Identificado</th>
                                         <th scope="col">Múltiplas leituras</th>
                                         <th scope="col">Limite</th>
@@ -542,7 +543,7 @@
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td colspan="5" class="text-center text-muted">Aguardando carregamento...</td>
+                                        <td colspan="6" class="text-center text-muted">Aguardando carregamento...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -666,6 +667,13 @@
                 const mes = String(data.getMonth() + 1).padStart(2, '0');
                 const ano = data.getFullYear();
                 return `${ano}-${mes}-${dia}`;
+            }
+
+            function normalizarBooleano(valor) {
+                if (typeof valor === 'string') {
+                    return valor.toLowerCase() === 'true';
+                }
+                return Boolean(valor);
             }
 
             function sanitizeIdentificador(valor) {
@@ -838,7 +846,7 @@
                 if (!lista.length) {
                     const linha = document.createElement('tr');
                     const celula = document.createElement('td');
-                    celula.colSpan = 5;
+                    celula.colSpan = 6;
                     celula.className = 'text-center text-muted';
                     celula.textContent = 'Nenhum leitor cadastrado até o momento.';
                     linha.appendChild(celula);
@@ -851,21 +859,19 @@
                     const eventoNome = item.evento || item.evento_nome || '-';
                     const identificadorEvento = item.id || item.evento_id || '';
                     const fallbackEvento = identificadorEvento || (item.evento ? sanitizeIdentificador(item.evento) : '');
-                    const identificado = item.leitor_identificado ? 'Sim' : 'Não';
-                    const multiplas = item.multiplas_leituras ? 'Sim' : 'Não';
-                    const limite = item.limite_leituras || '-';
-                    const linkGerado = item.link_webhook || (fallbackEvento ? baseWebhook + encodeURIComponent(fallbackEvento) : '');
+                    const identificadoFlag = normalizarBooleano(item.leitor_identificado ?? item.identificado);
+                    const multiplasFlag = normalizarBooleano(item.multiplas_leituras);
+                    const identificado = identificadoFlag ? 'Sim' : 'Não';
+                    const multiplas = multiplasFlag ? 'Sim' : 'Não';
+                    const limite = multiplasFlag ? (item.limite_leituras || '-') : '-';
+                    const linkGerado = item.link || item.link_webhook || (fallbackEvento ? baseWebhook + encodeURIComponent(fallbackEvento) : '');
+                    const dataEvento = formatDateBR(item.data_evento || item.quando || item.data || '');
 
-                    [eventoNome, identificado, multiplas, limite].forEach(valor => {
+                    [eventoNome, dataEvento, identificado, multiplas, limite, linkGerado || '-'].forEach(valor => {
                         const td = document.createElement('td');
                         td.textContent = valor || '-';
                         linha.appendChild(td);
                     });
-
-                    const linkTd = document.createElement('td');
-                    linkTd.className = 'text-break';
-                    linkTd.textContent = linkGerado || '-';
-                    linha.appendChild(linkTd);
 
                     tabelaLeitoresBody.appendChild(linha);
                 });
@@ -1139,7 +1145,7 @@
                         statusLeitores.textContent = `${leitoresCache.length} leitor(es) carregado(s).`;
                     })
                     .catch(() => {
-                        tabelaLeitoresBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Não há leitores cadastrados.</td></tr>';
+                    tabelaLeitoresBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Não há leitores cadastrados.</td></tr>';
                         statusLeitores.textContent = 'Não há leitores cadastrados.';
                     });
             }
