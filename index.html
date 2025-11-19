@@ -651,6 +651,18 @@
                 return `${dia}/${mes}/${ano}`;
             }
 
+            function formatDateTimeBR(valor) {
+                if (!valor) return '';
+                const data = new Date(valor);
+                if (Number.isNaN(data.getTime())) return '';
+                const dia = String(data.getDate()).padStart(2, '0');
+                const mes = String(data.getMonth() + 1).padStart(2, '0');
+                const ano = data.getFullYear();
+                const horas = String(data.getHours()).padStart(2, '0');
+                const minutos = String(data.getMinutes()).padStart(2, '0');
+                return `${dia}/${mes}/${ano} ${horas}:${minutos}`;
+            }
+
             function formatDateInput(valor) {
                 if (!valor) return '';
                 if (/^\d{4}-\d{2}-\d{2}$/.test(valor)) return valor;
@@ -857,19 +869,33 @@
                 lista.forEach(item => {
                     const linha = document.createElement('tr');
                     const eventoNome = item.evento || item.evento_nome || '-';
-                    const identificadorEvento = item.id || item.evento_id || '';
-                    const fallbackEvento = identificadorEvento || (item.evento ? sanitizeIdentificador(item.evento) : '');
-                    const identificadoFlag = normalizarBooleano(item.leitor_identificado ?? item.identificado);
-                    const multiplasFlag = normalizarBooleano(item.multiplas_leituras);
-                    const identificado = identificadoFlag ? 'Sim' : 'Não';
-                    const multiplas = multiplasFlag ? 'Sim' : 'Não';
-                    const limite = multiplasFlag ? (item.limite_leituras || '-') : '-';
-                    const linkGerado = item.link || item.link_webhook || (fallbackEvento ? baseWebhook + encodeURIComponent(fallbackEvento) : '');
-                    const dataEvento = formatDateBR(item.data_evento || item.quando || item.data || '');
+                    const identificado = item.identificado ?? item.leitor_identificado ?? '-';
+                    const multiplas = item.multiplas_leituras;
+                    const limite = multiplas ? (item.limite_leituras ?? '-') : '-';
+                    const linkGerado = item.link || '-';
+                    const dataEvento = formatDateTimeBR(item.data_evento || item.quando || item.data || '');
 
-                    [eventoNome, dataEvento, identificado, multiplas, limite, linkGerado || '-'].forEach(valor => {
+                    const colunas = [
+                        eventoNome,
+                        dataEvento || '-',
+                        identificado !== undefined ? String(identificado) : '-',
+                        multiplas !== undefined ? String(multiplas) : '-',
+                        limite,
+                        linkGerado
+                    ];
+
+                    colunas.forEach((valor, indice) => {
                         const td = document.createElement('td');
-                        td.textContent = valor || '-';
+                        if (indice === 5 && valor && valor !== '-') {
+                            const linkEl = document.createElement('a');
+                            linkEl.href = valor;
+                            linkEl.target = '_blank';
+                            linkEl.rel = 'noopener noreferrer';
+                            linkEl.textContent = valor;
+                            td.appendChild(linkEl);
+                        } else {
+                            td.textContent = valor || '-';
+                        }
                         linha.appendChild(td);
                     });
 
@@ -1131,7 +1157,9 @@
             function buscarLeitores() {
                 statusLeitores.textContent = 'Carregando leitores...';
 
-                fetch('https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/listar-leitores')
+                fetch('https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/listar-leitores', {
+                    method: 'POST'
+                })
                     .then(resposta => {
                         if (!resposta.ok) {
                             throw new Error('Não foi possível carregar a lista de leitores.');
@@ -1145,7 +1173,7 @@
                         statusLeitores.textContent = `${leitoresCache.length} leitor(es) carregado(s).`;
                     })
                     .catch(() => {
-                    tabelaLeitoresBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Não há leitores cadastrados.</td></tr>';
+                        tabelaLeitoresBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Não há leitores cadastrados.</td></tr>';
                         statusLeitores.textContent = 'Não há leitores cadastrados.';
                     });
             }
