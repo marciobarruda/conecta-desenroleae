@@ -50,7 +50,9 @@
       .ticket-card{
         background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:12px;box-shadow:var(--shadow-strong);overflow:hidden;position:relative
       }
-      .ticket-cover{background:#e9eef7}
+      .ticket-cover{
+        background:#e9eef7;width:100%;aspect-ratio:2/3;display:block;overflow:hidden
+      }
       .poster-img{width:100%;height:100%;object-fit:cover;display:block}
       .ticket-body{padding:1rem 1rem 1.1rem;position:relative}
       /* Semicírculos nas laterais (efeito ‘talão’) */
@@ -680,6 +682,8 @@
           if (genero !== undefined) adaptado.genero = genero;
           const local = ler('local', 'teatro', 'espaco', 'localizacao', 'casa');
           if (local !== undefined) adaptado.local = local;
+          const onde = ler('onde');
+          if (onde !== undefined) adaptado.onde = onde;
           const quando = ler('quando', 'datahora', 'data_hora', 'dataHora', 'data_inicio', 'data');
           if (quando !== undefined) adaptado.quando = quando;
           const hora = ler('hora', 'horario', 'hora_inicio', 'horaInicio');
@@ -746,6 +750,7 @@
                 temAcessibilidade: interpretarAcessibilidade(item.acessibilidade),
                 genero: item.genero || '',
                 local: item.local || item.teatro || '',
+                onde: item.onde || '',
                 duracao: item.duracao || item.duração || '',
                 quemFaz,
                 origem,
@@ -1119,7 +1124,7 @@
           }
 
           const capa = document.createElement('div');
-          capa.className = 'ticket-cover ratio ratio-16x9';
+          capa.className = 'ticket-cover';
           const imagem = document.createElement('img');
           imagem.className = 'poster-img';
           imagem.loading = 'lazy';
@@ -1160,6 +1165,8 @@
           const blocoInfo = document.createElement('div');
           blocoInfo.className = 'row g-2 mt-2';
           blocoInfo.appendChild(criarMeta('Gênero e local', montarGeneroLocal(evento)));
+          const textoOnde = (evento.onde || '').trim() || evento.local || '—';
+          blocoInfo.appendChild(criarMeta('Onde', textoOnde));
           const quandoTexto = evento.quandoFormatado || '—';
           blocoInfo.appendChild(criarMeta('Quando', quandoTexto));
           blocoInfo.appendChild(criarMeta('Duração', evento.duracao || '—'));
@@ -1232,10 +1239,13 @@
           label.textContent = rotulo;
           const texto = document.createElement('div');
           texto.className = 'fw-semibold small';
-          texto.textContent = valor;
-          if (rotulo === 'Gênero e local') {
+          const conteudo = valor ?? '—';
+          texto.textContent = conteudo;
+          if (rotulo === 'Gênero e local' || rotulo === 'Onde') {
             texto.classList.add('text-truncate');
-            texto.title = valor;
+            if (conteudo && conteudo !== '—') {
+              texto.title = conteudo;
+            }
           }
           grupo.appendChild(label);
           grupo.appendChild(texto);
