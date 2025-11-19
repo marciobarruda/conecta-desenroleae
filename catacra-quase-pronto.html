@@ -285,6 +285,31 @@
           { chave: 'libras', rotulo: 'Libras', src: ICON_LIBRAS_SRC },
           { chave: 'audiodescricao', rotulo: 'Audiodescrição', src: ICON_AD_SRC }
         ];
+
+        function detectarMimeBase64(conteudo) {
+          if (!conteudo || typeof conteudo !== 'string') return 'image/jpeg';
+          const prefixo = conteudo.slice(0, 10);
+          if (prefixo.startsWith('/9j/')) return 'image/jpeg';
+          if (prefixo.startsWith('iVBOR')) return 'image/png';
+          if (prefixo.startsWith('R0lGOD')) return 'image/gif';
+          if (prefixo.startsWith('PHN2Zy')) return 'image/svg+xml';
+          return 'image/jpeg';
+        }
+
+        function normalizarImagem(valor) {
+          if (!valor) return '';
+          if (typeof valor !== 'string') return '';
+          const limpo = valor.trim();
+          if (!limpo) return '';
+          if (/^https?:\/\//i.test(limpo)) return limpo;
+          if (limpo.startsWith('data:image/')) return limpo;
+          if (limpo.includes(';base64,')) {
+            if (limpo.startsWith('data:')) return limpo;
+            return `data:image/jpeg;${limpo}`;
+          }
+          const mime = detectarMimeBase64(limpo);
+          return `data:${mime};base64,${limpo}`;
+        }
         const FALLBACK_EVENTOS = [
           {
             id: 'aurora-nas-esquinas',
@@ -659,10 +684,12 @@
           if (quando !== undefined) adaptado.quando = quando;
           const hora = ler('hora', 'horario', 'hora_inicio', 'horaInicio');
           if (hora !== undefined) adaptado.hora = hora;
-          const poster = ler('poster', 'imagem', 'capa', 'imagem_card');
-          if (poster !== undefined) adaptado.poster = poster;
-          const posterDetalhes = ler('posterdetalhes', 'poster_detalhes', 'posterDetalhes', 'imagem_detalhes');
-          if (posterDetalhes !== undefined) adaptado.posterdetalhes = posterDetalhes;
+          const poster = normalizarImagem(ler('poster', 'imagem', 'capa', 'imagem_card'));
+          if (poster) adaptado.poster = poster;
+          const posterDetalhes = normalizarImagem(
+            ler('posterdetalhes', 'poster_detalhes', 'posterDetalhes', 'imagem_detalhes')
+          );
+          if (posterDetalhes) adaptado.posterdetalhes = posterDetalhes;
           const sinopse = ler('sinopse', 'descricao', 'descricao_curta', 'descricaoLonga', 'descricao_longa', 'description');
           if (sinopse !== undefined) adaptado.sinopse = sinopse;
           const disponibilizados = ler('disponibilizados', 'quantidade_total', 'total', 'total_disponibilizado');
@@ -730,8 +757,8 @@
                 quandoNormalizado: normalizado || DATE_KEY_EMPTY,
                 horaCurta: horaCurta,
                 inicioAbsoluto: Number.isFinite(inicioAbsoluto) ? inicioAbsoluto : NaN,
-                poster: item.poster || '',
-                posterdetalhes: item.posterdetalhes || item.poster || '',
+                poster: normalizarImagem(item.poster) || '',
+                posterdetalhes: normalizarImagem(item.posterdetalhes || item.poster) || '',
                 sinopse: item.sinopse || '',
                 disponibilizados: numeroSeguro(item.disponibilizados),
                 disponiveis: numeroSeguro(item.disponiveis)
