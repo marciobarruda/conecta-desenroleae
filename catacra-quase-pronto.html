@@ -55,6 +55,12 @@
       }
       .poster-img{width:100%;height:100%;object-fit:cover;display:block}
       .ticket-body{padding:1rem 1rem 1.1rem;position:relative}
+      .ticket-meta-toggle{color:var(--brand-primary);font-weight:600;display:inline-flex;align-items:center;gap:.35rem}
+      .ticket-meta-toggle:focus{box-shadow:none}
+      .ticket-meta-toggle-icon{transition:transform .2s ease}
+      .ticket-meta-toggle[aria-expanded="true"] .ticket-meta-toggle-icon{transform:rotate(180deg)}
+      .ticket-meta{display:none}
+      .ticket-meta.is-open{display:flex}
       /* Semicírculos nas laterais (efeito ‘talão’) */
       .ticket-body::before,.ticket-body::after{
         content:"";position:absolute;top:-12px;width:24px;height:24px;background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:50%;
@@ -1162,8 +1168,13 @@
           }
           corpo.appendChild(subtitulo);
 
+          const infoId = `ticket-meta-${(String(evento.id || Date.now())
+            .toLowerCase()
+            .replace(/[^a-z0-9_-]/g, '') || 'evento')}-${Math.random().toString(36).slice(2, 6)}`;
+
           const blocoInfo = document.createElement('div');
-          blocoInfo.className = 'row g-2 mt-2';
+          blocoInfo.className = 'row g-2 mt-2 ticket-meta';
+          blocoInfo.id = infoId;
           blocoInfo.appendChild(criarMeta('Gênero e local', montarGeneroLocal(evento)));
           const textoOnde = (evento.onde || '').trim() || evento.local || '—';
           blocoInfo.appendChild(criarMeta('Onde', textoOnde));
@@ -1174,6 +1185,32 @@
             ? 'Você já pegou estes ingressos'
             : `Disponíveis: ${evento.disponiveis} / ${evento.disponibilizados}`;
           blocoInfo.appendChild(criarMeta('Ingressos', textoIngressos));
+
+          const toggleMeta = document.createElement('button');
+          toggleMeta.type = 'button';
+          toggleMeta.className = 'btn btn-link btn-sm px-0 text-decoration-none ticket-meta-toggle';
+          toggleMeta.setAttribute('aria-controls', infoId);
+          toggleMeta.setAttribute('aria-expanded', 'false');
+
+          const toggleMetaText = document.createElement('span');
+          toggleMetaText.className = 'ticket-meta-toggle-text';
+          toggleMetaText.textContent = 'Ver infos rápidas';
+          toggleMeta.appendChild(toggleMetaText);
+
+          const toggleMetaIcon = document.createElement('span');
+          toggleMetaIcon.className = 'ticket-meta-toggle-icon';
+          toggleMetaIcon.setAttribute('aria-hidden', 'true');
+          toggleMetaIcon.textContent = '▼';
+          toggleMeta.appendChild(toggleMetaIcon);
+
+          toggleMeta.addEventListener('click', () => {
+            const isOpen = blocoInfo.classList.toggle('is-open');
+            toggleMeta.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            toggleMetaText.textContent = isOpen ? 'Esconder infos rápidas' : 'Ver infos rápidas';
+            toggleMetaIcon.textContent = isOpen ? '▲' : '▼';
+          });
+
+          corpo.appendChild(toggleMeta);
           corpo.appendChild(blocoInfo);
 
           const acoes = document.createElement('div');
