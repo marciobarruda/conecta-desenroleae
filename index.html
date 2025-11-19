@@ -450,7 +450,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h2 class="section-title h4 mb-3">Cadastro de leitor de QRCode</h2>
-                        <form action="#" class="gy-3">
+                        <form action="https://conectarecifeservicos.recife.pe.gov.br/qrcode/api/leitorqrcode/create" class="gy-3">
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label for="evento" class="form-label">Evento</label>
@@ -480,6 +480,7 @@
                                     <label for="limite_leituras" class="form-label">Quantidade máxima de leituras do mesmo QRCode</label>
                                     <input type="number" class="form-control" id="limite_leituras" name="limite_leituras" min="1">
                                 </div>
+                                <input type="hidden" id="nome_aplicacao" name="nome_aplicacao">
                             </div>
                             <div class="d-flex align-items-center gap-3 mt-4">
                                 <button type="submit" class="btn btn-primary">Salvar leitor</button>
@@ -503,12 +504,13 @@
                                         <th scope="col">Identificado</th>
                                         <th scope="col">Múltiplas leituras</th>
                                         <th scope="col">Limite</th>
+                                        <th scope="col">Link</th>
                                         <th scope="col" class="text-end">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td colspan="5" class="text-center text-muted">Aguardando carregamento...</td>
+                                        <td colspan="6" class="text-center text-muted">Aguardando carregamento...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -556,6 +558,7 @@
             const webhookInput = document.getElementById('link_webhook');
             const feedbackEvento = document.getElementById('evento-feedback');
             const multiplasCheckbox = document.getElementById('multiplas_leituras');
+            const leitorIdentificadoCheckbox = document.getElementById('leitor_identificado');
             const limiteGroup = document.getElementById('limite-leituras-group');
             const limiteInput = document.getElementById('limite_leituras');
             const idInput = document.getElementById('id');
@@ -569,6 +572,7 @@
             const formularioLeitor = document.querySelector('#leitor-pane form');
             const mensagemEvento = document.getElementById('mensagem-evento');
             const mensagemLeitor = document.getElementById('mensagem-leitor');
+            const nomeAplicacaoInput = document.getElementById('nome_aplicacao');
             const posterInput = document.getElementById('poster');
             const posterPreview = document.getElementById('poster-preview');
             const posterDetalhesInput = document.getElementById('posterdetalhes');
@@ -753,7 +757,7 @@
                 if (!lista.length) {
                     const linha = document.createElement('tr');
                     const celula = document.createElement('td');
-                    celula.colSpan = 5;
+                    celula.colSpan = 6;
                     celula.className = 'text-center text-muted';
                     celula.textContent = 'Nenhum leitor cadastrado até o momento.';
                     linha.appendChild(celula);
@@ -764,15 +768,36 @@
                 lista.forEach(item => {
                     const linha = document.createElement('tr');
                     const eventoNome = item.evento || item.evento_nome || '-';
+                    const identificadorEvento = item.id || item.evento_id || '';
+                    const fallbackEvento = identificadorEvento || (item.evento ? sanitizeIdentificador(item.evento) : '');
                     const identificado = item.leitor_identificado ? 'Sim' : 'Não';
                     const multiplas = item.multiplas_leituras ? 'Sim' : 'Não';
                     const limite = item.limite_leituras || '-';
+                    const linkGerado = item.link_webhook || (fallbackEvento ? baseWebhook + encodeURIComponent(fallbackEvento) : '');
 
                     [eventoNome, identificado, multiplas, limite].forEach(valor => {
                         const td = document.createElement('td');
                         td.textContent = valor || '-';
                         linha.appendChild(td);
                     });
+
+                    const linkTd = document.createElement('td');
+                    if (linkGerado) {
+                        const linkAnchor = document.createElement('a');
+                        linkAnchor.href = linkGerado;
+                        linkAnchor.target = '_blank';
+                        linkAnchor.rel = 'noopener noreferrer';
+                        linkAnchor.textContent = 'Abrir';
+                        linkAnchor.className = 'text-decoration-none fw-semibold';
+                        const linkTexto = document.createElement('div');
+                        linkTexto.className = 'small text-muted text-break';
+                        linkTexto.textContent = linkGerado;
+                        linkTd.appendChild(linkAnchor);
+                        linkTd.appendChild(linkTexto);
+                    } else {
+                        linkTd.textContent = '-';
+                    }
+                    linha.appendChild(linkTd);
 
                     const acao = document.createElement('td');
                     acao.className = 'text-end table-action';
@@ -846,6 +871,10 @@
                 } else {
                     limiteGroup.classList.add('d-none');
                 }
+                atualizarNomeAplicacao();
+                if (nomeAplicacaoInput && item.nome_aplicacao) {
+                    nomeAplicacaoInput.value = item.nome_aplicacao;
+                }
                 window.scrollTo({ top: formularioLeitor.offsetTop - 80, behavior: 'smooth' });
             }
 
@@ -891,6 +920,10 @@
                         <div class="col-md-6">
                             <strong>Webhook:</strong>
                             <div class="text-break">${item.link_webhook || '-'}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Nome da aplicação:</strong>
+                            <div>${item.nome_aplicacao || '-'}</div>
                         </div>
                         <div class="col-md-4">
                             <strong>Identificado:</strong>
@@ -975,6 +1008,30 @@
             function atualizarWebhook() {
                 const valor = eventoSelect.value;
                 webhookInput.value = valor ? baseWebhook + encodeURIComponent(valor) : '';
+                atualizarNomeAplicacao();
+            }
+
+            function obterEventoSelecionado() {
+                const valor = eventoSelect.value;
+                if (!valor) return null;
+                return eventosCache.find(item => item.id === valor) || null;
+            }
+
+            function gerarNomeAplicacao() {
+                const valor = eventoSelect.value;
+                if (!valor) return '';
+                const eventoSelecionado = obterEventoSelecionado();
+                const quando = eventoSelecionado?.quando || eventoSelecionado?.data || '';
+                const hora = eventoSelecionado?.hora || '';
+                const sufixo = `${quando || ''}${hora || ''}`;
+                return sufixo ? `Leitor ${valor} ${sufixo}` : `Leitor ${valor}`;
+            }
+
+            function atualizarNomeAplicacao() {
+                if (!nomeAplicacaoInput) return '';
+                const nome = gerarNomeAplicacao();
+                nomeAplicacaoInput.value = nome;
+                return nome;
             }
 
             function buscarEventos() {
@@ -996,6 +1053,7 @@
                         feedbackEvento.textContent = '';
                         statusEventos.textContent = `${eventosCache.length} evento(s) carregado(s).`;
                         eventoSelect.disabled = false;
+                        atualizarNomeAplicacao();
                     })
                     .catch(() => {
                         feedbackEvento.textContent = 'Não existem eventos futuros cadastrados.';
@@ -1022,7 +1080,7 @@
                         statusLeitores.textContent = `${leitoresCache.length} leitor(es) carregado(s).`;
                     })
                     .catch(() => {
-                        tabelaLeitoresBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Não há leitores cadastrados.</td></tr>';
+                        tabelaLeitoresBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Não há leitores cadastrados.</td></tr>';
                         statusLeitores.textContent = 'Não há leitores cadastrados.';
                     });
             }
@@ -1096,14 +1154,78 @@
                 }
             });
 
-            formularioLeitor.addEventListener('submit', (event) => {
+            formularioLeitor.addEventListener('submit', async (event) => {
                 event.preventDefault();
-                mensagemLeitor.textContent = 'Configuração do leitor salva localmente.';
+                mensagemLeitor.classList.remove('text-danger', 'text-success');
+                const valorEvento = eventoSelect.value;
+
+                if (!valorEvento) {
+                    mensagemLeitor.classList.add('text-danger');
+                    mensagemLeitor.textContent = 'Selecione um evento antes de salvar o leitor.';
+                    return;
+                }
+
+                if (multiplasCheckbox.checked && !limiteInput.value) {
+                    mensagemLeitor.classList.add('text-danger');
+                    mensagemLeitor.textContent = 'Informe o limite de leituras quando a opção estiver marcada.';
+                    return;
+                }
+
+                const botaoLeitor = formularioLeitor.querySelector('button[type="submit"]');
+                const labelBotao = botaoLeitor ? botaoLeitor.textContent : '';
+                if (botaoLeitor) {
+                    botaoLeitor.disabled = true;
+                    botaoLeitor.textContent = 'Enviando...';
+                }
+
+                const eventoSelecionado = obterEventoSelecionado();
+                const quandoSelecionado = eventoSelecionado?.quando || eventoSelecionado?.data || '';
+                const horaSelecionada = eventoSelecionado?.hora || '';
+                const nomeAplicacao = atualizarNomeAplicacao();
+                const linkGerado = webhookInput.value || (valorEvento ? baseWebhook + encodeURIComponent(valorEvento) : '');
+
+                const payload = {
+                    evento: valorEvento,
+                    link_webhook: linkGerado,
+                    leitor_identificado: leitorIdentificadoCheckbox.checked,
+                    multiplas_leituras: multiplasCheckbox.checked,
+                    limite_leituras: multiplasCheckbox.checked ? Number(limiteInput.value) : null,
+                    nome_aplicacao: nomeAplicacao,
+                    quando: quandoSelecionado || null,
+                    hora: horaSelecionada || null
+                };
+
+                mensagemLeitor.textContent = 'Enviando...';
+
+                try {
+                    const resposta = await fetch(formularioLeitor.action, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!resposta.ok) {
+                        throw new Error('Falha ao cadastrar.');
+                    }
+
+                    mensagemLeitor.classList.add('text-success');
+                    mensagemLeitor.textContent = 'Leitor cadastrado com sucesso. Recarregando...';
+                    setTimeout(() => location.reload(), 800);
+                } catch (erro) {
+                    mensagemLeitor.classList.add('text-danger');
+                    mensagemLeitor.textContent = 'Não foi possível salvar o leitor. Tente novamente.';
+                } finally {
+                    if (botaoLeitor) {
+                        botaoLeitor.disabled = false;
+                        botaoLeitor.textContent = labelBotao || 'Salvar leitor';
+                    }
+                }
             });
 
             buscarEventos();
             buscarLeitores();
             atualizarEnderecoCampo('');
+            atualizarNomeAplicacao();
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
