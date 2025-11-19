@@ -1159,6 +1159,13 @@
                 localSelect.addEventListener('change', () => atualizarEnderecoCampo());
             }
 
+            const leitorTab = document.getElementById('leitor-tab');
+            if (leitorTab) {
+                leitorTab.addEventListener('shown.bs.tab', () => {
+                    buscarLeitores();
+                });
+            }
+
             multiplasCheckbox.addEventListener('change', () => {
                 const ativo = multiplasCheckbox.checked;
                 limiteInput.required = ativo;
