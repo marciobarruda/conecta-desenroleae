@@ -511,7 +511,7 @@
                                 </div>
                                 <div class="col-md-6 d-none" id="limite-leituras-group">
                                     <label for="limite_leituras" class="form-label">Quantidade máxima de leituras do mesmo QRCode</label>
-                                    <input type="number" class="form-control" id="limite_leituras" name="limite_leituras" min="1">
+                                    <input type="number" class="form-control" id="limite_leituras" name="limite_leituras" min="2">
                                 </div>
                                 <input type="hidden" id="nome_aplicacao" name="nome_aplicacao">
                             </div>
@@ -950,7 +950,10 @@
                 }
                 document.getElementById('leitor_identificado').checked = Boolean(item.leitor_identificado);
                 multiplasCheckbox.checked = Boolean(item.multiplas_leituras);
-                limiteInput.value = item.limite_leituras || '';
+                const limiteNormalizado = Number(item.limite_leituras) || '';
+                limiteInput.value = multiplasCheckbox.checked
+                    ? (limiteNormalizado && limiteNormalizado >= 2 ? limiteNormalizado : 2)
+                    : '';
                 limiteInput.required = multiplasCheckbox.checked;
                 if (multiplasCheckbox.checked) {
                     limiteGroup.classList.remove('d-none');
@@ -1193,6 +1196,8 @@
                 limiteInput.required = ativo;
                 if (ativo) {
                     limiteGroup.classList.remove('d-none');
+                    const valorAtual = Number(limiteInput.value) || 0;
+                    limiteInput.value = valorAtual >= 2 ? valorAtual : 2;
                 } else {
                     limiteGroup.classList.add('d-none');
                     limiteInput.value = '';
@@ -1263,10 +1268,14 @@
                     return;
                 }
 
-                if (multiplasCheckbox.checked && !limiteInput.value) {
-                    mensagemLeitor.classList.add('text-danger');
-                    mensagemLeitor.textContent = 'Informe o limite de leituras quando a opção estiver marcada.';
-                    return;
+                if (multiplasCheckbox.checked) {
+                    const limiteValor = Number(limiteInput.value) || 0;
+                    if (limiteValor < 2) {
+                        limiteInput.value = 2;
+                        mensagemLeitor.classList.add('text-danger');
+                        mensagemLeitor.textContent = 'O limite mínimo para múltiplas leituras é 2.';
+                        return;
+                    }
                 }
 
                 const botaoLeitor = formularioLeitor.querySelector('button[type="submit"]');
