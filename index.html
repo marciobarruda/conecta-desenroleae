@@ -954,8 +954,8 @@
                     })
                     .catch(() => {
                         feedbackEvento.textContent = 'Não foi possível carregar os eventos. Tente novamente mais tarde.';
-                        tabelaBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Erro ao carregar eventos.</td></tr>';
-                        statusEventos.textContent = 'Erro ao carregar eventos.';
+                        tabelaBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Não existem eventos futuros cadastrados.</td></tr>';
+                        statusEventos.textContent = 'Não existem eventos futuros cadastrados.';
                         eventoSelect.disabled = true;
                     });
             }
@@ -977,8 +977,8 @@
                         statusLeitores.textContent = `${leitoresCache.length} leitor(es) carregado(s).`;
                     })
                     .catch(() => {
-                        tabelaLeitoresBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Erro ao carregar leitores.</td></tr>';
-                        statusLeitores.textContent = 'Erro ao carregar leitores.';
+                        tabelaLeitoresBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Não há leitores cadastrados.</td></tr>';
+                        statusLeitores.textContent = 'Não há leitores cadastrados.';
                     });
             }
 
