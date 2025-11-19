@@ -554,6 +554,7 @@
             const statusLeitores = document.getElementById('status-leitores');
             const formularioEventos = document.querySelector('#evento-pane form');
             const formularioLeitor = document.querySelector('#leitor-pane form');
+            const mensagemEvento = document.getElementById('mensagem-evento');
             const mensagemLeitor = document.getElementById('mensagem-leitor');
             const posterInput = document.getElementById('poster');
             const posterPreview = document.getElementById('poster-preview');
@@ -1007,6 +1008,45 @@
 
             posterInput.addEventListener('change', () => renderizarPreview(posterInput, posterPreview));
             posterDetalhesInput.addEventListener('change', () => renderizarPreview(posterDetalhesInput, posterDetalhesPreview));
+
+            formularioEventos.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const botao = formularioEventos.querySelector('button[type="submit"]');
+                const labelOriginal = botao ? botao.textContent : '';
+                mensagemEvento.classList.remove('text-danger', 'text-success');
+                mensagemEvento.textContent = 'Enviando...';
+
+                if (botao) {
+                    botao.disabled = true;
+                    botao.textContent = 'Enviando...';
+                }
+
+                idInput.value = sanitizeIdentificador(idInput.value || '');
+                const dados = new FormData(formularioEventos);
+
+                try {
+                    const resposta = await fetch(formularioEventos.action, {
+                        method: 'POST',
+                        body: dados
+                    });
+
+                    if (!resposta.ok) {
+                        throw new Error('Falha ao cadastrar.');
+                    }
+
+                    mensagemEvento.classList.add('text-success');
+                    mensagemEvento.textContent = 'Evento cadastrado com sucesso. Recarregando...';
+                    setTimeout(() => location.reload(), 600);
+                } catch (erro) {
+                    mensagemEvento.classList.add('text-danger');
+                    mensagemEvento.textContent = 'Não foi possível cadastrar o evento. Tente novamente.';
+                } finally {
+                    if (botao) {
+                        botao.disabled = false;
+                        botao.textContent = labelOriginal || 'Cadastrar evento';
+                    }
+                }
+            });
 
             formularioLeitor.addEventListener('submit', (event) => {
                 event.preventDefault();
