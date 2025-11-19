@@ -1194,7 +1194,7 @@
 
           const toggleMetaText = document.createElement('span');
           toggleMetaText.className = 'ticket-meta-toggle-text';
-          toggleMetaText.textContent = 'Ver infos rápidas';
+          toggleMetaText.textContent = '➕ informações';
           toggleMeta.appendChild(toggleMetaText);
 
           const toggleMetaIcon = document.createElement('span');
@@ -1206,7 +1206,7 @@
           toggleMeta.addEventListener('click', () => {
             const isOpen = blocoInfo.classList.toggle('is-open');
             toggleMeta.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-            toggleMetaText.textContent = isOpen ? 'Esconder infos rápidas' : 'Ver infos rápidas';
+            toggleMetaText.textContent = isOpen ? '➖ informações' : '➕ informações';
             toggleMetaIcon.textContent = isOpen ? '▲' : '▼';
           });
 
