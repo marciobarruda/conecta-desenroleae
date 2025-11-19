@@ -272,6 +272,20 @@
         .table-action button + button {
             margin-left: 0.35rem;
         }
+        .copy-link-btn {
+            color: #0053a4;
+            font-size: 1.4rem;
+            line-height: 1;
+        }
+        .copy-link-btn:hover,
+        .copy-link-btn:focus {
+            color: #00a3ff;
+            text-decoration: none;
+        }
+        .copy-feedback {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
         .file-preview img {
             max-height: 160px;
             border-radius: 8px;
@@ -504,7 +518,7 @@
                                         <th scope="col">Identificado</th>
                                         <th scope="col">Múltiplas leituras</th>
                                         <th scope="col">Limite</th>
-                                        <th scope="col">Link</th>
+                                        <th scope="col">Link do leitor</th>
                                         <th scope="col" class="text-end">Ações</th>
                                     </tr>
                                 </thead>
@@ -692,6 +706,54 @@
                 alvo.appendChild(img);
             }
 
+            function exibirAvisoCopiado(container) {
+                if (!container) return;
+                let aviso = container.querySelector('.copy-feedback');
+                if (!aviso) {
+                    aviso = document.createElement('div');
+                    aviso.className = 'copy-feedback text-success mt-1';
+                    container.appendChild(aviso);
+                }
+                aviso.textContent = 'Link copiado!';
+                if (aviso._timeoutId) {
+                    clearTimeout(aviso._timeoutId);
+                }
+                aviso._timeoutId = setTimeout(() => {
+                    if (aviso && aviso.parentElement) {
+                        aviso.remove();
+                    }
+                }, 2000);
+            }
+
+            function fallbackCopy(texto, container) {
+                const area = document.createElement('textarea');
+                area.value = texto;
+                area.setAttribute('readonly', '');
+                area.style.position = 'absolute';
+                area.style.left = '-9999px';
+                document.body.appendChild(area);
+                area.select();
+                try {
+                    document.execCommand('copy');
+                } catch (erro) {
+                    console.warn('Não foi possível copiar automaticamente.', erro);
+                }
+                document.body.removeChild(area);
+                exibirAvisoCopiado(container);
+            }
+
+            function copiarLink(texto, container) {
+                if (!texto) return;
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard
+                        .writeText(texto)
+                        .then(() => exibirAvisoCopiado(container))
+                        .catch(() => fallbackCopy(texto, container));
+                } else {
+                    fallbackCopy(texto, container);
+                }
+            }
+
             function preencherEventos(lista) {
                 limparSelect();
                 lista.forEach(item => {
@@ -782,18 +844,15 @@
                     });
 
                     const linkTd = document.createElement('td');
+                    linkTd.className = 'text-center';
                     if (linkGerado) {
-                        const linkAnchor = document.createElement('a');
-                        linkAnchor.href = linkGerado;
-                        linkAnchor.target = '_blank';
-                        linkAnchor.rel = 'noopener noreferrer';
-                        linkAnchor.textContent = 'Abrir';
-                        linkAnchor.className = 'text-decoration-none fw-semibold';
-                        const linkTexto = document.createElement('div');
-                        linkTexto.className = 'small text-muted text-break';
-                        linkTexto.textContent = linkGerado;
-                        linkTd.appendChild(linkAnchor);
-                        linkTd.appendChild(linkTexto);
+                        const botaoLink = document.createElement('button');
+                        botaoLink.type = 'button';
+                        botaoLink.className = 'btn btn-link p-0 copy-link-btn';
+                        botaoLink.textContent = '🔗';
+                        botaoLink.title = 'Copiar link do leitor';
+                        botaoLink.addEventListener('click', () => copiarLink(linkGerado, linkTd));
+                        linkTd.appendChild(botaoLink);
                     } else {
                         linkTd.textContent = '-';
                     }
