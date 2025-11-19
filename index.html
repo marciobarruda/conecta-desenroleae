@@ -272,6 +272,11 @@
         .table-action button + button {
             margin-left: 0.35rem;
         }
+        .file-preview img {
+            max-height: 160px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
     </style>
 
     <header class="topo py-3">
@@ -360,10 +365,14 @@
                                 <div class="col-md-6">
                                     <label for="poster" class="form-label">Poster (cartaz principal)</label>
                                     <input type="file" class="form-control" id="poster" name="poster" accept="image/*" required>
+                                    <div class="form-text">Somente imagens (JPG, PNG, etc.). A prévia será exibida abaixo.</div>
+                                    <div class="mt-2 file-preview" id="poster-preview"></div>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="posterdetalhes" class="form-label">Poster (detalhes / ficha técnica)</label>
                                     <input type="file" class="form-control" id="posterdetalhes" name="posterdetalhes" accept="image/*" required>
+                                    <div class="form-text">Somente imagens (JPG, PNG, etc.). A prévia será exibida abaixo.</div>
+                                    <div class="mt-2 file-preview" id="posterdetalhes-preview"></div>
                                 </div>
                                 <div class="col-md-4">
                                     <label for="disponibilizados" class="form-label">Ingressos disponibilizados</label>
@@ -461,12 +470,74 @@
                                     <input type="number" class="form-control" id="limite_leituras" name="limite_leituras" min="1">
                                 </div>
                             </div>
+                            <div class="d-flex align-items-center gap-3 mt-4">
+                                <button type="submit" class="btn btn-primary">Salvar leitor</button>
+                                <div id="mensagem-leitor" class="text-muted"></div>
+                            </div>
                         </form>
+                    </div>
+                </div>
+
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                            <h3 class="section-title h5 mb-0">Leitores cadastrados</h3>
+                            <span id="status-leitores" class="text-muted small">Carregando leitores...</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle" id="tabela-leitores">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th scope="col">Evento</th>
+                                        <th scope="col">Identificado</th>
+                                        <th scope="col">Múltiplas leituras</th>
+                                        <th scope="col">Limite</th>
+                                        <th scope="col" class="text-end">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">Aguardando carregamento...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </main>
+
+    <div class="modal fade" id="modalDetalhes" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-primary">🔍 Detalhes do evento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body" id="modal-detalhes-corpo"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalExcluir" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-danger">⚠️ Alerta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body" id="modal-excluir-corpo"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmar-exclusao">Excluir</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -479,9 +550,26 @@
             const idInput = document.getElementById('id');
             const tabelaBody = document.querySelector('#tabela-eventos tbody');
             const statusEventos = document.getElementById('status-eventos');
+            const tabelaLeitoresBody = document.querySelector('#tabela-leitores tbody');
+            const statusLeitores = document.getElementById('status-leitores');
             const formularioEventos = document.querySelector('#evento-pane form');
+            const formularioLeitor = document.querySelector('#leitor-pane form');
+            const mensagemLeitor = document.getElementById('mensagem-leitor');
+            const posterInput = document.getElementById('poster');
+            const posterPreview = document.getElementById('poster-preview');
+            const posterDetalhesInput = document.getElementById('posterdetalhes');
+            const posterDetalhesPreview = document.getElementById('posterdetalhes-preview');
+            const modalDetalhesEl = document.getElementById('modalDetalhes');
+            const modalExcluirEl = document.getElementById('modalExcluir');
+            const modalDetalhesBody = document.getElementById('modal-detalhes-corpo');
+            const modalExcluirBody = document.getElementById('modal-excluir-corpo');
+            const confirmarExclusaoBtn = document.getElementById('confirmar-exclusao');
+            const modalDetalhes = new bootstrap.Modal(modalDetalhesEl);
+            const modalExcluir = new bootstrap.Modal(modalExcluirEl);
             const baseWebhook = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/festival-teatro2025?evento=';
             const eventosCache = [];
+            const leitoresCache = [];
+            let eventoParaExcluir = null;
 
             function sanitizeIdentificador(valor) {
                 const semAcentos = valor
@@ -509,6 +597,24 @@
                 while (eventoSelect.options.length > 1) {
                     eventoSelect.remove(1);
                 }
+            }
+
+            function renderizarPreview(input, alvo) {
+                alvo.innerHTML = '';
+                const arquivo = input.files && input.files[0];
+                if (!arquivo) return;
+
+                if (!arquivo.type.startsWith('image/')) {
+                    alvo.innerHTML = '<div class="text-danger small">Apenas imagens são permitidas.</div>';
+                    input.value = '';
+                    return;
+                }
+
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(arquivo);
+                img.alt = 'Prévia do arquivo selecionado';
+                img.className = 'img-fluid rounded shadow-sm';
+                alvo.appendChild(img);
             }
 
             function preencherEventos(lista) {
@@ -559,18 +665,54 @@
                     const acao = document.createElement('td');
                     acao.className = 'text-end table-action';
 
-                    const visualizar = criarBotao('🔍', 'Visualizar', 'btn-outline-secondary', () => {
-                        const detalhes = `Identificador: ${item.id}\nEvento: ${item.evento || '-'}\nData: ${dataApresentacao || '-'}\nHora: ${horario || '-'}\nLocal: ${local || '-'}`;
-                        alert(detalhes);
-                    });
+                    const visualizar = criarBotao('🔍', 'Visualizar', 'btn-outline-secondary', () => mostrarDetalhes(item));
 
                     const editar = criarBotao('✏️', 'Editar', 'btn-outline-primary', () => preencherFormulario(item));
 
-                    const excluir = criarBotao('🗑️', 'Excluir', 'btn-outline-danger', () => deletarEvento(item));
+                    const excluir = criarBotao('🗑️', 'Excluir', 'btn-outline-danger', () => prepararExclusao(item));
 
                     [visualizar, editar, excluir].forEach(btn => acao.appendChild(btn));
                     linha.appendChild(acao);
                     tabelaBody.appendChild(linha);
+                });
+            }
+
+            function preencherTabelaLeitores(lista) {
+                tabelaLeitoresBody.innerHTML = '';
+                if (!lista.length) {
+                    const linha = document.createElement('tr');
+                    const celula = document.createElement('td');
+                    celula.colSpan = 5;
+                    celula.className = 'text-center text-muted';
+                    celula.textContent = 'Nenhum leitor cadastrado até o momento.';
+                    linha.appendChild(celula);
+                    tabelaLeitoresBody.appendChild(linha);
+                    return;
+                }
+
+                lista.forEach(item => {
+                    const linha = document.createElement('tr');
+                    const eventoNome = item.evento || item.evento_nome || '-';
+                    const identificado = item.leitor_identificado ? 'Sim' : 'Não';
+                    const multiplas = item.multiplas_leituras ? 'Sim' : 'Não';
+                    const limite = item.limite_leituras || '-';
+
+                    [eventoNome, identificado, multiplas, limite].forEach(valor => {
+                        const td = document.createElement('td');
+                        td.textContent = valor || '-';
+                        linha.appendChild(td);
+                    });
+
+                    const acao = document.createElement('td');
+                    acao.className = 'text-end table-action';
+
+                    const visualizar = criarBotao('🔍', 'Visualizar', 'btn-outline-secondary', () => mostrarDetalhesLeitor(item));
+                    const editar = criarBotao('✏️', 'Editar', 'btn-outline-primary', () => preencherFormularioLeitor(item));
+                    const excluir = criarBotao('🗑️', 'Excluir', 'btn-outline-danger', () => prepararExclusaoLeitor(item));
+
+                    [visualizar, editar, excluir].forEach(btn => acao.appendChild(btn));
+                    linha.appendChild(acao);
+                    tabelaLeitoresBody.appendChild(linha);
                 });
             }
 
@@ -609,16 +751,101 @@
                 window.scrollTo({ top: formularioEventos.offsetTop - 80, behavior: 'smooth' });
             }
 
+            function preencherFormularioLeitor(item) {
+                if (item.id) {
+                    eventoSelect.value = item.id;
+                    atualizarWebhook();
+                }
+                document.getElementById('leitor_identificado').checked = Boolean(item.leitor_identificado);
+                multiplasCheckbox.checked = Boolean(item.multiplas_leituras);
+                limiteInput.value = item.limite_leituras || '';
+                limiteInput.required = multiplasCheckbox.checked;
+                if (multiplasCheckbox.checked) {
+                    limiteGroup.classList.remove('d-none');
+                } else {
+                    limiteGroup.classList.add('d-none');
+                }
+                window.scrollTo({ top: formularioLeitor.offsetTop - 80, behavior: 'smooth' });
+            }
+
+            function mostrarDetalhes(item) {
+                modalDetalhesBody.innerHTML = `
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <strong>Identificador:</strong>
+                            <div>${item.id || '-'}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Evento:</strong>
+                            <div>${item.evento || '-'}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Data:</strong>
+                            <div>${item.quando || item.data || '-'}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Hora:</strong>
+                            <div>${item.hora || '-'}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Local:</strong>
+                            <div>${item.local || '-'}</div>
+                        </div>
+                        <div class="col-12">
+                            <strong>Sinopse:</strong>
+                            <p class="mb-0">${item.sinopse || 'Não informado.'}</p>
+                        </div>
+                    </div>
+                `;
+                modalDetalhes.show();
+            }
+
+            function mostrarDetalhesLeitor(item) {
+                modalDetalhesBody.innerHTML = `
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <strong>Evento:</strong>
+                            <div>${item.evento || item.evento_nome || '-'}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Webhook:</strong>
+                            <div class="text-break">${item.link_webhook || '-'}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Identificado:</strong>
+                            <div>${item.leitor_identificado ? 'Sim' : 'Não'}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Múltiplas leituras:</strong>
+                            <div>${item.multiplas_leituras ? 'Sim' : 'Não'}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Limite:</strong>
+                            <div>${item.limite_leituras || '-'}</div>
+                        </div>
+                    </div>
+                `;
+                modalDetalhes.show();
+            }
+
+            function prepararExclusao(item) {
+                eventoParaExcluir = { tipo: 'evento', dados: item };
+                modalExcluirBody.innerHTML = `Deseja realmente excluir o evento <strong>${item.evento || item.id}</strong>?`;
+                modalExcluir.show();
+            }
+
+            function prepararExclusaoLeitor(item) {
+                eventoParaExcluir = { tipo: 'leitor', dados: item };
+                modalExcluirBody.innerHTML = `Deseja realmente excluir o leitor vinculado ao evento <strong>${item.evento || item.id}</strong>?`;
+                modalExcluir.show();
+            }
+
             function deletarEvento(item) {
                 const payload = {
                     identificador: item.id,
                     data: item.quando || item.data || '',
                     hora: item.hora || ''
                 };
-
-                if (!confirm(`Deseja realmente excluir o evento "${item.evento}"?`)) {
-                    return;
-                }
 
                 fetch('https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/gerenciar-eventos', {
                     method: 'POST',
@@ -636,6 +863,31 @@
                     })
                     .catch(() => {
                         alert('Não foi possível excluir o evento. Tente novamente.');
+                    });
+            }
+
+            function deletarLeitor(item) {
+                const payload = {
+                    evento: item.id || item.evento,
+                    leitor_identificado: item.leitor_identificado,
+                    multiplas_leituras: item.multiplas_leituras,
+                    limite_leituras: item.limite_leituras || ''
+                };
+
+                fetch('https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/gerenciar-leitores', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                    .then(resposta => {
+                        if (!resposta.ok) {
+                            throw new Error('Falha ao excluir.');
+                        }
+                        return resposta.json().catch(() => ({}));
+                    })
+                    .then(() => location.reload())
+                    .catch(() => {
+                        alert('Não foi possível excluir o leitor. Tente novamente.');
                     });
             }
 
@@ -672,6 +924,28 @@
                     });
             }
 
+            function buscarLeitores() {
+                statusLeitores.textContent = 'Carregando leitores...';
+
+                fetch('https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/listar-leitores')
+                    .then(resposta => {
+                        if (!resposta.ok) {
+                            throw new Error('Não foi possível carregar a lista de leitores.');
+                        }
+                        return resposta.json();
+                    })
+                    .then(dados => {
+                        leitoresCache.length = 0;
+                        dados.forEach(item => leitoresCache.push(item));
+                        preencherTabelaLeitores(leitoresCache);
+                        statusLeitores.textContent = `${leitoresCache.length} leitor(es) carregado(s).`;
+                    })
+                    .catch(() => {
+                        tabelaLeitoresBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Erro ao carregar leitores.</td></tr>';
+                        statusLeitores.textContent = 'Erro ao carregar leitores.';
+                    });
+            }
+
             eventoSelect.addEventListener('change', atualizarWebhook);
 
             multiplasCheckbox.addEventListener('change', () => {
@@ -685,7 +959,26 @@
                 }
             });
 
+            confirmarExclusaoBtn.addEventListener('click', () => {
+                if (!eventoParaExcluir) return;
+                modalExcluir.hide();
+                if (eventoParaExcluir.tipo === 'evento') {
+                    deletarEvento(eventoParaExcluir.dados);
+                } else if (eventoParaExcluir.tipo === 'leitor') {
+                    deletarLeitor(eventoParaExcluir.dados);
+                }
+            });
+
+            posterInput.addEventListener('change', () => renderizarPreview(posterInput, posterPreview));
+            posterDetalhesInput.addEventListener('change', () => renderizarPreview(posterDetalhesInput, posterDetalhesPreview));
+
+            formularioLeitor.addEventListener('submit', (event) => {
+                event.preventDefault();
+                mensagemLeitor.textContent = 'Configuração do leitor salva localmente.';
+            });
+
             buscarEventos();
+            buscarLeitores();
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
