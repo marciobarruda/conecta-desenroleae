@@ -529,21 +529,19 @@
                             <h3 class="section-title h5 mb-0">Leitores cadastrados</h3>
                             <span id="status-leitores" class="text-muted small">Carregando leitores...</span>
                         </div>
-                        <div class="table-responsive">
+                                <div class="table-responsive">
                             <table class="table table-hover align-middle" id="tabela-leitores">
                                 <thead class="table-light">
                                     <tr>
                                         <th scope="col">Evento</th>
-                                        <th scope="col">Data</th>
-                                        <th scope="col">Identificado</th>
-                                        <th scope="col">Múltiplas leituras</th>
-                                        <th scope="col">Limite</th>
+                                        <th scope="col">Data do evento</th>
+                                        <th scope="col">QRCodes por CPF</th>
                                         <th scope="col">Link do leitor</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td colspan="6" class="text-center text-muted">Aguardando carregamento...</td>
+                                        <td colspan="4" class="text-center text-muted">Aguardando carregamento...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -858,7 +856,7 @@
                 if (!lista.length) {
                     const linha = document.createElement('tr');
                     const celula = document.createElement('td');
-                    celula.colSpan = 6;
+                    celula.colSpan = 4;
                     celula.className = 'text-center text-muted';
                     celula.textContent = 'Nenhum leitor cadastrado até o momento.';
                     linha.appendChild(celula);
@@ -869,24 +867,21 @@
                 lista.forEach(item => {
                     const linha = document.createElement('tr');
                     const eventoNome = item.evento || item.evento_nome || '-';
-                    const identificado = item.identificado ?? item.leitor_identificado ?? '-';
                     const multiplas = item.multiplas_leituras;
                     const limite = multiplas ? (item.limite_leituras ?? '-') : '-';
                     const linkGerado = item.link || '-';
-                    const dataEvento = formatDateTimeBR(item.data_evento || item.quando || item.data || '');
+                    const dataEvento = formatDateBR(item.data_evento || item.quando || item.data || '');
 
                     const colunas = [
                         eventoNome,
                         dataEvento || '-',
-                        identificado !== undefined ? String(identificado) : '-',
-                        multiplas !== undefined ? String(multiplas) : '-',
                         limite,
                         linkGerado
                     ];
 
                     colunas.forEach((valor, indice) => {
                         const td = document.createElement('td');
-                        if (indice === 5 && valor && valor !== '-') {
+                        if (indice === 3 && valor && valor !== '-') {
                             const linkEl = document.createElement('a');
                             linkEl.href = valor;
                             linkEl.target = '_blank';
@@ -1176,7 +1171,7 @@
                     })
                     .then(aplicarPayloadLeitores)
                     .catch(() => {
-                        tabelaLeitoresBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Não há leitores cadastrados.</td></tr>';
+                        tabelaLeitoresBody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Não há leitores cadastrados.</td></tr>';
                         statusLeitores.textContent = 'Não há leitores cadastrados.';
                     });
             }
