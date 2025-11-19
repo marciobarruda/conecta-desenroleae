@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <!--#include file="head.txt" -->
+</head>
+<body>
+    <style>
+        body {
+            padding-top: 80px;
+            background: #f5f6fa;
+        }
+        header.topo {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030;
+            background: linear-gradient(90deg, #004080, #0066cc);
+            color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+        header.topo h1 {
+            font-size: 1.4rem;
+            margin: 0;
+        }
+        .nav-pills .nav-link {
+            color: #004080;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #004080;
+        }
+        .card {
+            border: 1px solid #e2e6ea;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .section-title {
+            font-weight: 700;
+            color: #003366;
+        }
+        .helper-text {
+            font-size: 0.9rem;
+        }
+    </style>
+
+    <header class="topo py-3">
+        <div class="container d-flex align-items-center justify-content-between">
+            <h1 class="mb-0">Festival de Teatro do Recife – Painel Técnico</h1>
+            <span class="fw-light">Painel de cadastros</span>
+        </div>
+    </header>
+
+    <main class="container my-4">
+        <ul class="nav nav-pills mb-4" id="painelAbas" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="evento-tab" data-bs-toggle="tab" data-bs-target="#evento-pane" type="button" role="tab" aria-controls="evento-pane" aria-selected="true">Cadastro de Eventos</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="leitor-tab" data-bs-toggle="tab" data-bs-target="#leitor-pane" type="button" role="tab" aria-controls="leitor-pane" aria-selected="false">Cadastro de Leitor de QRCode</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="painelConteudo">
+            <div class="tab-pane fade show active" id="evento-pane" role="tabpanel" aria-labelledby="evento-tab">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h2 class="section-title h4 mb-3">Cadastro de eventos</h2>
+                        <form method="POST" action="https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/cadastrar-evento" enctype="multipart/form-data" class="gy-3">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="id" class="form-label">Identificador do evento</label>
+                                    <input type="text" class="form-control" id="id" name="id" required placeholder="Ex.: cidade-som" aria-describedby="ajuda-id">
+                                    <div id="ajuda-id" class="form-text">Usado na URL, sem espaços ou acentuação (ex.: cidade-som).</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="nome" class="form-label">Título do evento</label>
+                                    <input type="text" class="form-control" id="nome" name="nome" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="classificacao" class="form-label">Classificação indicativa</label>
+                                    <select class="form-select" id="classificacao" name="classificacao" required>
+                                        <option value="Livre">Livre</option>
+                                        <option value="10+">10+</option>
+                                        <option value="12+">12+</option>
+                                        <option value="14+">14+</option>
+                                        <option value="16+">16+</option>
+                                        <option value="18+">18+</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="genero" class="form-label">Gênero</label>
+                                    <select class="form-select" id="genero" name="genero" required>
+                                        <option value="" disabled selected>Selecione um gênero...</option>
+                                        <option value="Drama">Drama</option>
+                                        <option value="Comédia">Comédia</option>
+                                        <option value="Tragédia">Tragédia</option>
+                                        <option value="Musical">Musical</option>
+                                        <option value="Infantil">Infantil</option>
+                                        <option value="Performance">Performance</option>
+                                        <option value="Experimental">Experimental</option>
+                                        <option value="Monólogo">Monólogo</option>
+                                        <option value="Improviso">Improviso</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="local" class="form-label">Local (teatro municipal)</label>
+                                    <select class="form-select" id="local" name="local" required>
+                                        <option value="" disabled selected>Selecione o teatro...</option>
+                                        <option value="Teatro de Santa Isabel">Teatro de Santa Isabel</option>
+                                        <option value="Teatro Apolo">Teatro Apolo</option>
+                                        <option value="Teatro Hermilo Borba Filho">Teatro Hermilo Borba Filho</option>
+                                        <option value="Teatro Barreto Júnior">Teatro Barreto Júnior</option>
+                                        <option value="Teatro Luiz Mendonça">Teatro Luiz Mendonça</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="quando" class="form-label">Data da apresentação</label>
+                                    <input type="date" class="form-control" id="quando" name="quando" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="hora" class="form-label">Horário</label>
+                                    <input type="time" class="form-control" id="hora" name="hora" required>
+                                </div>
+                                <div class="col-12">
+                                    <label for="sinopse" class="form-label">Sinopse</label>
+                                    <textarea class="form-control" id="sinopse" name="sinopse" rows="4" placeholder="Descreva brevemente o espetáculo" required></textarea>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="poster" class="form-label">Poster (cartaz principal)</label>
+                                    <input type="file" class="form-control" id="poster" name="poster" accept="image/*" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="posterdetalhes" class="form-label">Poster (detalhes / ficha técnica)</label>
+                                    <input type="file" class="form-control" id="posterdetalhes" name="posterdetalhes" accept="image/*" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="disponibilizados" class="form-label">Ingressos disponibilizados</label>
+                                    <input type="number" class="form-control" id="disponibilizados" name="disponibilizados" min="0" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="acessibilidade" class="form-label">Possui recursos de acessibilidade?</label>
+                                    <select class="form-select" id="acessibilidade" name="acessibilidade" required>
+                                        <option value="Sim">Sim</option>
+                                        <option value="Não">Não</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="duracao" class="form-label">Duração</label>
+                                    <input type="text" class="form-control" id="duracao" name="duracao" placeholder="Ex.: 60min" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="quem_faz" class="form-label">Quem faz (grupo, companhia, artista)</label>
+                                    <input type="text" class="form-control" id="quem_faz" name="quem_faz" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="origem" class="form-label">Origem (cidade/estado/país)</label>
+                                    <input type="text" class="form-control" id="origem" name="origem" required>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3 mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg">Cadastrar evento</button>
+                                <div id="mensagem-evento" class="text-muted"></div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="leitor-pane" role="tabpanel" aria-labelledby="leitor-tab">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="section-title h4 mb-3">Cadastro de leitor de QRCode</h2>
+                        <form action="#" class="gy-3">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="evento" class="form-label">Evento</label>
+                                    <select class="form-select" id="evento" name="evento" required>
+                                        <option value="" selected disabled>Selecione o evento...</option>
+                                    </select>
+                                    <div id="evento-feedback" class="form-text text-danger"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="link_webhook" class="form-label">Link do Webhook para este evento</label>
+                                    <input type="text" class="form-control" id="link_webhook" name="link_webhook" readonly placeholder="Selecione um evento para gerar o link">
+                                    <small class="text-muted">O link será preenchido automaticamente após a seleção do evento.</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" id="leitor_identificado" name="leitor_identificado">
+                                        <label class="form-check-label" for="leitor_identificado">O utilizador/usuário que fará a leitura do QRCode do usuário Conecta Recife será identificado?</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" id="multiplas_leituras" name="multiplas_leituras">
+                                        <label class="form-check-label" for="multiplas_leituras">O QRCode do usuário Conecta Recife poderá ser lido várias vezes?</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 d-none" id="limite-leituras-group">
+                                    <label for="limite_leituras" class="form-label">Quantidade máxima de leituras do mesmo QRCode</label>
+                                    <input type="number" class="form-control" id="limite_leituras" name="limite_leituras" min="1">
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const eventoSelect = document.getElementById('evento');
+            const webhookInput = document.getElementById('link_webhook');
+            const feedbackEvento = document.getElementById('evento-feedback');
+            const multiplasCheckbox = document.getElementById('multiplas_leituras');
+            const limiteGroup = document.getElementById('limite-leituras-group');
+            const limiteInput = document.getElementById('limite_leituras');
+            const baseWebhook = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/festival-teatro2025?evento=';
+
+            function preencherEventos(lista) {
+                lista.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.id;
+                    option.textContent = item.evento;
+                    eventoSelect.appendChild(option);
+                });
+            }
+
+            function buscarEventos() {
+                fetch('https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/listar-id-eventos')
+                    .then(resposta => {
+                        if (!resposta.ok) {
+                            throw new Error('Não foi possível carregar a lista de eventos.');
+                        }
+                        return resposta.json();
+                    })
+                    .then(dados => {
+                        preencherEventos(dados);
+                        feedbackEvento.textContent = '';
+                        eventoSelect.disabled = false;
+                    })
+                    .catch(() => {
+                        feedbackEvento.textContent = 'Não foi possível carregar os eventos. Tente novamente mais tarde.';
+                        eventoSelect.disabled = true;
+                    });
+            }
+
+            function atualizarWebhook() {
+                const valor = eventoSelect.value;
+                if (valor) {
+                    const url = baseWebhook + encodeURIComponent(valor);
+                    webhookInput.value = url;
+                } else {
+                    webhookInput.value = '';
+                }
+            }
+
+            eventoSelect.addEventListener('change', atualizarWebhook);
+
+            multiplasCheckbox.addEventListener('change', () => {
+                const ativo = multiplasCheckbox.checked;
+                limiteInput.required = ativo;
+                if (ativo) {
+                    limiteGroup.classList.remove('d-none');
+                } else {
+                    limiteGroup.classList.add('d-none');
+                    limiteInput.value = '';
+                }
+            });
+
+            buscarEventos();
+        });
+    </script>
+</body>
+</html>
