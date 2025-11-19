@@ -1490,7 +1490,7 @@
           return false;
         }
 
-        function reloadComAtraso(ms = 2500) {
+        function reloadComAtraso(ms = 5000) {
           if (typeof window === 'undefined') return;
           const atraso = Number.isFinite(ms) ? ms : 2500;
           window.setTimeout(() => {
