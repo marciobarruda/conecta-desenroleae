@@ -540,8 +540,8 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th scope="col">Evento</th>
-                                        <th scope="col">Data do evento</th>
-                                        <th scope="col" class="qr-limit-col">QRCodes por CPF</th>
+                                        <th scope="col" class="text-center">Data</th>
+                                        <th scope="col" class="qr-limit-col text-center">QRCodes por CPF</th>
                                         <th scope="col">Link do leitor</th>
                                     </tr>
                                 </thead>
@@ -887,6 +887,9 @@
 
                     colunas.forEach((valor, indice) => {
                         const td = document.createElement('td');
+                        if (indice === 1 || indice === 2) {
+                            td.classList.add('text-center');
+                        }
                         if (indice === 2) {
                             td.classList.add('qr-limit-col');
                         }
