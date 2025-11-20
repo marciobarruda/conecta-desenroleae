@@ -716,7 +716,7 @@
           const candidatos = [item.quem_faz, item.quemfaz, item.quemFaz, item.grupo, item.company, item.companhia];
           for (const candidato of candidatos) {
             if (candidato === undefined || candidato === null) continue;
-            const texto = String(candidato).trim();
+            const texto = formatarQuemFaz(String(candidato).trim());
             if (texto) {
               return texto;
             }
@@ -782,17 +782,32 @@
         }
 
         function combinarGrupoOrigem(grupo, origem) {
-          const partes = [];
-          if (grupo) {
-            partes.push(grupo);
+          const grupoFormatado = formatarQuemFaz(grupo);
+          const origemNormalizada = formatarOrigem(origem);
+          if (grupoFormatado && origemNormalizada) {
+            return `${grupoFormatado} | ${origemNormalizada}`;
           }
-          if (origem) {
-            const origemNormalizada = origem.replace(/\s+•\s+/g, ' • ').replace(/\s{2,}/g, ' ').trim();
-            if (origemNormalizada) {
-              partes.push(origemNormalizada);
-            }
-          }
+          if (grupoFormatado) return grupoFormatado;
+          if (origemNormalizada) return origemNormalizada;
+          return '';
+        }
+
+        function formatarQuemFaz(valor) {
+          if (!valor) return '';
+          const texto = String(valor).trim();
+          if (!texto) return '';
+          const partes = texto
+            .split(/[,;]+/)
+            .map((parte) => parte.replace(/\s+•\s+/g, ' • ').trim())
+            .filter(Boolean);
+          if (partes.length <= 1) return partes[0] || '';
           return partes.join(' • ');
+        }
+
+        function formatarOrigem(valor) {
+          if (!valor) return '';
+          const texto = String(valor).replace(/\s+•\s+/g, ' ').replace(/\s{2,}/g, ' ').trim();
+          return texto;
         }
 
         function resolverQuando(item) {
