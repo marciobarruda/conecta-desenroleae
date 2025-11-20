@@ -316,6 +316,14 @@
             font-weight: 600;
             color: #1b263b;
         }
+
+        .form-capsule {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+        }
     </style>
 
     <header class="topo py-3">
@@ -340,7 +348,7 @@
                 <div class="card mb-4">
                     <div class="card-body">
                         <h2 class="section-title h4 mb-3">Cadastro de eventos</h2>
-                        <form method="POST" action="https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/cadastrar-evento" enctype="multipart/form-data" class="gy-3">
+                        <form method="POST" action="https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/cadastrar-evento" enctype="multipart/form-data" class="gy-3 form-capsule">
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label for="id" class="form-label">Identificador do evento</label>
@@ -489,7 +497,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h2 class="section-title h4 mb-3">Cadastro de leitor de QRCode</h2>
-                        <form action="https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/criar-leitor-qr-code" class="gy-3">
+                        <form action="https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/criar-leitor-qr-code" class="gy-3 form-capsule">
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label for="evento" class="form-label">Evento</label>
