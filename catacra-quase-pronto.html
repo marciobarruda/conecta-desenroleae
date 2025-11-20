@@ -51,8 +51,11 @@
         background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:12px;box-shadow:var(--shadow-strong);overflow:hidden;position:relative
       }
       .ticket-cover{
-        background:#e9eef7;width:100%;aspect-ratio:2/3;display:block;overflow:hidden
+        background:#e9eef7;width:100%;aspect-ratio:2/3;display:block;overflow:hidden;position:relative
       }
+      .ticket-date-badge{position:absolute;top:.6rem;right:.6rem;display:flex;flex-direction:column;align-items:flex-end;gap:.15rem;background:rgba(0,0,0,.55);color:#fff;padding:.55rem .75rem;border-radius:12px;backdrop-filter:blur(6px);text-align:right;box-shadow:0 10px 24px rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.12)}
+      .ticket-date-weekday{font-size:.75rem;font-weight:800;letter-spacing:.03em;text-transform:uppercase;line-height:1.1}
+      .ticket-date-day{font-size:1.2rem;font-weight:800;letter-spacing:.08em;line-height:1.05}
       .poster-img{width:100%;height:100%;object-fit:cover;display:block}
       .ticket-body{padding:1rem 1rem 1.1rem;position:relative}
       .ticket-meta-toggle{color:var(--brand-primary);font-weight:600;display:inline-flex;align-items:center;gap:.35rem}
@@ -630,6 +633,7 @@
               const origem = resolverOrigem(item);
               const { texto, normalizado, horaCurta } = formatarDataHora(quandoValor, item.hora);
               const dataReferencia = toRecifeDate(quandoValor, item.hora);
+              const carimboData = gerarCarimboData(dataReferencia);
               const inicioAbsoluto = dataReferencia ? dataReferencia.getTime() : NaN;
               const preparado = {
                 id: String(item.id),
@@ -650,6 +654,8 @@
                 quandoFormatado: texto,
                 quandoNormalizado: normalizado || DATE_KEY_EMPTY,
                 horaCurta: horaCurta,
+                quandoCarimboDia: carimboData.diaSemana,
+                quandoCarimboData: carimboData.dataCurta,
                 inicioAbsoluto: Number.isFinite(inicioAbsoluto) ? inicioAbsoluto : NaN,
                 poster: normalizarImagem(item.poster) || '',
                 posterdetalhes: normalizarImagem(item.posterdetalhes || item.poster) || '',
@@ -1046,6 +1052,19 @@
           imagem.src = evento.poster || '';
           imagem.alt = `Pôster da peça ${evento.nome}`;
           capa.appendChild(imagem);
+          if (evento.quandoCarimboDia && evento.quandoCarimboData) {
+            const seloData = document.createElement('div');
+            seloData.className = 'ticket-date-badge';
+            const seloSemana = document.createElement('span');
+            seloSemana.className = 'ticket-date-weekday';
+            seloSemana.textContent = evento.quandoCarimboDia;
+            const seloDia = document.createElement('span');
+            seloDia.className = 'ticket-date-day';
+            seloDia.textContent = evento.quandoCarimboData;
+            seloData.appendChild(seloSemana);
+            seloData.appendChild(seloDia);
+            capa.appendChild(seloData);
+          }
           card.appendChild(capa);
 
           const corpo = document.createElement('div');
@@ -1113,6 +1132,10 @@
           toggleMeta.appendChild(toggleMetaIcon);
 
           toggleMeta.addEventListener('click', () => {
+            const abrindo = !blocoInfo.classList.contains('is-open');
+            if (abrindo) {
+              fecharMetasAbertos(infoId);
+            }
             const isOpen = blocoInfo.classList.toggle('is-open');
             toggleMeta.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
             toggleMetaText.textContent = isOpen ? '➖ informações' : '➕ informações';
@@ -1138,6 +1161,22 @@
           card.appendChild(corpo);
           coluna.appendChild(card);
           return coluna;
+        }
+
+        function fecharMetasAbertos(ignorarId) {
+          const metasAbertos = document.querySelectorAll('.ticket-meta.is-open');
+          metasAbertos.forEach((meta) => {
+            if (!meta.id || meta.id === ignorarId) return;
+            meta.classList.remove('is-open');
+            const botao = document.querySelector(`.ticket-meta-toggle[aria-controls="${meta.id}"]`);
+            if (botao) {
+              botao.setAttribute('aria-expanded', 'false');
+              const texto = botao.querySelector('.ticket-meta-toggle-text');
+              const icone = botao.querySelector('.ticket-meta-toggle-icon');
+              if (texto) texto.textContent = '➕ informações';
+              if (icone) icone.textContent = '▼';
+            }
+          });
         }
 
         function criarCardBloqueado(evento) {
@@ -1921,6 +1960,26 @@
             normalizado,
             horaCurta: `${horaParte}:${minutoParte}`
           };
+        }
+
+        function gerarCarimboData(dataReferencia) {
+          if (!dataReferencia) {
+            return { diaSemana: '', dataCurta: '' };
+          }
+          const formatterSemana = new Intl.DateTimeFormat('pt-BR', {
+            timeZone: 'America/Recife',
+            weekday: 'long'
+          });
+          const formatterData = new Intl.DateTimeFormat('pt-BR', {
+            timeZone: 'America/Recife',
+            day: '2-digit',
+            month: '2-digit'
+          });
+          const diaSemana = formatterSemana.format(dataReferencia).toUpperCase();
+          const dataCompleta = formatterData.format(dataReferencia);
+          const [dia, mes] = dataCompleta.split('/');
+          const dataCurta = dia && mes ? `${dia}.${mes}` : '';
+          return { diaSemana, dataCurta };
         }
 
         function toRecifeDate(quando, horaFallback) {
