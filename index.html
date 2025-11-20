@@ -347,7 +347,11 @@
             <div class="tab-pane fade show active" id="evento-pane" role="tabpanel" aria-labelledby="evento-tab">
                 <div class="card mb-4">
                     <div class="card-body">
-                        <h2 class="section-title h4 mb-3">Cadastro de eventos</h2>
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                            <h2 class="section-title h4 mb-0">Cadastro de eventos</h2>
+                            <button class="btn btn-outline-primary btn-sm" type="button" id="toggle-eventos-form" data-bs-toggle="collapse" data-bs-target="#formEventosCollapse" aria-expanded="false" aria-controls="formEventosCollapse">Expandir formulário</button>
+                        </div>
+                        <div class="collapse" id="formEventosCollapse">
                         <form method="POST" action="https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/cadastrar-evento" enctype="multipart/form-data" class="gy-3 form-capsule">
                             <div class="row g-3">
                                 <div class="col-md-6">
@@ -461,6 +465,7 @@
                                 <div id="mensagem-evento" class="text-muted"></div>
                             </div>
                         </form>
+                        </div>
                     </div>
                 </div>
 
@@ -496,7 +501,11 @@
             <div class="tab-pane fade" id="leitor-pane" role="tabpanel" aria-labelledby="leitor-tab">
                 <div class="card">
                     <div class="card-body">
-                        <h2 class="section-title h4 mb-3">Cadastro de leitor de QRCode</h2>
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                            <h2 class="section-title h4 mb-0">Cadastro de leitor de QRCode</h2>
+                            <button class="btn btn-outline-primary btn-sm" type="button" id="toggle-leitor-form" data-bs-toggle="collapse" data-bs-target="#formLeitorCollapse" aria-expanded="false" aria-controls="formLeitorCollapse">Expandir formulário</button>
+                        </div>
+                        <div class="collapse" id="formLeitorCollapse">
                         <form action="https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/criar-leitor-qr-code" class="gy-3 form-capsule">
                             <div class="row g-3">
                                 <div class="col-md-6">
@@ -534,6 +543,7 @@
                                 <div id="mensagem-leitor" class="text-muted"></div>
                             </div>
                         </form>
+                        </div>
                     </div>
                 </div>
 
@@ -629,6 +639,12 @@
             const confirmarExclusaoBtn = document.getElementById('confirmar-exclusao');
             const modalDetalhes = new bootstrap.Modal(modalDetalhesEl);
             const modalExcluir = new bootstrap.Modal(modalExcluirEl);
+            const eventoFormCollapse = document.getElementById('formEventosCollapse');
+            const leitorFormCollapse = document.getElementById('formLeitorCollapse');
+            const toggleEventoFormBtn = document.getElementById('toggle-eventos-form');
+            const toggleLeitorFormBtn = document.getElementById('toggle-leitor-form');
+            const collapseEventos = eventoFormCollapse ? new bootstrap.Collapse(eventoFormCollapse, { toggle: false }) : null;
+            const collapseLeitor = leitorFormCollapse ? new bootstrap.Collapse(leitorFormCollapse, { toggle: false }) : null;
             const baseWebhook = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/festival-teatro2025?evento=';
             const eventosCache = [];
             const leitoresCache = [];
@@ -647,6 +663,19 @@
                 'Teatro Marco Camarotti': 'No Sesc Santo Amaro, Rua Treze de Maio, 455.'
             };
             let eventoParaExcluir = null;
+
+            function atualizarLabelToggle(botao, expandido) {
+                if (!botao) return;
+                botao.textContent = expandido ? 'Recolher formulário' : 'Expandir formulário';
+                botao.setAttribute('aria-expanded', expandido);
+            }
+
+            function configurarToggleFormulario(collapseEl, botaoToggle) {
+                if (!collapseEl || !botaoToggle) return;
+                atualizarLabelToggle(botaoToggle, collapseEl.classList.contains('show'));
+                collapseEl.addEventListener('shown.bs.collapse', () => atualizarLabelToggle(botaoToggle, true));
+                collapseEl.addEventListener('hidden.bs.collapse', () => atualizarLabelToggle(botaoToggle, false));
+            }
 
             function formatDateBR(valor) {
                 if (!valor) return '';
@@ -919,6 +948,9 @@
             }
 
             function preencherFormulario(item) {
+                if (collapseEventos) {
+                    collapseEventos.show();
+                }
                 formularioEventos.reset();
                 atualizarEnderecoCampo('');
                 idInput.value = sanitizeIdentificador(item.id || '');
@@ -960,10 +992,18 @@
 
                 document.getElementById('sinopse').value = item.sinopse || '';
                 document.getElementById('duracao').placeholder = 'Ex.: 60min';
-                window.scrollTo({ top: formularioEventos.offsetTop - 80, behavior: 'smooth' });
+                const deslocar = () => window.scrollTo({ top: formularioEventos.offsetTop - 80, behavior: 'smooth' });
+                if (collapseEventos) {
+                    setTimeout(deslocar, 220);
+                } else {
+                    deslocar();
+                }
             }
 
             function preencherFormularioLeitor(item) {
+                if (collapseLeitor) {
+                    collapseLeitor.show();
+                }
                 if (item.id) {
                     eventoSelect.value = item.id;
                     atualizarWebhook();
@@ -984,7 +1024,12 @@
                 if (nomeAplicacaoInput && item.nome_aplicacao) {
                     nomeAplicacaoInput.value = item.nome_aplicacao;
                 }
-                window.scrollTo({ top: formularioLeitor.offsetTop - 80, behavior: 'smooth' });
+                const deslocar = () => window.scrollTo({ top: formularioLeitor.offsetTop - 80, behavior: 'smooth' });
+                if (collapseLeitor) {
+                    setTimeout(deslocar, 220);
+                } else {
+                    deslocar();
+                }
             }
 
             function mostrarDetalhes(item) {
@@ -1353,6 +1398,9 @@
                     }
                 }
             });
+
+            configurarToggleFormulario(eventoFormCollapse, toggleEventoFormBtn);
+            configurarToggleFormulario(leitorFormCollapse, toggleLeitorFormBtn);
 
             buscarEventos();
             atualizarEnderecoCampo('');
