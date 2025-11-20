@@ -54,6 +54,7 @@
         background:#e9eef7;width:100%;aspect-ratio:2/3;display:block;overflow:hidden;position:relative
       }
       .ticket-date-badge{position:absolute;top:.6rem;right:.6rem;display:flex;flex-direction:column;align-items:flex-end;gap:.15rem;background:rgba(0,0,0,.55);color:#fff;padding:.55rem .75rem;border-radius:12px;backdrop-filter:blur(6px);text-align:right;box-shadow:0 10px 24px rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.12)}
+      .ticket-date-weekday,.ticket-date-day{display:block;min-width:4.6ch;text-align:right}
       .ticket-date-weekday{font-size:.75rem;font-weight:800;letter-spacing:.03em;text-transform:uppercase;line-height:1.1}
       .ticket-date-day{font-size:1.2rem;font-weight:800;letter-spacing:.08em;line-height:1.05}
       .poster-img{width:100%;height:100%;object-fit:cover;display:block}
@@ -1980,14 +1981,19 @@
           }
           const formatterSemana = new Intl.DateTimeFormat('pt-BR', {
             timeZone: 'America/Recife',
-            weekday: 'long'
+            weekday: 'short'
           });
           const formatterData = new Intl.DateTimeFormat('pt-BR', {
             timeZone: 'America/Recife',
             day: '2-digit',
             month: '2-digit'
           });
-          const diaSemana = formatterSemana.format(dataReferencia).toUpperCase();
+          const semanaBruta = formatterSemana.format(dataReferencia);
+          const diaSemana = semanaBruta
+            .replace(/\./g, '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toUpperCase();
           const dataCompleta = formatterData.format(dataReferencia);
           const [dia, mes] = dataCompleta.split('/');
           const dataCurta = dia && mes ? `${dia}.${mes}` : '';
