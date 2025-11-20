@@ -83,12 +83,19 @@
       .catalog-grid .ticket-card{display:flex;flex-direction:column;width:100%}
       .ticket-card.is-muted{filter:grayscale(1);opacity:.55;transition:filter .2s ease,opacity .2s ease}
       .ticket-card.is-active{box-shadow:0 0 0 .15rem rgba(0,83,164,.35)}
+      .catalog-loading{display:flex;align-items:center;justify-content:center;gap:1rem;padding:1.5rem;border:1px dashed rgba(27,38,59,.25);border-radius:1rem;background:linear-gradient(90deg,rgba(0,83,164,.06),rgba(0,163,255,.08),rgba(0,83,164,.06));background-size:200% 100%;animation:catalogShine 2.4s ease infinite;color:var(--text-strong)}
+      .catalog-loading .catalog-loading-spinner{width:56px;height:56px;border:6px solid rgba(0,83,164,.18);border-top-color:var(--brand-highlight);border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0;box-shadow:0 6px 20px rgba(0,83,164,.18)}
+      .catalog-loading .catalog-loading-text{display:flex;flex-direction:column;font-weight:700;line-height:1.3}
+      .catalog-loading .catalog-loading-text small{font-weight:500;color:var(--text-muted)}
+      .catalog-loading.d-none{display:none!important}
       #modalDetalhes .modal-dialog{max-width:980px}
       #modalDetalhes .modal-content{border-radius:18px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.18)}
       #modalDetalhes .modal-header,#modalDetalhes .modal-footer{background:var(--surface);border-color:rgba(0,0,0,.05)}
       #modalDetalhes .modal-body{padding:2rem}
       .modal-poster{background:#e9eef7;border-radius:14px;overflow:hidden;box-shadow:0 10px 26px rgba(0,45,98,.14);min-height:360px;display:flex;align-items:center;justify-content:center}
       .modal-poster img{width:100%;height:auto;max-height:100%;object-fit:contain;display:block}
+      @keyframes spin{to{transform:rotate(360deg)}}
+      @keyframes catalogShine{0%{background-position:0 0}50%{background-position:100% 0}100%{background-position:0 0}}
       @media (max-width:768px){
         header.site-header{padding:2.25rem 0 1.75rem}
         .badge-open{width:100%;justify-content:center}
@@ -166,6 +173,13 @@
         <div class="d-flex align-items-center justify-content-between mb-3">
           <div class="section-title mb-0">Catálogo de peças</div>
           <small class="text-muted" id="resultInfo">Exibindo 0 de 0</small>
+        </div>
+        <div id="catalogLoading" class="catalog-loading d-none" role="status" aria-live="polite" aria-busy="true">
+          <div class="catalog-loading-spinner" aria-hidden="true"></div>
+          <div class="catalog-loading-text">
+            <span>Carregando catálogo</span>
+            <small>Preparamos tudo rapidinho para você ✨</small>
+          </div>
         </div>
         <div id="grid" class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 catalog-grid"></div>
       </div>
@@ -335,6 +349,7 @@
         let campoCPF;
         let possuiFormulario = false;
 
+        let elLoader;
         let elGrid;
         let elResultInfo;
         let elQ;
@@ -370,6 +385,7 @@
         }
 
         async function init() {
+          elLoader = document.querySelector('#catalogLoading');
           elGrid = document.querySelector('#grid');
           elResultInfo = document.querySelector('#resultInfo');
           elQ = document.querySelector('#q');
@@ -429,6 +445,7 @@
           eventosBloqueadosPorId.clear();
           selecoesAtuais.clear();
 
+          alternarCarregamento(true);
           const recebidosDisponiveis = await fetchEventos(API_URL);
           exibindoFallbackSemEventos = recebidosDisponiveis.length === 0;
           const baseDisponiveis = exibindoFallbackSemEventos
@@ -441,6 +458,7 @@
           eventosJaPegosFiltrados = [];
           popularFiltros(eventos);
           renderCards(eventosFiltrados);
+          alternarCarregamento(false);
           atualizarResultado();
           registrarEventos();
           await carregarEventosJaPegos();
@@ -473,6 +491,16 @@
 .portal-dyn #modalQuantidadeWrapper select { min-width: 72px; }
 `;
           document.body.appendChild(estilo);
+        }
+
+        function alternarCarregamento(ativo) {
+          if (!elLoader) return;
+          elLoader.setAttribute('aria-busy', ativo ? 'true' : 'false');
+          if (ativo) {
+            elLoader.classList.remove('d-none');
+          } else {
+            elLoader.classList.add('d-none');
+          }
         }
 
         async function fetchEventos(url = API_URL) {
@@ -1064,8 +1092,8 @@
           blocoInfo.appendChild(criarMeta('Duração', evento.duracao || '—'));
           const textoIngressos = evento.jaPegou
             ? 'Você já pegou estes ingressos'
-            : `Disponíveis: ${evento.disponiveis} / ${evento.disponibilizados}`;
-          blocoInfo.appendChild(criarMeta('Ingressos', textoIngressos));
+            : String(evento.disponiveis ?? '—');
+          blocoInfo.appendChild(criarMeta('Ingressos disponíveis', textoIngressos));
 
           const toggleMeta = document.createElement('button');
           toggleMeta.type = 'button';
