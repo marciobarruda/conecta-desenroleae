@@ -286,6 +286,12 @@
             font-size: 0.85rem;
             font-weight: 600;
         }
+        .qr-limit-col {
+            min-width: 170px;
+            max-width: 210px;
+            white-space: normal;
+            word-break: break-word;
+        }
         .file-preview img {
             max-height: 160px;
             border-radius: 8px;
@@ -535,7 +541,7 @@
                                     <tr>
                                         <th scope="col">Evento</th>
                                         <th scope="col">Data do evento</th>
-                                        <th scope="col">QRCodes por CPF</th>
+                                        <th scope="col" class="qr-limit-col">QRCodes por CPF</th>
                                         <th scope="col">Link do leitor</th>
                                     </tr>
                                 </thead>
@@ -881,6 +887,9 @@
 
                     colunas.forEach((valor, indice) => {
                         const td = document.createElement('td');
+                        if (indice === 2) {
+                            td.classList.add('qr-limit-col');
+                        }
                         if (indice === 3 && valor && valor !== '-') {
                             const linkEl = document.createElement('a');
                             linkEl.href = valor;
