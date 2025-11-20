@@ -64,7 +64,7 @@
         border-radius: 999px;
         background: rgba(255, 255, 255, 0.14);
       }
-      .section-title {
+        .section-title {
         display: flex;
         align-items: center;
         gap: 0.65rem;
@@ -79,6 +79,10 @@
         height: 3px;
         border-radius: 999px;
         background: var(--brand-highlight);
+      }
+      .section-title[data-bs-toggle="collapse"] {
+        cursor: pointer;
+        user-select: none;
       }
       .card-programa {
         border: 1px solid rgba(0, 83, 164, 0.08);
@@ -348,8 +352,7 @@
                 <div class="card mb-4">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                            <h2 class="section-title h4 mb-0">Cadastro de eventos</h2>
-                            <button class="btn btn-outline-primary btn-sm" type="button" id="toggle-eventos-form" data-bs-toggle="collapse" data-bs-target="#formEventosCollapse" aria-expanded="false" aria-controls="formEventosCollapse">Expandir formulário</button>
+                            <h2 class="section-title h4 mb-0" data-bs-toggle="collapse" data-bs-target="#formEventosCollapse" aria-expanded="false" aria-controls="formEventosCollapse" role="button">Cadastro de eventos</h2>
                         </div>
                         <div class="collapse" id="formEventosCollapse">
                         <form method="POST" action="https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/cadastrar-evento" enctype="multipart/form-data" class="gy-3 form-capsule">
@@ -502,8 +505,7 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                            <h2 class="section-title h4 mb-0">Cadastro de leitor de QRCode</h2>
-                            <button class="btn btn-outline-primary btn-sm" type="button" id="toggle-leitor-form" data-bs-toggle="collapse" data-bs-target="#formLeitorCollapse" aria-expanded="false" aria-controls="formLeitorCollapse">Expandir formulário</button>
+                            <h2 class="section-title h4 mb-0" data-bs-toggle="collapse" data-bs-target="#formLeitorCollapse" aria-expanded="false" aria-controls="formLeitorCollapse" role="button">Cadastro de leitor de QRCode</h2>
                         </div>
                         <div class="collapse" id="formLeitorCollapse">
                         <form action="https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/criar-leitor-qr-code" class="gy-3 form-capsule">
@@ -641,8 +643,8 @@
             const modalExcluir = new bootstrap.Modal(modalExcluirEl);
             const eventoFormCollapse = document.getElementById('formEventosCollapse');
             const leitorFormCollapse = document.getElementById('formLeitorCollapse');
-            const toggleEventoFormBtn = document.getElementById('toggle-eventos-form');
-            const toggleLeitorFormBtn = document.getElementById('toggle-leitor-form');
+            const tituloEventos = document.querySelector('[data-bs-target="#formEventosCollapse"]');
+            const tituloLeitor = document.querySelector('[data-bs-target="#formLeitorCollapse"]');
             const collapseEventos = eventoFormCollapse ? new bootstrap.Collapse(eventoFormCollapse, { toggle: false }) : null;
             const collapseLeitor = leitorFormCollapse ? new bootstrap.Collapse(leitorFormCollapse, { toggle: false }) : null;
             const baseWebhook = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/festival-teatro2025?evento=';
@@ -663,19 +665,6 @@
                 'Teatro Marco Camarotti': 'No Sesc Santo Amaro, Rua Treze de Maio, 455.'
             };
             let eventoParaExcluir = null;
-
-            function atualizarLabelToggle(botao, expandido) {
-                if (!botao) return;
-                botao.textContent = expandido ? 'Recolher formulário' : 'Expandir formulário';
-                botao.setAttribute('aria-expanded', expandido);
-            }
-
-            function configurarToggleFormulario(collapseEl, botaoToggle) {
-                if (!collapseEl || !botaoToggle) return;
-                atualizarLabelToggle(botaoToggle, collapseEl.classList.contains('show'));
-                collapseEl.addEventListener('shown.bs.collapse', () => atualizarLabelToggle(botaoToggle, true));
-                collapseEl.addEventListener('hidden.bs.collapse', () => atualizarLabelToggle(botaoToggle, false));
-            }
 
             function formatDateBR(valor) {
                 if (!valor) return '';
@@ -727,6 +716,13 @@
                     return valor.toLowerCase() === 'true';
                 }
                 return Boolean(valor);
+            }
+
+            function sincronizarAriaCollapse(collapseEl, titulo) {
+                if (!collapseEl || !titulo) return;
+                titulo.setAttribute('aria-expanded', collapseEl.classList.contains('show'));
+                collapseEl.addEventListener('shown.bs.collapse', () => titulo.setAttribute('aria-expanded', 'true'));
+                collapseEl.addEventListener('hidden.bs.collapse', () => titulo.setAttribute('aria-expanded', 'false'));
             }
 
             function sanitizeIdentificador(valor) {
@@ -1399,8 +1395,8 @@
                 }
             });
 
-            configurarToggleFormulario(eventoFormCollapse, toggleEventoFormBtn);
-            configurarToggleFormulario(leitorFormCollapse, toggleLeitorFormBtn);
+            sincronizarAriaCollapse(eventoFormCollapse, tituloEventos);
+            sincronizarAriaCollapse(leitorFormCollapse, tituloLeitor);
 
             buscarEventos();
             atualizarEnderecoCampo('');
