@@ -625,6 +625,17 @@
               selecoesAtuais.clear();
             }
           }
+          const comparadorPorData = (a, b) => {
+            const inicioA = Number.isFinite(a.inicioAbsoluto) ? a.inicioAbsoluto : Infinity;
+            const inicioB = Number.isFinite(b.inicioAbsoluto) ? b.inicioAbsoluto : Infinity;
+
+            if (inicioA !== inicioB) {
+              return inicioA - inicioB;
+            }
+
+            return a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' });
+          };
+
           return lista
             .filter((item) => item && item.id !== undefined && item.id !== null)
             .map((item) => {
@@ -687,8 +698,9 @@
               mapa.set(preparado.id, preparado);
               return preparado;
             })
-            .filter(Boolean);
-        }
+            .filter(Boolean)
+            .sort(comparadorPorData);
+       }
 
         async function carregarEventosJaPegos() {
           const recebidosJaPegos = await fetchEventos(API_URL_JA_PEGOS);
