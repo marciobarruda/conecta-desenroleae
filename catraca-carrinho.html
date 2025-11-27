@@ -1,0 +1,2302 @@
+<!doctype html>
+<html lang="pt-BR">
+  <!-- Portal do Festival de Teatro do Recife • Catálogo -->
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Catraca Conecta</title>
+    <link
+      rel="icon"
+      href="https://statics.recife.pe.gov.br/images/automacao/catraca-conecta/catraca-logo.png"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --brand-primary: #0053a4;
+        --brand-secondary: #003a73;
+        --brand-highlight: #00a3ff;
+        --surface: #f4f7fb;
+        --surface-strong: #ffffff;
+        --border-color: #d0d7e2;
+        --text-strong: #1b263b;
+        --text-muted: #5b6c8c;
+        --shadow-strong: 0 14px 30px rgba(0,35,79,.15);
+      }
+      *,*::before,*::after{box-sizing:border-box}
+      body{
+        font-family:"Public Sans",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        background:var(--surface);color:var(--text-strong);min-height:100vh
+      }
+      header.site-header{
+        background:url("https://statics.recife.pe.gov.br/images/dynamics/automacao/header.png?w=3000") center/cover no-repeat;
+        color:#fff;padding:3rem 0 2.25rem
+      }
+      header .lead{color:rgba(255,255,255,.9);font-size:1rem;line-height:1.65}
+      .badge-open{display:inline-flex;align-items:center;gap:.5rem;font-size:.95rem;font-weight:600;padding:.45rem .9rem;border-radius:999px;background:rgba(255,255,255,.14)}
+      .section-title{display:flex;align-items:center;gap:.65rem;font-weight:700;font-size:1.2rem;color:var(--text-strong)}
+      .section-title::before{content:"";display:inline-block;width:32px;height:3px;border-radius:999px;background:var(--brand-highlight)}
+      .card-programa{border:1px solid rgba(0,83,164,.08);background:var(--surface-strong);box-shadow:0 16px 34px rgba(0,45,98,.08)}
+      .catalog-toolbar .form-select,.catalog-toolbar .form-control{border-color:var(--border-color)}
+      /* ===== Ticket card (estilo do exemplo) ===== */
+      .ticket-card{
+        background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:12px;box-shadow:var(--shadow-strong);overflow:hidden;position:relative
+      }
+      .ticket-cover{
+        background:#e9eef7;width:100%;aspect-ratio:2/3;display:block;overflow:hidden;position:relative
+      }
+      .ticket-date-badge{position:absolute;top:.6rem;right:.6rem;display:flex;flex-direction:column;align-items:flex-end;gap:.15rem;background:rgba(0,0,0,.55);color:#fff;padding:.55rem .75rem;border-radius:12px;backdrop-filter:blur(6px);text-align:right;box-shadow:0 10px 24px rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.12)}
+      .ticket-date-weekday,.ticket-date-day{display:block;min-width:4.6ch;text-align:right}
+      .ticket-date-weekday{font-size:.75rem;font-weight:800;letter-spacing:.03em;text-transform:uppercase;line-height:1.1}
+      .ticket-date-day{font-size:1.2rem;font-weight:800;letter-spacing:.08em;line-height:1.05}
+      .poster-img{width:100%;height:100%;object-fit:cover;display:block}
+      .ticket-body{padding:1rem 1rem 1.1rem;position:relative}
+      .ticket-meta-toggle{color:var(--brand-primary);font-weight:600;display:inline-flex;align-items:center;gap:.35rem}
+      .ticket-meta-toggle:focus{box-shadow:none}
+      .ticket-meta-toggle-icon{transition:transform .2s ease}
+      .ticket-meta-toggle[aria-expanded="true"] .ticket-meta-toggle-icon{transform:rotate(180deg)}
+      .ticket-meta{display:none}
+      .ticket-meta.is-open{display:flex}
+      /* Semicírculos nas laterais (efeito ‘talão’) */
+      .ticket-body::before,.ticket-body::after{
+        content:"";position:absolute;top:-12px;width:24px;height:24px;background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:50%;
+        box-shadow:0 0 0 6px #fff inset
+      }
+      .ticket-body::before{left:-12px}
+      .ticket-body::after{right:-12px}
+      .ci{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 .4rem;border-radius:6px;font-weight:800;font-size:.85rem;color:#fff}
+      .ci.l{background:#2aa84a}     /* L */
+      .ci.c10{background:#1f87c9}   /* 10 */
+      .ci.c12{background:#f4b400}   /* 12 */
+      .ci.c14{background:#ef6c00}   /* 14 */
+      .ci.c16{background:#d84315}   /* 16 */
+      .ci.c18{background:#212121}   /* 18 */
+      .meta-label{font-size:.78rem;color:var(--text-muted)}
+      .link-action{font-weight:700;text-decoration:none}
+      .link-action:hover{text-decoration:underline}
+      .btn-fav[aria-pressed="true"]{border-color:#ffc107!important}
+      .catalog-grid .col{display:flex}
+      .catalog-grid .ticket-card{display:flex;flex-direction:column;width:100%}
+      .ticket-card.is-muted{filter:grayscale(1);opacity:.55;transition:filter .2s ease,opacity .2s ease}
+      .ticket-card.is-active{box-shadow:0 0 0 .15rem rgba(0,83,164,.35)}
+      .catalog-loading{display:flex;align-items:center;justify-content:center;gap:1rem;padding:1.5rem;border:1px dashed rgba(27,38,59,.25);border-radius:1rem;background:linear-gradient(90deg,rgba(0,83,164,.06),rgba(0,163,255,.08),rgba(0,83,164,.06));background-size:200% 100%;animation:catalogShine 2.4s ease infinite;color:var(--text-strong)}
+      .catalog-loading .catalog-loading-spinner{width:56px;height:56px;border:6px solid rgba(0,83,164,.18);border-top-color:var(--brand-highlight);border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0;box-shadow:0 6px 20px rgba(0,83,164,.18)}
+      .catalog-loading .catalog-loading-text{display:flex;flex-direction:column;font-weight:700;line-height:1.3}
+      .catalog-loading .catalog-loading-text small{font-weight:500;color:var(--text-muted)}
+      .catalog-loading.d-none{display:none!important}
+      .cart-item-title{font-weight:700;font-size:.95rem;line-height:1.35}
+      .cart-item-meta{color:var(--text-muted);font-size:.85rem}
+      .cart-quantity{width:80px}
+      #carrinhoLista .list-group-item{border:1px solid var(--border-color);border-radius:12px;margin-bottom:.5rem;box-shadow:0 6px 14px rgba(0,35,79,.08)}
+      #btnCarrinho{min-width:180px}
+      #modalDetalhes .modal-dialog{max-width:980px}
+      #modalDetalhes .modal-content{border-radius:18px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.18)}
+      #modalDetalhes .modal-header,#modalDetalhes .modal-footer{background:var(--surface);border-color:rgba(0,0,0,.05)}
+      #modalDetalhes .modal-body{padding:2rem}
+      .modal-poster{background:#e9eef7;border-radius:14px;overflow:hidden;box-shadow:0 10px 26px rgba(0,45,98,.14);min-height:360px;display:flex;align-items:center;justify-content:center}
+      .modal-poster img{width:100%;height:auto;max-height:100%;object-fit:contain;display:block}
+      @keyframes spin{to{transform:rotate(360deg)}}
+      @keyframes catalogShine{0%{background-position:0 0}50%{background-position:100% 0}100%{background-position:0 0}}
+      @media (max-width:768px){
+        header.site-header{padding:2.25rem 0 1.75rem}
+        .badge-open{width:100%;justify-content:center}
+        #modalDetalhes .modal-body{padding:1.5rem}
+      }
+      @media (max-width:576px){
+        .catalog-toolbar .row > * + *{margin-top:.5rem}
+        #modalDetalhes .modal-body{padding:1.25rem}
+      }
+    </style>
+  </head>
+  <body>
+    <input
+      type="hidden"
+      id="cpf"
+      name="cpf"
+      value="{{ (() => { const limpo = String(($json.cpf ?? $json.preferred_username ?? '')).replace(/\D+/g, '').slice(0,11); return limpo || '00000000000'; })() }}"
+      style="position: absolute; display: none;"
+    />
+    <!-- HEADER -->
+    <header class="site-header">
+      <div class="container">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+          <div>
+            <h1 class="display-5 fw-bold mb-2">Catraca Conecta • Sua bilheteria eletrônica gratuita</h1>
+            <p class="lead mb-0">Programação oficial da Secretaria de Cultura do Recife • Explore as peças e escolha seu teatro.</p>
+          </div>
+          <div class="ms-md-auto">
+            <button
+              id="btnCarrinho"
+              class="btn btn-light position-relative shadow-sm"
+              type="button"
+              data-bs-toggle="offcanvas"
+              data-bs-target="#offcanvasCarrinho"
+              aria-controls="offcanvasCarrinho"
+            >
+              🛒 Meu carrinho
+              <span
+                id="badgeCarrinho"
+                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none"
+                aria-label="Quantidade de itens no carrinho"
+              >
+                0
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="py-3">
+      <div class="container">
+        <div class="alert alert-primary mb-0" role="status">
+          🎭 Olá, {{ (() => { const nome = String($json.given_name ?? '').trim(); return nome ? nome[0].toUpperCase() + nome.slice(1).toLowerCase() : 'Visitante'; })() }}! ✨ Seja bem-vindo(a) à programação do Festival de Teatro do Recife — escolha seu espetáculo e aproveite o show!
+        </div>
+      </div>
+    </section>
+
+    <!-- FILTROS -->
+    <section class="py-4">
+      <div class="container">
+        <div class="card card-programa">
+          <div class="card-header"><div class="section-title mb-0">Filtrar programação</div></div>
+          <div class="card-body catalog-toolbar">
+            <div class="row g-3 align-items-end">
+              <div class="col-12 col-md-6 col-lg-5">
+                <label class="form-label small fw-semibold text-uppercase text-muted">Busca</label>
+                <input type="search" id="q" class="form-control" placeholder="Digite nome da peça, teatro ou trecho da sinopse…" />
+              </div>
+              <div class="col-6 col-md-3 col-lg-2">
+                <label class="form-label small fw-semibold text-uppercase text-muted">Teatro</label>
+                <select id="fTeatro" class="form-select"><option value="">Todos</option></select>
+              </div>
+              <div class="col-6 col-md-3 col-lg-2">
+                <label class="form-label small fw-semibold text-uppercase text-muted">Classificação</label>
+                <select id="fClass" class="form-select"><option value="">Todas</option></select>
+              </div>
+              <div class="col-6 col-md-3 col-lg-2">
+                <label class="form-label small fw-semibold text-uppercase text-muted">Gênero</label>
+                <select id="fGenero" class="form-select"><option value="">Todos</option></select>
+              </div>
+              <div class="col-6 col-md-3 col-lg-1 d-grid">
+                <button id="btnLimpar" class="btn btn-outline-secondary">Limpar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CATÁLOGO -->
+    <section class="py-3">
+      <div class="container">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div class="section-title mb-0">Catálogo de peças</div>
+          <small class="text-muted" id="resultInfo">Exibindo 0 de 0</small>
+        </div>
+        <div id="catalogLoading" class="catalog-loading d-none" role="status" aria-live="polite" aria-busy="true">
+          <div class="catalog-loading-spinner" aria-hidden="true"></div>
+          <div class="catalog-loading-text">
+            <span>Carregando catálogo</span>
+            <small>Preparamos tudo rapidinho para você ✨</small>
+          </div>
+        </div>
+        <div id="grid" class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 catalog-grid"></div>
+      </div>
+    </section>
+
+    <!-- MODAL: DETALHES -->
+    <div class="modal fade" id="modalDetalhes" tabindex="-1" aria-labelledby="modalTitulo" aria-hidden="true">
+      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title fw-bold" id="modalTitulo">Título da peça</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row g-4 align-items-stretch">
+              <div class="col-12 col-lg-5 d-flex">
+                <div class="modal-poster w-100 h-100">
+                  <img id="modalPoster" src="" alt="Pôster da peça" class="poster-img">
+                </div>
+              </div>
+              <div class="col-12 col-lg-7 d-flex flex-column gap-2">
+                <div class="mb-2"><span class="ci" id="modalClass">L</span></div>
+                <p class="small text-uppercase text-muted fw-semibold mb-1">Teatro</p>
+                <p class="fw-semibold" id="modalTeatro">—</p>
+                <p class="small text-uppercase text-muted fw-semibold mb-1">Data</p>
+                <p class="fw-semibold" id="modalQuando">—</p>
+                <p class="small text-uppercase text-muted fw-semibold mb-1">Gênero</p>
+                <p class="fw-semibold" id="modalGenero">—</p>
+                <p class="small text-uppercase text-muted fw-semibold mb-1">Duração</p>
+                <p class="fw-semibold" id="modalDuracao">—</p>
+                <p class="small text-uppercase text-muted fw-semibold mb-1">Grupo</p>
+                <p class="fw-semibold" id="modalGrupo">—</p>
+                <p class="mb-0 mt-3" id="modalSinopse">—</p>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button id="modalTicketBtn" type="button" class="btn btn-outline-primary" aria-pressed="false">🛒 Colocar no carrinho</button>
+            <div class="d-flex align-items-center gap-2 ms-0 me-auto" id="modalQuantidadeWrapper">
+              <label for="modalQuantidade" class="form-label small mb-0">Quantidade</label>
+              <select id="modalQuantidade" class="form-select form-select-sm w-auto">
+                <option value="1" selected>1</option>
+                <option value="2">2</option>
+              </select>
+            </div>
+            <button
+              id="modalCancelarBtn"
+              type="button"
+              class="btn btn-outline-danger"
+              data-action="cancelar"
+              aria-disabled="false"
+            >
+              Devolver ingresso
+            </button>
+            <button
+              id="modalConfirmBtn"
+              type="button"
+              class="btn btn-primary"
+              data-bs-toggle="offcanvas"
+              data-bs-target="#offcanvasCarrinho"
+            >
+              Ir para o carrinho
+            </button>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Fechar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: CONFIRMAR DEVOLUÇÃO -->
+    <div class="modal fade" id="modalCancelar" tabindex="-1" aria-labelledby="modalCancelarTitulo" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title fw-bold text-danger" id="modalCancelarTitulo">❗ Atenção</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <p class="mb-0">
+              Todos os ingressos vinculados ao seu CPF neste evento serão cancelados. Deseja continuar?
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não</button>
+            <button id="modalCancelarConfirmBtn" type="button" class="btn btn-danger">Sim</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OFFCANVAS: FAVORITOS -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasFav" aria-labelledby="offcanvasFavLabel">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="offcanvasFavLabel">Favoritos</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
+      </div>
+      <div class="offcanvas-body">
+        <div id="favList" class="list-group"></div>
+        <div class="mt-3 d-flex gap-2">
+          <button id="btnExportFav" class="btn btn-outline-primary btn-sm">Exportar IDs</button>
+          <button id="btnClearFav" class="btn btn-outline-danger btn-sm">Limpar favoritos</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- OFFCANVAS: CARRINHO -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasCarrinho" aria-labelledby="offcanvasCarrinhoLabel">
+      <div class="offcanvas-header">
+        <div>
+          <h5 class="offcanvas-title" id="offcanvasCarrinhoLabel">Meu carrinho</h5>
+          <small class="text-muted">Ingressos grátis — ajuste a quantidade e confirme</small>
+        </div>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
+      </div>
+      <div class="offcanvas-body d-flex flex-column gap-3">
+        <div id="carrinhoLista" class="list-group"></div>
+        <div id="carrinhoVazio" class="text-center text-muted py-3 d-none">Nenhum ingresso no carrinho ainda.</div>
+        <div id="carrinhoErro" class="text-danger small"></div>
+        <div class="d-flex align-items-center justify-content-between border-top pt-3 mt-auto">
+          <div>
+            <div class="fw-semibold">Total</div>
+            <div class="text-muted small">R$ 0,00 (ingressos gratuitos)</div>
+          </div>
+          <div class="d-flex flex-column align-items-end gap-2">
+            <div class="fw-semibold" id="carrinhoTotalItens">0 itens</div>
+            <button id="carrinhoConfirmar" class="btn btn-primary" type="button">Confirmar ingressos</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RODAPÉ -->
+    <footer class="py-5">
+      <div class="container text-center small text-muted">
+        Secretaria de Cultura do Recife • Prefeitura do Recife
+      </div>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      (function () {
+        const API_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/2917bb59-51f3-478a-a435-0753ab258f43';
+        const API_URL_JA_PEGOS = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/d0bbd65b-b4f6-45cf-8f98-2aff0bcb03a5';
+        const CONFIRMAR_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/322fa1a9-b9aa-4e22-8762-fe0e63895727';
+        const CANCELAR_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/cancelar-ingresso';
+        const LOGIN_URL =
+          'https://login.recife.pe.gov.br/auth/realms/recife/protocol/openid-connect/auth?response_type=code&redirect_uri=https%3A%2F%2Fconecta.recife.pe.gov.br%2Facesso&client_id=psp&nonce=4adee81a4d65dcb0d64369e776f1ad31&state=f71377d8222ff81c25db077b04cacc7c&scope=openid';
+        const NOME_USUARIO = (() => {
+          const bruto = String($json.given_name ?? '').trim();
+          if (bruto) {
+            return bruto[0].toUpperCase() + bruto.slice(1).toLowerCase();
+          }
+          return 'Visitante';
+        })();
+        const CPF_FIXO = '{{ (() => { const limpo = String(($json.cpf ?? $json.preferred_username ?? '')).replace(/\D+/g, '').slice(0,11); return limpo || '00000000000'; })() }}';
+        const ICON_LIBRAS_SRC = 'https://www.ifmg.edu.br/conselheirolafaiete/noticias/anexos-noticias/libras-768x767.png/@@images/image.png';
+        const ICON_AD_SRC = 'https://w7.pngwing.com/pngs/691/979/png-transparent-computer-icons-audio-description-pause-miscellaneous-text-trademark.png';
+        const ACESSIBILIDADE_ICONES = [
+          { chave: 'libras', rotulo: 'Libras', src: ICON_LIBRAS_SRC },
+          { chave: 'audiodescricao', rotulo: 'Audiodescrição', src: ICON_AD_SRC }
+        ];
+
+        function detectarMimeBase64(conteudo) {
+          if (!conteudo || typeof conteudo !== 'string') return 'image/jpeg';
+          const prefixo = conteudo.slice(0, 10);
+          if (prefixo.startsWith('/9j/')) return 'image/jpeg';
+          if (prefixo.startsWith('iVBOR')) return 'image/png';
+          if (prefixo.startsWith('R0lGOD')) return 'image/gif';
+          if (prefixo.startsWith('PHN2Zy')) return 'image/svg+xml';
+          return 'image/jpeg';
+        }
+
+        function normalizarImagem(valor) {
+          if (!valor) return '';
+          if (typeof valor !== 'string') return '';
+          const limpo = valor.trim();
+          if (!limpo) return '';
+          if (/^https?:\/\//i.test(limpo)) return limpo;
+          if (limpo.startsWith('data:image/')) return limpo;
+          if (limpo.includes(';base64,')) {
+            if (limpo.startsWith('data:')) return limpo;
+            return `data:image/jpeg;${limpo}`;
+          }
+          const mime = detectarMimeBase64(limpo);
+          return `data:${mime};base64,${limpo}`;
+        }
+        const FALLBACK_EVENTOS = [];
+        const FALLBACK_EVENTOS_MENSAGEM =
+          'Sem eventos pintando no momento 😔 Volta daqui a pouquinho pra conferir as novidades quentinhas da cena! ✨';
+        const DATE_KEY_EMPTY = '__sem_data__';
+        const INTERVALO_TRES_HORAS_MS = 3 * 60 * 60 * 1000;
+        const selecoesAtuais = new Set();
+        const eventosPorId = new Map();
+        const eventosBloqueadosPorId = new Map();
+        const carrinho = new Map();
+        let eventos = [];
+        let eventosFiltrados = [];
+        let eventosJaPegos = [];
+        let eventosJaPegosFiltrados = [];
+        let exibindoFallbackSemEventos = false;
+
+        let campoCPF;
+        let possuiFormulario = false;
+
+        let elLoader;
+        let elGrid;
+        let elResultInfo;
+        let elQ;
+        let elFLocal;
+        let elFClass;
+        let elFGenero;
+        let elBtnLimpar;
+
+        let modal;
+        let mTitle;
+        let mPoster;
+        let mClass;
+        let mClassWrapper;
+        let mLocal;
+        let mQuando;
+        let mGenero;
+        let mDuracao;
+        let mGrupo;
+        let mQuantidadeSelect;
+        let mQuantidadeWrapper;
+        let mSinopse;
+        let mTicketBtn;
+        let mConfirmBtn;
+        let mCancelarBtn;
+        let modalCancelar;
+        let modalCancelarBtnConfirmar;
+        let eventoParaCancelar = null;
+        let carrinhoOffcanvas;
+        let carrinhoLista;
+        let carrinhoVazio;
+        let carrinhoBadge;
+        let carrinhoErro;
+        let carrinhoTotalItens;
+        let carrinhoConfirmarBtn;
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', init);
+        } else {
+          init();
+        }
+
+        async function init() {
+          elLoader = document.querySelector('#catalogLoading');
+          elGrid = document.querySelector('#grid');
+          elResultInfo = document.querySelector('#resultInfo');
+          elQ = document.querySelector('#q');
+          elFLocal = document.querySelector('#fTeatro');
+          elFClass = document.querySelector('#fClass');
+          elFGenero = document.querySelector('#fGenero');
+          elBtnLimpar = document.querySelector('#btnLimpar');
+
+          possuiFormulario = !!document.querySelector('form');
+          campoCPF = document.querySelector('#cpf');
+          if (!campoCPF) {
+            campoCPF = document.createElement('input');
+            campoCPF.type = 'hidden';
+            campoCPF.id = 'cpf';
+            campoCPF.name = 'cpf';
+            campoCPF.value = CPF_FIXO;
+            campoCPF.style.position = 'absolute';
+            campoCPF.style.display = 'none';
+            document.body.appendChild(campoCPF);
+          }
+
+          modal = new bootstrap.Modal(document.querySelector('#modalDetalhes'));
+          mTitle = document.querySelector('#modalTitulo');
+          mPoster = document.querySelector('#modalPoster');
+          mClass = document.querySelector('#modalClass');
+          mClassWrapper = mClass ? mClass.parentElement : null;
+          if (mClassWrapper && !mClassWrapper.classList.contains('ticket-top-flags')) {
+            mClassWrapper.classList.add('ticket-top-flags');
+          }
+          mLocal = document.querySelector('#modalTeatro');
+          mQuando = document.querySelector('#modalQuando');
+          mGenero = document.querySelector('#modalGenero');
+          mDuracao = document.querySelector('#modalDuracao');
+          mGrupo = document.querySelector('#modalGrupo');
+          mQuantidadeSelect = document.querySelector('#modalQuantidade');
+          mQuantidadeWrapper = document.querySelector('#modalQuantidadeWrapper');
+          mSinopse = document.querySelector('#modalSinopse');
+          mTicketBtn = document.querySelector('#modalTicketBtn');
+          mConfirmBtn = document.querySelector('#modalConfirmBtn');
+          mCancelarBtn = document.querySelector('#modalCancelarBtn');
+          carrinhoLista = document.querySelector('#carrinhoLista');
+          carrinhoVazio = document.querySelector('#carrinhoVazio');
+          carrinhoBadge = document.querySelector('#badgeCarrinho');
+          carrinhoErro = document.querySelector('#carrinhoErro');
+          carrinhoTotalItens = document.querySelector('#carrinhoTotalItens');
+          carrinhoConfirmarBtn = document.querySelector('#carrinhoConfirmar');
+          const carrinhoOffcanvasEl = document.querySelector('#offcanvasCarrinho');
+          carrinhoOffcanvas = carrinhoOffcanvasEl ? new bootstrap.Offcanvas(carrinhoOffcanvasEl) : null;
+          const modalCancelarEl = document.querySelector('#modalCancelar');
+          modalCancelar = modalCancelarEl ? new bootstrap.Modal(modalCancelarEl) : null;
+          if (modalCancelarEl && modalCancelar) {
+            modalCancelarEl.addEventListener('hidden.bs.modal', () => {
+              eventoParaCancelar = null;
+              if (modalCancelarBtnConfirmar) {
+                modalCancelarBtnConfirmar.disabled = false;
+                modalCancelarBtnConfirmar.textContent = 'Sim';
+              }
+            });
+          }
+          modalCancelarBtnConfirmar = document.querySelector('#modalCancelarConfirmBtn');
+
+          document.body.classList.add('portal-dyn');
+          injetarEstilos();
+
+          eventosBloqueadosPorId.clear();
+          selecoesAtuais.clear();
+
+          alternarCarregamento(true);
+          const recebidosDisponiveis = await fetchEventos(API_URL);
+          exibindoFallbackSemEventos = recebidosDisponiveis.length === 0;
+          const baseDisponiveis = exibindoFallbackSemEventos
+            ? FALLBACK_EVENTOS
+            : recebidosDisponiveis.map(adaptarEventoApi).filter(Boolean);
+
+          eventos = prepararEventos(baseDisponiveis, { resetarMapa: true, mapa: eventosPorId });
+          eventosFiltrados = [...eventos];
+          eventosJaPegos = [];
+          eventosJaPegosFiltrados = [];
+          popularFiltros(eventos);
+          renderCards(eventosFiltrados);
+          alternarCarregamento(false);
+          atualizarResultado();
+          registrarEventos();
+          await carregarEventosJaPegos();
+          renderizarCarrinho();
+          atualizarBadgeCarrinho();
+        }
+
+        function injetarEstilos() {
+          const estilo = document.createElement('style');
+          estilo.textContent = `
+.portal-dyn .inativo { filter: grayscale(100%); opacity: .6; pointer-events: none; }
+.portal-dyn .selecionado { outline: 2px solid currentColor; }
+.portal-dyn .ticket-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.portal-dyn .ticket-actions .btn-modern { flex: 1 1 160px; border-radius: 999px; font-weight: 600; padding: 0.6rem 1.1rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.portal-dyn .ticket-actions .btn-modern:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(0, 35, 79, 0.18); }
+.portal-dyn .ticket-actions .btn-modern:focus-visible { outline: 3px solid rgba(0, 163, 255, 0.35); outline-offset: 2px; }
+.portal-dyn .ticket-actions .btn-modern.btn-outline-secondary { background: #fff; border-color: rgba(27, 38, 59, 0.2); color: var(--text-strong); }
+.portal-dyn .ticket-actions .btn-modern.btn-outline-secondary:hover { background: rgba(0, 83, 164, 0.08); }
+.portal-dyn .ticket-actions .btn-modern.btn-primary { box-shadow: 0 10px 24px rgba(0, 83, 164, 0.25); }
+.portal-dyn .ticket-actions .btn-modern.btn-primary:hover { box-shadow: 0 12px 28px rgba(0, 83, 164, 0.3); }
+.portal-dyn .ticket-card.portal-dyn-ja-pego { filter: grayscale(100%); opacity: .7; }
+.portal-dyn .ticket-card.card-bloqueado { filter: grayscale(1); opacity: .75; }
+.portal-dyn .portal-dyn-empty { padding: 3rem 1rem; border-radius: 1rem; background: rgba(27, 38, 59, 0.05); border: 1px dashed rgba(27, 38, 59, 0.2); color: var(--text-strong); display: flex; align-items: center; justify-content: center; min-height: 220px; }
+.portal-dyn .portal-dyn-empty-text { font-size: 1.1rem; font-weight: 600; line-height: 1.4; }
+.portal-dyn .portal-dyn-aviso-ja-pego { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600; font-size: 0.85rem; padding: 0.35rem 0.75rem; border-radius: 999px; background: rgba(27, 38, 59, 0.08); color: var(--text-strong); margin-top: 0.35rem; }
+.portal-dyn .ticket-top-flags { display: flex; align-items: center; justify-content: flex-end; gap: 0.35rem; flex-wrap: wrap; }
+.portal-dyn .portal-dyn-acc-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: 0 0 28px; padding: 2px; border-radius: 6px; background: #fff; border: 1px solid rgba(27, 38, 59, 0.15); box-shadow: none; overflow: hidden; }
+.portal-dyn .portal-dyn-acc-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.portal-dyn .portal-dyn-erro-confirmacao { display: block; margin-top: 0.25rem; font-size: 0.85rem; }
+.portal-dyn .ticket-subtitle { color: var(--text-muted); font-size: 0.9rem; line-height: 1.35; white-space: normal; }
+.portal-dyn #modalQuantidadeWrapper { flex: 1 1 auto; }
+.portal-dyn #modalQuantidadeWrapper select { min-width: 72px; }
+`;
+          document.body.appendChild(estilo);
+        }
+
+        function alternarCarregamento(ativo) {
+          if (!elLoader) return;
+          elLoader.setAttribute('aria-busy', ativo ? 'true' : 'false');
+          if (ativo) {
+            elLoader.classList.remove('d-none');
+          } else {
+            elLoader.classList.add('d-none');
+          }
+        }
+
+        async function fetchEventos(url = API_URL) {
+          try {
+            const cpf = obterCPF();
+            const resposta = await fetch(url, {
+              method: 'POST',
+              headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-store'
+              },
+              body: JSON.stringify({ cpf: cpf || null })
+            });
+            if (!resposta.ok) {
+              throw new Error(`Erro HTTP ${resposta.status}`);
+            }
+            const dados = await resposta.json();
+            if (Array.isArray(dados)) {
+              return dados;
+            }
+            if (dados && typeof dados === 'object') {
+              if (Array.isArray(dados.data)) {
+                return dados.data;
+              }
+              if (Array.isArray(dados.items)) {
+                return dados.items;
+              }
+            }
+            return [];
+          } catch (erro) {
+            console.error('Falha ao buscar eventos', erro);
+            return [];
+          }
+        }
+
+        function adaptarEventoApi(item) {
+          if (!item || typeof item !== 'object') {
+            return null;
+          }
+          const fonte = item;
+          const adaptado = { ...fonte };
+          const ler = (...chaves) => {
+            for (const chave of chaves) {
+              if (fonte[chave] !== undefined && fonte[chave] !== null) {
+                const valor = fonte[chave];
+                if (typeof valor === 'string') {
+                  const limpo = valor.trim();
+                  if (limpo) return limpo;
+                } else if (valor !== '') {
+                  return valor;
+                }
+              }
+            }
+            return undefined;
+          };
+
+          const id = ler('id', 'slug', 'uuid', 'codigo', 'codigo_evento', 'identificador', 'evento_id');
+          if (id !== undefined) adaptado.id = id;
+          const nome = ler('nome', 'titulo', 'title', 'evento', 'name');
+          if (nome !== undefined) adaptado.nome = nome;
+          const classificacao = ler('classificacao', 'classificacao_indicativa', 'faixa_etaria', 'faixaEtaria');
+          if (classificacao !== undefined) adaptado.classificacao = classificacao;
+          const genero = ler('genero', 'categoria', 'tipo', 'segmento');
+          if (genero !== undefined) adaptado.genero = genero;
+          const local = ler('local', 'teatro', 'espaco', 'localizacao', 'casa');
+          if (local !== undefined) adaptado.local = local;
+          const onde = ler('onde');
+          if (onde !== undefined) adaptado.onde = onde;
+          const quando = ler('quando', 'datahora', 'data_hora', 'dataHora', 'data_inicio', 'data');
+          if (quando !== undefined) adaptado.quando = quando;
+          const hora = ler('hora', 'horario', 'hora_inicio', 'horaInicio');
+          if (hora !== undefined) adaptado.hora = hora;
+          const poster = normalizarImagem(ler('poster', 'imagem', 'capa', 'imagem_card'));
+          if (poster) adaptado.poster = poster;
+          const posterDetalhes = normalizarImagem(
+            ler('posterdetalhes', 'poster_detalhes', 'posterDetalhes', 'imagem_detalhes')
+          );
+          if (posterDetalhes) adaptado.posterdetalhes = posterDetalhes;
+          const sinopse = ler('sinopse', 'descricao', 'descricao_curta', 'descricaoLonga', 'descricao_longa', 'description');
+          if (sinopse !== undefined) adaptado.sinopse = sinopse;
+          const disponibilizados = ler('disponibilizados', 'quantidade_total', 'total', 'total_disponibilizado');
+          if (disponibilizados !== undefined) adaptado.disponibilizados = disponibilizados;
+          const disponiveis = ler('disponiveis', 'quantidade_disponivel', 'ingressos_disponiveis', 'vagas_disponiveis');
+          if (disponiveis !== undefined) adaptado.disponiveis = disponiveis;
+          const acessibilidade = ler('acessibilidade', 'acessibilidades', 'recursos_acessibilidade');
+          if (acessibilidade !== undefined) adaptado.acessibilidade = acessibilidade;
+          const status = ler('status');
+          if (status !== undefined) adaptado.status = status;
+          const duracao = ler('duracao', 'duração', 'tempo', 'tempo_estimado');
+          if (duracao !== undefined) adaptado.duracao = duracao;
+          const quemFaz = ler('quem_faz', 'quemfaz', 'quemFaz', 'grupo', 'companhia', 'company', 'coletivo');
+          if (quemFaz !== undefined) adaptado.quem_faz = quemFaz;
+          const origem = ler('origem', 'origem_grupo', 'origemGrupo');
+          if (origem !== undefined) adaptado.origem = origem;
+          const origemCidade = ler('origem_cidade', 'cidade_origem', 'cidadeOrigem');
+          if (origemCidade !== undefined) adaptado.origem_cidade = origemCidade;
+          const origemLocal = ler('origem_local');
+          if (origemLocal !== undefined) adaptado.origem_local = origemLocal;
+          const cidade = ler('cidade', 'municipio', 'municipio_origem', 'municipioOrigem');
+          if (cidade !== undefined) adaptado.cidade = cidade;
+          const uf = ler('uf', 'estado', 'sigla_estado', 'siglaEstado');
+          if (uf !== undefined) adaptado.uf = uf;
+
+          return adaptado;
+        }
+
+        function prepararEventos(lista, opcoes = {}) {
+          const { resetarMapa = false, extras = null, mapa = eventosPorId } = opcoes;
+          if (!Array.isArray(lista)) {
+            return [];
+          }
+          if (resetarMapa) {
+            mapa.clear();
+            if (mapa === eventosPorId) {
+              selecoesAtuais.clear();
+            }
+          }
+          const comparadorPorData = (a, b) => {
+            const inicioA = Number.isFinite(a.inicioAbsoluto) ? a.inicioAbsoluto : Infinity;
+            const inicioB = Number.isFinite(b.inicioAbsoluto) ? b.inicioAbsoluto : Infinity;
+
+            if (inicioA !== inicioB) {
+              return inicioA - inicioB;
+            }
+
+            return a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' });
+          };
+
+          return lista
+            .filter((item) => item && item.id !== undefined && item.id !== null)
+            .map((item) => {
+              const quandoValor = resolverQuando(item);
+              const quemFaz = extrairQuemFaz(item);
+              const origem = resolverOrigem(item);
+              const { texto, normalizado, horaCurta } = formatarDataHora(quandoValor, item.hora);
+              const dataReferencia = toRecifeDate(quandoValor, item.hora);
+              const carimboData = gerarCarimboData(dataReferencia);
+              const inicioAbsoluto = dataReferencia ? dataReferencia.getTime() : NaN;
+              const preparado = {
+                id: String(item.id),
+                nome: item.nome || 'Evento',
+                classificacao: item.classificacao || 'Livre',
+                acessibilidade: item.acessibilidade ?? '',
+                temAcessibilidade: interpretarAcessibilidade(item.acessibilidade),
+                genero: item.genero || '',
+                local: item.local || item.teatro || '',
+                onde: item.onde || '',
+                duracao: item.duracao || item.duração || '',
+                quemFaz,
+                origem,
+                status: normalizarStatus(item.status),
+                quando: quandoValor || '',
+                quandoOriginal: item.quando ?? '',
+                horaOriginal: item.hora || '',
+                quandoFormatado: texto,
+                quandoNormalizado: normalizado || DATE_KEY_EMPTY,
+                horaCurta: horaCurta,
+                quandoCarimboDia: carimboData.diaSemana,
+                quandoCarimboData: carimboData.dataCurta,
+                inicioAbsoluto: Number.isFinite(inicioAbsoluto) ? inicioAbsoluto : NaN,
+                poster: normalizarImagem(item.poster) || '',
+                posterdetalhes: normalizarImagem(item.posterdetalhes || item.poster) || '',
+                sinopse: item.sinopse || '',
+                disponibilizados: numeroSeguro(item.disponibilizados),
+                disponiveis: numeroSeguro(item.disponiveis)
+              };
+              preparado.grupoOrigem = combinarGrupoOrigem(preparado.quemFaz, preparado.origem);
+              if (extras) {
+                Object.assign(preparado, extras);
+                if (extras.apenasDetalhes) {
+                  selecoesAtuais.delete(preparado.id);
+                }
+              }
+              preparado.jaPegou = Boolean(preparado.jaPegou);
+              preparado.apenasDetalhes = Boolean(preparado.apenasDetalhes);
+              const existente = mapa.get(preparado.id);
+              if (existente) {
+                Object.assign(existente, preparado);
+                if (extras && extras.apenasDetalhes) {
+                  existente.apenasDetalhes = true;
+                  existente.jaPegou = Boolean(existente.jaPegou);
+                }
+                return existente;
+              }
+              if (preparado.apenasDetalhes) {
+                selecoesAtuais.delete(preparado.id);
+              }
+              mapa.set(preparado.id, preparado);
+              return preparado;
+            })
+            .filter(Boolean)
+            .sort(comparadorPorData);
+       }
+
+        async function carregarEventosJaPegos() {
+          const recebidosJaPegos = await fetchEventos(API_URL_JA_PEGOS);
+          const baseJaPegos = Array.isArray(recebidosJaPegos)
+            ? recebidosJaPegos.map(adaptarEventoApi).filter(Boolean)
+            : [];
+
+          if (!baseJaPegos.length) {
+            eventosBloqueadosPorId.clear();
+            eventosJaPegos = [];
+            eventosJaPegosFiltrados = [];
+            aplicarFiltros();
+            return;
+          }
+
+          eventosJaPegos = prepararEventos(baseJaPegos, {
+            resetarMapa: true,
+            extras: { jaPegou: true, apenasDetalhes: true },
+            mapa: eventosBloqueadosPorId
+          });
+          aplicarFiltros();
+        }
+
+        function numeroSeguro(valor) {
+          const numero = Number(valor);
+          return Number.isFinite(numero) && numero >= 0 ? numero : 0;
+        }
+
+        function normalizarStatus(valor) {
+          if (valor === undefined || valor === null) return 'ok';
+          const texto = String(valor).trim().toLowerCase();
+          if (texto === 'block' || texto === 'semi-block') {
+            return texto;
+          }
+          return 'ok';
+        }
+
+        function rotuloPrincipalPorStatus(status) {
+          return normalizarStatus(status) === 'block' ? '🎟️ Devolver ingresso' : '🛒 Colocar no carrinho';
+        }
+
+        function rotuloConfirmarPorStatus(status) {
+          return normalizarStatus(status) === 'semi-block' ? 'Devolver ingresso' : 'Ir para o carrinho';
+        }
+
+        function interpretarAcessibilidade(valor) {
+          if (valor === undefined || valor === null) {
+            return false;
+          }
+          const texto = String(valor).trim().toLowerCase();
+          if (!texto) {
+            return false;
+          }
+          return texto === 'sim' || texto === 'true' || texto === '1';
+        }
+
+        function extrairQuemFaz(item) {
+          if (!item) return '';
+          const candidatos = [item.quem_faz, item.quemfaz, item.quemFaz, item.grupo, item.company, item.companhia];
+          for (const candidato of candidatos) {
+            if (candidato === undefined || candidato === null) continue;
+            const texto = formatarQuemFaz(String(candidato).trim());
+            if (texto) {
+              return texto;
+            }
+          }
+          return '';
+        }
+
+        function resolverOrigem(item) {
+          if (!item) return '';
+          const diretos = [
+            item.origem,
+            item.origem_grupo,
+            item.origemGrupo,
+            item.origem_cidade,
+            item.origemCidade,
+            item.localidade,
+            item.cidade_origem,
+            item.cidadeOrigem,
+            item.origem_local,
+            item.origemLocal,
+            item.procedencia
+          ];
+          for (const candidato of diretos) {
+            if (candidato === undefined || candidato === null) continue;
+            const texto = String(candidato).trim();
+            if (texto) {
+              return texto;
+            }
+          }
+          const cidade = extrairCampoTexto([
+            item.cidade,
+            item.municipio,
+            item.municipio_origem,
+            item.municipioOrigem,
+            item.cidade_base,
+            item.cidadeBase
+          ]);
+          const uf = extrairCampoTexto([
+            item.uf,
+            item.estado,
+            item.sigla_estado,
+            item.siglaEstado,
+            item.sigla,
+            item.estado_sigla
+          ]);
+          if (cidade && uf) {
+            return `${cidade}/${uf}`.replace(/\s*\/\s*/g, '/');
+          }
+          if (cidade) return cidade;
+          if (uf) return uf;
+          return '';
+        }
+
+        function extrairCampoTexto(lista) {
+          for (const valor of lista) {
+            if (valor === undefined || valor === null) continue;
+            const texto = String(valor).trim();
+            if (texto) {
+              return texto;
+            }
+          }
+          return '';
+        }
+
+        function combinarGrupoOrigem(grupo, origem) {
+          const grupoFormatado = formatarQuemFaz(grupo);
+          const origemNormalizada = formatarOrigem(origem);
+          if (grupoFormatado && origemNormalizada) {
+            return `${grupoFormatado} | ${origemNormalizada}`;
+          }
+          if (grupoFormatado) return grupoFormatado;
+          if (origemNormalizada) return origemNormalizada;
+          return '';
+        }
+
+        function formatarQuemFaz(valor) {
+          if (!valor) return '';
+          const texto = String(valor).trim();
+          if (!texto) return '';
+          const partes = texto
+            .split(/[,;]+/)
+            .map((parte) => parte.replace(/\s+•\s+/g, ' • ').trim())
+            .filter(Boolean);
+          if (partes.length <= 1) return partes[0] || '';
+          return partes.join(' • ');
+        }
+
+        function formatarOrigem(valor) {
+          if (!valor) return '';
+          const texto = String(valor).replace(/\s+•\s+/g, ' ').replace(/\s{2,}/g, ' ').trim();
+          return texto;
+        }
+
+        function resolverQuando(item) {
+          if (!item) return '';
+          const bruto = item.quando;
+          if (bruto !== undefined && bruto !== null) {
+            const valor = String(bruto).trim();
+            if (valor) {
+              return valor;
+            }
+          }
+          const dataCampo = [item.data, item.dataEvento, item.data_evento, item.dia]
+            .map((valor) => (valor !== undefined && valor !== null ? String(valor).trim() : ''))
+            .find((valor) => valor);
+          const horaCampo = [item.hora, item.horario]
+            .map((valor) => (valor !== undefined && valor !== null ? String(valor).trim() : ''))
+            .find((valor) => valor);
+          if (dataCampo && horaCampo) {
+            return gerarQuandoIso(dataCampo, horaCampo);
+          }
+          return '';
+        }
+
+        function gerarQuandoIso(dataCampo, horaCampo) {
+          const data = criarDataComTimezone(dataCampo, horaCampo);
+          return data ? data.toISOString() : '';
+        }
+
+        function registrarEventos() {
+          if (elGrid) {
+            elGrid.addEventListener('click', aoClicarNoGrid);
+          }
+          if (elQ) {
+            elQ.addEventListener('input', aplicarFiltros);
+          }
+          [elFLocal, elFClass, elFGenero].forEach((select) => {
+            if (select) {
+              select.addEventListener('change', aplicarFiltros);
+            }
+          });
+          if (elBtnLimpar) {
+            elBtnLimpar.addEventListener('click', (evento) => {
+              evento.preventDefault();
+              limparFiltros();
+            });
+          }
+          if (mTicketBtn) {
+            mTicketBtn.addEventListener('click', () => {
+              const id = mTicketBtn.dataset.id;
+              if (!id) return;
+              const evento = eventosPorId.get(id) || eventosBloqueadosPorId.get(id);
+              if (!evento) return;
+              const status = normalizarStatus(evento.status);
+              if (status === 'block') {
+                abrirModalCancelar(evento);
+                return;
+              }
+              adicionarAoCarrinho(evento, obterQuantidadeSelecionada());
+              atualizarBotaoModal();
+            });
+          }
+          if (mConfirmBtn && carrinhoOffcanvas) {
+            mConfirmBtn.addEventListener('click', () => {
+              carrinhoOffcanvas.show();
+            });
+          }
+          if (mCancelarBtn) {
+            mCancelarBtn.addEventListener('click', () => {
+              const id = mCancelarBtn.dataset.id;
+              const evento = id ? eventosPorId.get(id) || eventosBloqueadosPorId.get(id) : null;
+              abrirModalCancelar(evento);
+            });
+          }
+          if (modalCancelarBtnConfirmar) {
+            modalCancelarBtnConfirmar.addEventListener('click', cancelarIngresso);
+          }
+          if (carrinhoConfirmarBtn) {
+            carrinhoConfirmarBtn.addEventListener('click', confirmarCarrinho);
+          }
+        }
+
+        function popularFiltros(lista) {
+          preencherSelect(elFLocal, lista.map((e) => e.local).filter(Boolean));
+          preencherSelect(elFClass, lista.map((e) => e.classificacao).filter(Boolean));
+          preencherSelect(elFGenero, lista.map((e) => e.genero).filter(Boolean));
+        }
+
+        function preencherSelect(select, valores) {
+          if (!select) return;
+          while (select.options.length > 1) {
+            select.remove(1);
+          }
+          const unicos = Array.from(new Set(valores));
+          const collator = new Intl.Collator('pt-BR');
+          unicos.sort(collator.compare);
+          unicos.forEach((valor) => {
+            const opcao = document.createElement('option');
+            opcao.value = valor;
+            opcao.textContent = valor;
+            select.appendChild(opcao);
+          });
+        }
+
+        function filtrarEventosPorCriterios(lista, termo, filtroLocal, filtroClass, filtroGenero) {
+          if (!Array.isArray(lista)) return [];
+          return lista.filter((evento) => {
+            if (!evento) return false;
+            const camposBusca = [evento.nome, evento.local, evento.sinopse, evento.genero]
+              .filter((campo) => typeof campo === 'string' && campo.trim().length);
+            const textoOk = !termo || camposBusca.some((campo) => campo.toLowerCase().includes(termo));
+            const localOk = !filtroLocal || evento.local === filtroLocal;
+            const classOk = !filtroClass || evento.classificacao === filtroClass;
+            const generoOk = !filtroGenero || evento.genero === filtroGenero;
+            return textoOk && localOk && classOk && generoOk;
+          });
+        }
+
+        function aplicarFiltros() {
+          const termo = (elQ ? elQ.value : '').trim().toLowerCase();
+          const filtroLocal = elFLocal ? elFLocal.value : '';
+          const filtroClass = elFClass ? elFClass.value : '';
+          const filtroGenero = elFGenero ? elFGenero.value : '';
+
+          eventosFiltrados = filtrarEventosPorCriterios(eventos, termo, filtroLocal, filtroClass, filtroGenero);
+          eventosJaPegosFiltrados = filtrarEventosPorCriterios(
+            eventosJaPegos,
+            termo,
+            filtroLocal,
+            filtroClass,
+            filtroGenero
+          );
+          renderCards(eventosFiltrados);
+          atualizarResultado();
+        }
+
+        function limparFiltros() {
+          if (elQ) elQ.value = '';
+          [elFLocal, elFClass, elFGenero].forEach((select) => {
+            if (select) select.value = '';
+          });
+          eventosFiltrados = [...eventos];
+          eventosJaPegosFiltrados = [...eventosJaPegos];
+          renderCards(eventosFiltrados);
+          atualizarResultado();
+        }
+
+        function renderCards(lista) {
+          if (!elGrid) return;
+          while (elGrid.firstChild) {
+            elGrid.removeChild(elGrid.firstChild);
+          }
+          if (exibindoFallbackSemEventos) {
+            const aviso = document.createElement('div');
+            aviso.className = 'portal-dyn-empty text-center w-100';
+            const avisoTexto = document.createElement('p');
+            avisoTexto.className = 'portal-dyn-empty-text mb-0';
+            avisoTexto.textContent = FALLBACK_EVENTOS_MENSAGEM;
+            aviso.appendChild(avisoTexto);
+            elGrid.appendChild(aviso);
+            atualizarEstadoTodos();
+            return;
+          }
+          const fragmento = document.createDocumentFragment();
+          lista.forEach((evento) => {
+            fragmento.appendChild(criarCard(evento));
+          });
+          elGrid.appendChild(fragmento);
+          if (eventosJaPegosFiltrados.length) {
+            const bloqueadosFragmento = document.createDocumentFragment();
+            eventosJaPegosFiltrados.forEach((evento) => {
+              bloqueadosFragmento.appendChild(criarCardBloqueado(evento));
+            });
+            elGrid.appendChild(bloqueadosFragmento);
+          }
+          atualizarEstadoTodos();
+        }
+
+        function criarCard(evento) {
+          const coluna = document.createElement('div');
+          coluna.className = 'col';
+
+          const card = document.createElement('article');
+          card.className = 'ticket-card h-100 d-flex flex-column';
+          card.setAttribute('data-id', evento.id);
+          card.setAttribute('data-card-id', evento.id);
+          card.setAttribute('data-date', evento.quandoFormatado || '');
+          card.setAttribute('data-quando', evento.quandoNormalizado || DATE_KEY_EMPTY);
+          card.setAttribute('data-hora', evento.horaCurta || '');
+          card.setAttribute('data-ja-pegou', evento.jaPegou ? 'true' : 'false');
+          const status = normalizarStatus(evento.status);
+          card.dataset.status = status;
+          if (status === 'block') {
+            card.classList.add('is-muted');
+          }
+          if (evento.jaPegou) {
+            card.classList.add('portal-dyn-ja-pego');
+          }
+
+          const capa = document.createElement('div');
+          capa.className = 'ticket-cover';
+          const imagem = document.createElement('img');
+          imagem.className = 'poster-img';
+          imagem.loading = 'lazy';
+          imagem.src = evento.poster || '';
+          imagem.alt = `Pôster da peça ${evento.nome}`;
+          capa.appendChild(imagem);
+          if (evento.quandoCarimboDia && evento.quandoCarimboData) {
+            const seloData = document.createElement('div');
+            seloData.className = 'ticket-date-badge';
+            const seloSemana = document.createElement('span');
+            seloSemana.className = 'ticket-date-weekday';
+            seloSemana.textContent = evento.quandoCarimboDia;
+            const seloDia = document.createElement('span');
+            seloDia.className = 'ticket-date-day';
+            seloDia.textContent = evento.quandoCarimboData;
+            seloData.appendChild(seloSemana);
+            seloData.appendChild(seloDia);
+            capa.appendChild(seloData);
+          }
+          card.appendChild(capa);
+
+          const corpo = document.createElement('div');
+          corpo.className = 'ticket-body d-flex flex-column gap-2';
+
+          const cabecalho = document.createElement('div');
+          cabecalho.className = 'd-flex align-items-center justify-content-between';
+          const titulo = document.createElement('h5');
+          titulo.className = 'mb-0 fw-bold text-truncate';
+          titulo.title = evento.nome;
+          titulo.textContent = evento.nome;
+          cabecalho.appendChild(titulo);
+          const topoDireita = document.createElement('div');
+          topoDireita.className = 'ticket-top-flags';
+          topoDireita.appendChild(criarClassificacao(evento.classificacao));
+          aplicarAcessibilidadeAoContainer(topoDireita, evento.temAcessibilidade);
+          cabecalho.appendChild(topoDireita);
+          corpo.appendChild(cabecalho);
+
+          const subtitulo = document.createElement('p');
+          subtitulo.className = 'ticket-subtitle mb-0';
+          const grupoOrigemTexto = evento.grupoOrigem || combinarGrupoOrigem(evento.quemFaz, evento.origem);
+          const textoSubtitulo = grupoOrigemTexto && grupoOrigemTexto.trim() ? grupoOrigemTexto : '—';
+          subtitulo.textContent = textoSubtitulo;
+          if (textoSubtitulo && textoSubtitulo !== '—') {
+            subtitulo.title = textoSubtitulo;
+          } else {
+            subtitulo.removeAttribute('title');
+          }
+          corpo.appendChild(subtitulo);
+
+          const infoId = `ticket-meta-${(String(evento.id || Date.now())
+            .toLowerCase()
+            .replace(/[^a-z0-9_-]/g, '') || 'evento')}-${Math.random().toString(36).slice(2, 6)}`;
+
+          const blocoInfo = document.createElement('div');
+          blocoInfo.className = 'row g-2 mt-2 ticket-meta';
+          blocoInfo.id = infoId;
+          blocoInfo.appendChild(criarMeta('Gênero e local', montarGeneroLocal(evento)));
+          const textoOnde = (evento.onde || '').trim() || evento.local || '—';
+          blocoInfo.appendChild(criarMeta('Onde', textoOnde));
+          const quandoTexto = evento.quandoFormatado || '—';
+          blocoInfo.appendChild(criarMeta('Quando', quandoTexto));
+          blocoInfo.appendChild(criarMeta('Duração', evento.duracao || '—'));
+          const textoIngressos = evento.jaPegou
+            ? 'Você já pegou estes ingressos'
+            : String(evento.disponiveis ?? '—');
+          blocoInfo.appendChild(criarMeta('Ingressos disponíveis', textoIngressos));
+
+          const toggleMeta = document.createElement('button');
+          toggleMeta.type = 'button';
+          toggleMeta.className = 'btn btn-link btn-sm px-0 text-decoration-none ticket-meta-toggle';
+          toggleMeta.setAttribute('aria-controls', infoId);
+          toggleMeta.setAttribute('aria-expanded', 'false');
+
+          const toggleMetaText = document.createElement('span');
+          toggleMetaText.className = 'ticket-meta-toggle-text';
+          toggleMetaText.textContent = '➕ informações';
+          toggleMeta.appendChild(toggleMetaText);
+
+          const toggleMetaIcon = document.createElement('span');
+          toggleMetaIcon.className = 'ticket-meta-toggle-icon';
+          toggleMetaIcon.setAttribute('aria-hidden', 'true');
+          toggleMetaIcon.textContent = '▼';
+          toggleMeta.appendChild(toggleMetaIcon);
+
+          toggleMeta.addEventListener('click', () => {
+            const abrindo = !blocoInfo.classList.contains('is-open');
+            if (abrindo) {
+              fecharMetasAbertos(infoId);
+            }
+            const isOpen = blocoInfo.classList.toggle('is-open');
+            toggleMeta.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            toggleMetaText.textContent = isOpen ? '➖ informações' : '➕ informações';
+            toggleMetaIcon.textContent = isOpen ? '▲' : '▼';
+          });
+
+          corpo.appendChild(toggleMeta);
+          corpo.appendChild(blocoInfo);
+
+          const acoes = document.createElement('div');
+          acoes.className = 'ticket-actions mt-3';
+
+          const botaoDetalhes = document.createElement('button');
+          botaoDetalhes.type = 'button';
+          botaoDetalhes.className = 'btn btn-outline-secondary btn-modern btn-detalhes';
+          botaoDetalhes.setAttribute('data-details', evento.id);
+          botaoDetalhes.setAttribute('aria-label', 'Ver detalhes');
+          botaoDetalhes.setAttribute('aria-disabled', 'false');
+          botaoDetalhes.textContent = 'Detalhes';
+          acoes.appendChild(botaoDetalhes);
+
+          corpo.appendChild(acoes);
+          card.appendChild(corpo);
+          coluna.appendChild(card);
+          return coluna;
+        }
+
+        function fecharMetasAbertos(ignorarId) {
+          const metasAbertos = document.querySelectorAll('.ticket-meta.is-open');
+          metasAbertos.forEach((meta) => {
+            if (!meta.id || meta.id === ignorarId) return;
+            meta.classList.remove('is-open');
+            const botao = document.querySelector(`.ticket-meta-toggle[aria-controls="${meta.id}"]`);
+            if (botao) {
+              botao.setAttribute('aria-expanded', 'false');
+              const texto = botao.querySelector('.ticket-meta-toggle-text');
+              const icone = botao.querySelector('.ticket-meta-toggle-icon');
+              if (texto) texto.textContent = '➕ informações';
+              if (icone) icone.textContent = '▼';
+            }
+          });
+        }
+
+        function criarCardBloqueado(evento) {
+          const coluna = criarCard(evento);
+          const card = coluna.querySelector('.ticket-card');
+          if (!card) {
+            return coluna;
+          }
+          card.classList.add('card-bloqueado');
+          card.dataset.bloqueado = 'true';
+          card.setAttribute('aria-disabled', 'true');
+          const corpo = card.querySelector('.ticket-body');
+          const acoes = card.querySelector('.ticket-actions');
+          if (corpo && !corpo.querySelector('.portal-dyn-aviso-ja-pego')) {
+            const aviso = document.createElement('div');
+            aviso.className = 'portal-dyn-aviso-ja-pego';
+            aviso.textContent = 'Você já pegou estes ingressos';
+            if (acoes) {
+              corpo.insertBefore(aviso, acoes);
+            } else {
+              corpo.appendChild(aviso);
+            }
+          }
+          if (acoes) {
+            const botoes = acoes.querySelectorAll('button');
+            botoes.forEach((botao) => {
+              if (!botao.classList.contains('btn-detalhes')) {
+                botao.remove();
+              }
+            });
+          }
+          const botaoDetalhes = card.querySelector('.btn-detalhes');
+          if (botaoDetalhes) {
+            botaoDetalhes.disabled = false;
+            botaoDetalhes.setAttribute('aria-disabled', 'false');
+          }
+          return coluna;
+        }
+
+        function criarMeta(rotulo, valor) {
+          const grupo = document.createElement('div');
+          grupo.className = 'col-12';
+          const label = document.createElement('div');
+          label.className = 'meta-label';
+          label.textContent = rotulo;
+          const texto = document.createElement('div');
+          texto.className = 'fw-semibold small';
+          const conteudo = valor ?? '—';
+          texto.textContent = conteudo;
+          if (rotulo === 'Gênero e local' || rotulo === 'Onde') {
+            texto.classList.add('text-truncate');
+            if (conteudo && conteudo !== '—') {
+              texto.title = conteudo;
+            }
+          }
+          grupo.appendChild(label);
+          grupo.appendChild(texto);
+          return grupo;
+        }
+
+        function aplicarAcessibilidadeAoContainer(container, habilitado) {
+          if (!container) return;
+          const existentes = container.querySelectorAll('.portal-dyn-acc-icon');
+          existentes.forEach((icone) => icone.remove());
+          if (!habilitado) return;
+          ACESSIBILIDADE_ICONES.forEach((icone) => {
+            container.appendChild(criarIconeAcessibilidade(icone));
+          });
+        }
+
+        function criarIconeAcessibilidade(icone) {
+          const span = document.createElement('span');
+          span.className = 'portal-dyn-acc-icon';
+          span.dataset.acessibilidade = icone.chave;
+          span.setAttribute('role', 'img');
+          span.setAttribute('aria-label', `${icone.rotulo} disponível`);
+          span.title = `${icone.rotulo} disponível`;
+          const imagem = document.createElement('img');
+          imagem.src = icone.src;
+          imagem.alt = `${icone.rotulo} disponível`;
+          imagem.loading = 'lazy';
+          imagem.decoding = 'async';
+          span.appendChild(imagem);
+          return span;
+        }
+
+        function criarClassificacao(classificacao) {
+          const info = obterClassificacao(classificacao);
+          const span = document.createElement('span');
+          span.className = `ci ${info.classe}`;
+          span.title = `Classificação: ${info.rotuloCompleto}`;
+          span.setAttribute('aria-label', `Classificação ${info.rotuloCompleto}`);
+          span.textContent = info.rotulo;
+          return span;
+        }
+
+        function obterClassificacao(valor) {
+          const mapa = {
+            Livre: { classe: 'l', rotulo: 'L', rotuloCompleto: 'Livre' },
+            '10+': { classe: 'c10', rotulo: '10', rotuloCompleto: '10+' },
+            '12+': { classe: 'c12', rotulo: '12', rotuloCompleto: '12+' },
+            '14+': { classe: 'c14', rotulo: '14', rotuloCompleto: '14+' },
+            '16+': { classe: 'c16', rotulo: '16', rotuloCompleto: '16+' },
+            '18+': { classe: 'c18', rotulo: '18', rotuloCompleto: '18+' }
+          };
+          return mapa[valor] || mapa['Livre'];
+        }
+
+        function montarGeneroLocal(evento) {
+          if (evento.genero && evento.local) {
+            return `${evento.genero} • ${evento.local}`;
+          }
+          return evento.genero || evento.local || '—';
+        }
+
+        function obterQuantidadeSelecionada() {
+          if (!mQuantidadeSelect) return 1;
+          const valor = parseInt(mQuantidadeSelect.value, 10);
+          return Number.isFinite(valor) && valor > 0 ? valor : 1;
+        }
+
+        function configurarSelectQuantidade(status) {
+          if (!mQuantidadeSelect) return;
+          const apenasUm = normalizarStatus(status) === 'semi-block';
+          while (mQuantidadeSelect.firstChild) {
+            mQuantidadeSelect.removeChild(mQuantidadeSelect.firstChild);
+          }
+          const opcoes = ['1'];
+          if (!apenasUm) {
+            opcoes.push('2');
+          }
+          opcoes.forEach((valor) => {
+            const option = document.createElement('option');
+            option.value = valor;
+            option.textContent = valor;
+            if (valor === '1') {
+              option.selected = true;
+            }
+            mQuantidadeSelect.appendChild(option);
+          });
+        }
+
+        function obterContainerAcoes(card) {
+          return card ? card.querySelector('.ticket-actions') : null;
+        }
+
+        function obterStatusDoCard(card) {
+          if (!card) return 'ok';
+          return normalizarStatus(card.dataset.status);
+        }
+
+        function encontrarCardPorId(id) {
+          if (!id || !elGrid) return null;
+          const todos = elGrid.querySelectorAll('[data-id]');
+          for (const candidato of todos) {
+            if (candidato.getAttribute('data-id') === id) {
+              return candidato;
+            }
+          }
+          return null;
+        }
+
+        function mostrarAvisoErro(card, mensagem) {
+          const container = obterContainerAcoes(card);
+          if (!container) return;
+          let aviso = container.querySelector('.portal-dyn-erro-confirmacao');
+          if (!aviso) {
+            aviso = document.createElement('small');
+            aviso.className = 'text-danger portal-dyn-erro-confirmacao';
+            container.appendChild(aviso);
+          }
+          aviso.textContent = mensagem;
+        }
+
+        function limparAvisoErro(card) {
+          const container = obterContainerAcoes(card);
+          if (!container) return;
+          const aviso = container.querySelector('.portal-dyn-erro-confirmacao');
+          if (aviso) {
+            aviso.remove();
+          }
+        }
+
+        function resetarDisponibilidade() {
+          if (!elGrid) return;
+          const cards = elGrid.querySelectorAll('[data-id]');
+          cards.forEach((card) => {
+            const jaPegou = card.getAttribute('data-ja-pegou') === 'true';
+            const statusCard = obterStatusDoCard(card);
+            const ehBlock = statusCard === 'block';
+            card.classList.remove('selecionado', 'is-active');
+            if (jaPegou) {
+              card.classList.add('portal-dyn-ja-pego');
+              card.classList.remove('inativo', 'is-muted');
+              card.setAttribute('aria-disabled', 'true');
+            } else {
+              card.classList.remove('inativo');
+              if (ehBlock) {
+                card.classList.add('is-muted');
+              } else {
+                card.classList.remove('is-muted');
+              }
+              card.classList.remove('portal-dyn-ja-pego');
+              if (!card.dataset.bloqueado) {
+                card.removeAttribute('aria-disabled');
+              }
+            }
+            limparAvisoErro(card);
+            const botao = card.querySelector('.btn-pegar-ingresso');
+            if (botao) {
+              resetarEstadoBotaoIngresso(botao);
+            }
+            const botaoDetalhes = card.querySelector('.btn-detalhes');
+            if (botaoDetalhes) {
+              botaoDetalhes.disabled = false;
+              botaoDetalhes.setAttribute('aria-disabled', 'false');
+              botaoDetalhes.type = 'button';
+            }
+          });
+        }
+
+        function resetarEstadoBotaoIngresso(botao) {
+          const status = obterStatusDoCard(botao.closest('[data-status]'));
+          const rotulo = rotuloPrincipalPorStatus(status);
+          botao.disabled = false;
+          botao.setAttribute('aria-disabled', 'false');
+          botao.setAttribute('aria-pressed', 'false');
+          botao.textContent = rotulo;
+          botao.classList.remove('btn-success');
+          if (!botao.classList.contains('btn-primary')) {
+            botao.classList.add('btn-primary');
+          }
+        }
+
+        function aplicarEstadoSelecionado(card) {
+          if (!card) return;
+          const status = obterStatusDoCard(card);
+          card.classList.add('selecionado');
+          card.classList.add('is-active');
+          card.classList.remove('inativo');
+          if (status !== 'block') {
+            card.classList.remove('is-muted');
+          }
+          const botao = card.querySelector('.btn-pegar-ingresso');
+          if (botao) {
+            botao.disabled = false;
+            botao.setAttribute('aria-disabled', 'false');
+            botao.setAttribute('aria-pressed', 'true');
+            botao.textContent = '🎟️ Ingresso selecionado';
+            botao.classList.add('btn-success');
+            botao.classList.remove('btn-primary');
+          }
+          const botaoDetalhes = card.querySelector('.btn-detalhes');
+          if (botaoDetalhes) {
+            botaoDetalhes.disabled = false;
+            botaoDetalhes.setAttribute('aria-disabled', 'false');
+          }
+        }
+
+        function aplicarEstadoInativo(card) {
+          if (!card) return;
+          const status = obterStatusDoCard(card);
+          const rotulo = rotuloPrincipalPorStatus(status);
+          if (card.getAttribute('data-ja-pegou') === 'true') {
+            card.classList.add('portal-dyn-ja-pego');
+            return;
+          }
+          card.classList.add('inativo');
+          card.classList.add('is-muted');
+          card.classList.remove('selecionado', 'is-active');
+          const botao = card.querySelector('.btn-pegar-ingresso');
+          if (botao) {
+            botao.disabled = true;
+            botao.setAttribute('aria-disabled', 'true');
+            botao.setAttribute('aria-pressed', 'false');
+            botao.textContent = rotulo;
+            botao.classList.remove('btn-success');
+            if (!botao.classList.contains('btn-primary')) {
+              botao.classList.add('btn-primary');
+            }
+          }
+          const botaoDetalhes = card.querySelector('.btn-detalhes');
+          if (botaoDetalhes) {
+            botaoDetalhes.disabled = true;
+            botaoDetalhes.setAttribute('aria-disabled', 'true');
+          }
+        }
+
+        function estaNoIntervaloDeRestricao(eventoAlvo, eventoSelecionado) {
+          if (
+            (eventoSelecionado && (eventoSelecionado.apenasDetalhes || eventoSelecionado.jaPegou)) ||
+            (eventoAlvo && (eventoAlvo.apenasDetalhes || eventoAlvo.jaPegou))
+          ) {
+            return false;
+          }
+          if (!eventoSelecionado || !Number.isFinite(eventoSelecionado.inicioAbsoluto)) {
+            return false;
+          }
+          if (!eventoAlvo || !Number.isFinite(eventoAlvo.inicioAbsoluto)) {
+            return false;
+          }
+          return Math.abs(eventoAlvo.inicioAbsoluto - eventoSelecionado.inicioAbsoluto) < INTERVALO_TRES_HORAS_MS;
+        }
+
+        function eventoConflitanteComSelecoes(evento) {
+          if (!evento || evento.apenasDetalhes || evento.jaPegou) return false;
+          for (const selecionadoId of selecoesAtuais) {
+            if (selecionadoId === evento.id) continue;
+            const selecionado = eventosPorId.get(selecionadoId);
+            if (!selecionado || selecionado.apenasDetalhes || selecionado.jaPegou) {
+              continue;
+            }
+            if (estaNoIntervaloDeRestricao(evento, selecionado)) {
+              return true;
+            }
+          }
+          return false;
+        }
+
+        function reloadComAtraso(ms = 1500) {
+          if (typeof window === 'undefined') return;
+          const atraso = Number.isFinite(ms) ? ms : 1500;
+          window.setTimeout(() => {
+            if (window.location) {
+              window.location.reload();
+            }
+          }, atraso);
+        }
+
+        function sanitizarCPF(valor) {
+          return String(valor ?? '').replace(/\D/g, '');
+        }
+
+        function obterCPF() {
+          const bruto = campoCPF && campoCPF.value ? campoCPF.value : CPF_FIXO;
+          const apenasDigitos = sanitizarCPF(bruto);
+          if (apenasDigitos.length === 11) {
+            return apenasDigitos;
+          }
+          console.warn('CPF inválido fornecido para requisições do catálogo.');
+          return null;
+        }
+
+        function nomeEhVisitante() {
+          return !NOME_USUARIO || NOME_USUARIO.toLowerCase() === 'visitante';
+        }
+
+        function garantirUsuarioAutenticado() {
+          if (!nomeEhVisitante()) return true;
+          window.location.href = LOGIN_URL;
+          return false;
+        }
+
+        function obterTotalItensCarrinho() {
+          let total = 0;
+          carrinho.forEach((item) => {
+            total += Number(item.quantidade || 0);
+          });
+          return total;
+        }
+
+        function atualizarBadgeCarrinho() {
+          if (!carrinhoBadge) return;
+          const total = obterTotalItensCarrinho();
+          carrinhoBadge.textContent = String(total);
+          carrinhoBadge.classList.toggle('d-none', total <= 0);
+        }
+
+        function atualizarTotalCarrinho() {
+          if (carrinhoTotalItens) {
+            const totalItens = obterTotalItensCarrinho();
+            carrinhoTotalItens.textContent = totalItens === 1 ? '1 item' : `${totalItens} itens`;
+          }
+          if (carrinhoConfirmarBtn) {
+            carrinhoConfirmarBtn.disabled = carrinho.size === 0;
+          }
+        }
+
+        function removerDoCarrinho(id) {
+          if (!id) return;
+          carrinho.delete(id);
+          selecoesAtuais.delete(id);
+          renderizarCarrinho();
+          atualizarBadgeCarrinho();
+          atualizarEstadoTodos();
+          atualizarBotaoModal();
+        }
+
+        function renderizarCarrinho() {
+          if (!carrinhoLista) return;
+          carrinhoLista.innerHTML = '';
+          if (carrinhoErro) carrinhoErro.textContent = '';
+          if (!carrinho.size) {
+            carrinhoLista.classList.add('d-none');
+            if (carrinhoVazio) carrinhoVazio.classList.remove('d-none');
+            atualizarTotalCarrinho();
+            return;
+          }
+          carrinhoLista.classList.remove('d-none');
+          if (carrinhoVazio) carrinhoVazio.classList.add('d-none');
+
+          carrinho.forEach((item) => {
+            const entrada = document.createElement('div');
+            entrada.className = 'list-group-item d-flex flex-column gap-2';
+            const topo = document.createElement('div');
+            topo.className = 'd-flex justify-content-between align-items-start gap-2';
+            const titulo = document.createElement('div');
+            titulo.className = 'cart-item-title';
+            titulo.textContent = item.titulo || '—';
+            const meta = document.createElement('div');
+            meta.className = 'cart-item-meta';
+            meta.textContent = item.quando || '—';
+            titulo.appendChild(document.createElement('br'));
+            titulo.appendChild(meta);
+            topo.appendChild(titulo);
+
+            const preco = document.createElement('div');
+            preco.className = 'text-end';
+            preco.innerHTML = '<div class="fw-semibold">R$ 0,00</div><div class="text-muted small">Gratuito</div>';
+            topo.appendChild(preco);
+            entrada.appendChild(topo);
+
+            const controles = document.createElement('div');
+            controles.className = 'd-flex align-items-center justify-content-between gap-2';
+
+            const blocoQtd = document.createElement('div');
+            blocoQtd.className = 'd-flex align-items-center gap-2';
+            const labelQtd = document.createElement('label');
+            labelQtd.className = 'small text-muted mb-0';
+            labelQtd.textContent = 'Quantidade';
+            const selectQtd = document.createElement('select');
+            selectQtd.className = 'form-select form-select-sm cart-quantity';
+            ['1', '2'].forEach((valor) => {
+              const opt = document.createElement('option');
+              opt.value = valor;
+              opt.textContent = valor;
+              if (valor === String(item.quantidade || 1)) opt.selected = true;
+              selectQtd.appendChild(opt);
+            });
+            selectQtd.addEventListener('change', () => {
+              const novaQtd = Math.min(2, Math.max(1, Number(selectQtd.value) || 1));
+              item.quantidade = novaQtd;
+              carrinho.set(item.id, item);
+              atualizarBadgeCarrinho();
+              atualizarTotalCarrinho();
+            });
+            blocoQtd.appendChild(labelQtd);
+            blocoQtd.appendChild(selectQtd);
+            controles.appendChild(blocoQtd);
+
+            const botaoRemover = document.createElement('button');
+            botaoRemover.className = 'btn btn-outline-danger btn-sm';
+            botaoRemover.type = 'button';
+            botaoRemover.textContent = 'Excluir';
+            botaoRemover.addEventListener('click', () => removerDoCarrinho(item.id));
+            controles.appendChild(botaoRemover);
+            entrada.appendChild(controles);
+
+            carrinhoLista.appendChild(entrada);
+          });
+
+          atualizarTotalCarrinho();
+        }
+
+        function adicionarAoCarrinho(evento, quantidade = 1) {
+          if (!evento) return;
+          if (!garantirUsuarioAutenticado()) return;
+          const qtdSegura = Math.min(2, Math.max(1, Number(quantidade) || 1));
+          const existente = carrinho.get(evento.id);
+          const quantidadeFinal = existente ? Math.min(2, qtdSegura) : qtdSegura;
+          carrinho.set(evento.id, {
+            id: evento.id,
+            titulo: evento.nome,
+            quando: evento.quandoFormatado || evento.quando,
+            quantidade: quantidadeFinal,
+            status: evento.status
+          });
+          selecoesAtuais.add(evento.id);
+          renderizarCarrinho();
+          atualizarBadgeCarrinho();
+          atualizarEstadoTodos();
+        }
+
+        async function confirmarItem(payload, contexto = {}) {
+          const { botao = null, card = null, rotuloPadrao = 'Confirmar' } = contexto;
+          const { id, quantidade = 1 } = payload || {};
+          if (!id) return false;
+          const cpf = payload?.cpf || obterCPF();
+          if (!cpf) {
+            if (card) {
+              mostrarAvisoErro(card, 'CPF inválido.');
+            }
+            return false;
+          }
+
+          const dadosEnvio = { id, cpf };
+          if (quantidade) {
+            dadosEnvio.quantidade = quantidade;
+          }
+
+          if (card) {
+            limparAvisoErro(card);
+          }
+
+          if (botao) {
+            botao.disabled = true;
+            botao.setAttribute('aria-disabled', 'true');
+            botao.textContent = 'Confirmando…';
+          }
+
+          try {
+            const resposta = await fetch(CONFIRMAR_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(dadosEnvio)
+            });
+            if (!resposta.ok) {
+              throw new Error(`HTTP ${resposta.status}`);
+            }
+            if (botao && botao.dataset?.confirmar === 'true') {
+              botao.textContent = 'Confirmado!';
+              setTimeout(() => {
+                if (!botao.isConnected) return;
+                if (botao.dataset.confirmar === 'true') {
+                  botao.textContent = rotuloPadrao;
+                }
+              }, 2000);
+            }
+            if (card) {
+              card.dispatchEvent(
+                new CustomEvent('ingresso:confirmado', { detail: { id, cpf, quantidade: dadosEnvio.quantidade }, bubbles: true })
+              );
+            }
+            return true;
+          } catch (erro) {
+            console.error('Falha ao confirmar ingresso', erro);
+            if (botao) {
+              botao.textContent = rotuloPadrao;
+            }
+            if (card) {
+              mostrarAvisoErro(card, 'Falha ao confirmar. Tente novamente.');
+            }
+            return false;
+          } finally {
+            if (botao) {
+              botao.disabled = false;
+              botao.setAttribute('aria-disabled', 'false');
+              if (botao === mConfirmBtn) {
+                if (!botao.textContent || botao.textContent === 'Confirmando…') {
+                  botao.textContent = rotuloPadrao;
+                }
+              } else if (botao.dataset?.confirmar !== 'true' && (!botao.textContent || botao.textContent === 'Confirmando…')) {
+                botao.textContent = 'Detalhes';
+              }
+            }
+          }
+        }
+
+        async function confirmarIngresso(botao) {
+          if (!botao || botao.disabled) return;
+          let card = botao.closest('[data-id]');
+          let id = botao.dataset.id || botao.dataset.confirmarId || '';
+          if (!id && card) {
+            id = card.getAttribute('data-id') || '';
+          }
+          if (!id && botao === mConfirmBtn && mTicketBtn) {
+            id = mTicketBtn.dataset.id || '';
+          }
+          if (!id) return;
+          if (!card) {
+            card = encontrarCardPorId(id);
+          }
+          const quantidade = obterQuantidadeSelecionada();
+          const rotuloPadrao = botao.dataset?.labelPadrao || 'Confirmar';
+          const sucesso = await confirmarItem({ id, quantidade }, { botao, card, rotuloPadrao });
+          if (sucesso) {
+            reloadComAtraso();
+          }
+        }
+
+        async function confirmarCarrinho() {
+          if (!carrinhoConfirmarBtn || carrinhoConfirmarBtn.disabled) return;
+          if (!carrinho.size) return;
+          if (!garantirUsuarioAutenticado()) return;
+          const cpf = obterCPF();
+          if (!cpf) {
+            if (carrinhoErro) {
+              carrinhoErro.textContent = 'CPF inválido. Faça login para continuar.';
+            }
+            return;
+          }
+          carrinhoConfirmarBtn.disabled = true;
+          const rotuloPadrao = 'Confirmar ingressos';
+          carrinhoConfirmarBtn.textContent = 'Confirmando…';
+          if (carrinhoErro) carrinhoErro.textContent = '';
+          let sucessoGeral = true;
+          for (const item of carrinho.values()) {
+            const ok = await confirmarItem({ id: item.id, quantidade: item.quantidade, cpf });
+            if (!ok) {
+              sucessoGeral = false;
+              break;
+            }
+          }
+          if (sucessoGeral) {
+            carrinhoConfirmarBtn.textContent = 'Confirmado!';
+            reloadComAtraso();
+          } else {
+            carrinhoConfirmarBtn.textContent = rotuloPadrao;
+            if (carrinhoErro) {
+              carrinhoErro.textContent = 'Não foi possível confirmar todos os ingressos. Tente novamente.';
+            }
+          }
+          carrinhoConfirmarBtn.disabled = false;
+        }
+
+        function abrirModalCancelar(evento) {
+          if (!evento) return;
+          eventoParaCancelar = evento;
+          if (modalCancelarBtnConfirmar) {
+            modalCancelarBtnConfirmar.disabled = false;
+            modalCancelarBtnConfirmar.textContent = 'Sim';
+          }
+          if (modalCancelar) {
+            modalCancelar.show();
+          }
+        }
+
+        async function cancelarIngresso() {
+          const evento = eventoParaCancelar;
+          if (!evento) return;
+          const cpf = obterCPF();
+          if (!cpf) {
+            console.error('CPF inválido para cancelamento.');
+            return;
+          }
+          if (modalCancelarBtnConfirmar) {
+            modalCancelarBtnConfirmar.disabled = true;
+            modalCancelarBtnConfirmar.textContent = 'Cancelando…';
+          }
+          try {
+            const resposta = await fetch(CANCELAR_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: evento.id, cpf })
+            });
+            if (!resposta.ok) {
+              throw new Error(`HTTP ${resposta.status}`);
+            }
+            if (modalCancelar) {
+              modalCancelar.hide();
+            }
+            reloadComAtraso(2000);
+          } catch (erro) {
+            console.error('Falha ao cancelar ingresso', erro);
+          } finally {
+            if (modalCancelarBtnConfirmar) {
+              modalCancelarBtnConfirmar.disabled = false;
+              modalCancelarBtnConfirmar.textContent = 'Sim';
+            }
+            eventoParaCancelar = null;
+          }
+        }
+
+        function aoClicarNoGrid(evento) {
+          const botaoIngresso = evento.target.closest('.btn-pegar-ingresso');
+          if (botaoIngresso) {
+            const card = botaoIngresso.closest('[data-id]');
+            if (!card) return;
+            const chave = card.getAttribute('data-quando') || DATE_KEY_EMPTY;
+            const id = card.getAttribute('data-id');
+            togglePorData(chave, id);
+            return;
+          }
+          const botaoDetalhes = evento.target.closest('[data-details]');
+          if (botaoDetalhes) {
+            if (botaoDetalhes.disabled) {
+              evento.preventDefault();
+              return;
+            }
+            const card = botaoDetalhes.closest('[data-id]');
+            if (!card) return;
+            const id = card.getAttribute('data-id');
+            const dados = eventosPorId.get(id) || eventosBloqueadosPorId.get(id);
+            if (dados) {
+              abrirModal(dados);
+            }
+          }
+        }
+
+        function togglePorData(_quandoNormalizado, id) {
+          if (!id) return;
+          const evento = eventosPorId.get(id);
+          if (!evento) {
+            if (selecoesAtuais.has(id)) {
+              selecoesAtuais.delete(id);
+              atualizarEstadoTodos();
+              atualizarBotaoModal();
+            }
+            return;
+          }
+          if (evento.status === 'block') {
+            return;
+          }
+          if (evento.apenasDetalhes || evento.jaPegou) {
+            if (selecoesAtuais.has(id)) {
+              selecoesAtuais.delete(id);
+              atualizarEstadoTodos();
+              atualizarBotaoModal();
+            }
+            return;
+          }
+          if (selecoesAtuais.has(id)) {
+            selecoesAtuais.delete(id);
+          } else {
+            if (eventoConflitanteComSelecoes(evento)) {
+              return;
+            }
+            selecoesAtuais.add(id);
+          }
+          atualizarEstadoTodos();
+          atualizarBotaoModal();
+        }
+
+        function atualizarEstadoDosCards() {
+          if (!elGrid) return;
+          resetarDisponibilidade();
+          if (!selecoesAtuais.size) return;
+          const selecionados = Array.from(selecoesAtuais)
+            .map((id) => eventosPorId.get(id))
+            .filter(Boolean);
+          if (!selecionados.length) return;
+          selecionados.forEach((eventoSelecionado) => {
+            const cardSelecionado = encontrarCardPorId(eventoSelecionado.id);
+            if (cardSelecionado) {
+              aplicarEstadoSelecionado(cardSelecionado);
+            }
+          });
+          const cards = elGrid.querySelectorAll('[data-id]');
+          cards.forEach((card) => {
+            const idCard = card.getAttribute('data-id');
+            if (!idCard || selecoesAtuais.has(idCard)) return;
+            const eventoCard = eventosPorId.get(idCard);
+            if (
+              selecionados.some((eventoSelecionado) =>
+                estaNoIntervaloDeRestricao(eventoCard, eventoSelecionado)
+              )
+            ) {
+              aplicarEstadoInativo(card);
+            }
+          });
+        }
+
+        function atualizarEstadoTodos() {
+          if (!elGrid) return;
+          if (selecoesAtuais.size) {
+            atualizarEstadoDosCards();
+          } else {
+            resetarDisponibilidade();
+          }
+        }
+
+        function abrirModal(evento) {
+          if (!mTitle) return;
+          const status = normalizarStatus(evento.status);
+          const ehBlock = status === 'block';
+          const ehSemiBlock = status === 'semi-block';
+          mTitle.textContent = evento.nome;
+          if (mPoster) {
+            mPoster.src = evento.posterdetalhes || evento.poster || '';
+            mPoster.alt = `Pôster da peça ${evento.nome}`;
+          }
+          if (mClass) {
+            const info = obterClassificacao(evento.classificacao);
+            mClass.className = `ci ${info.classe}`;
+            mClass.textContent = info.rotulo;
+          }
+          aplicarAcessibilidadeAoContainer(mClassWrapper, evento.temAcessibilidade);
+          if (mLocal) mLocal.textContent = evento.local || '—';
+          if (mQuando) mQuando.textContent = evento.quandoFormatado || '—';
+          if (mGenero) mGenero.textContent = evento.genero || '—';
+          if (mDuracao) mDuracao.textContent = evento.duracao || '—';
+          if (mGrupo) {
+            const grupoOrigem = evento.grupoOrigem || combinarGrupoOrigem(evento.quemFaz, evento.origem) || '—';
+            mGrupo.textContent = grupoOrigem || '—';
+            if (grupoOrigem && grupoOrigem !== '—') {
+              mGrupo.title = grupoOrigem;
+            } else {
+              mGrupo.removeAttribute('title');
+            }
+          }
+          if (mSinopse) mSinopse.textContent = evento.sinopse || '—';
+          const somenteDetalhes = Boolean(evento.apenasDetalhes || evento.jaPegou);
+          if (mTicketBtn) {
+            if (somenteDetalhes) {
+              mTicketBtn.classList.add('d-none');
+              mTicketBtn.disabled = true;
+              mTicketBtn.setAttribute('aria-disabled', 'true');
+              mTicketBtn.setAttribute('aria-pressed', 'false');
+              mTicketBtn.dataset.id = '';
+              mTicketBtn.dataset.quando = '';
+              mTicketBtn.dataset.hora = '';
+            } else {
+              mTicketBtn.classList.remove('d-none');
+              mTicketBtn.setAttribute('aria-pressed', 'false');
+              mTicketBtn.setAttribute('aria-disabled', 'false');
+              mTicketBtn.disabled = false;
+              mTicketBtn.dataset.id = evento.id;
+              mTicketBtn.dataset.quando = evento.quandoNormalizado || DATE_KEY_EMPTY;
+              mTicketBtn.dataset.hora = evento.horaCurta || '';
+              mTicketBtn.textContent = rotuloPrincipalPorStatus(status);
+              mTicketBtn.disabled = false;
+              mTicketBtn.setAttribute('aria-disabled', 'false');
+            }
+          }
+          const esconderQuantidade = somenteDetalhes || ehBlock;
+          configurarSelectQuantidade(status);
+          if (mQuantidadeWrapper) {
+            mQuantidadeWrapper.classList.toggle('d-none', esconderQuantidade);
+          }
+          if (mQuantidadeSelect) {
+            mQuantidadeSelect.value = '1';
+            mQuantidadeSelect.disabled = esconderQuantidade;
+          }
+          if (mCancelarBtn) {
+            mCancelarBtn.dataset.id = evento.id;
+            mCancelarBtn.classList.toggle('d-none', !ehSemiBlock);
+            mCancelarBtn.disabled = !ehSemiBlock;
+            mCancelarBtn.setAttribute('aria-disabled', ehSemiBlock ? 'false' : 'true');
+          }
+          if (mConfirmBtn) {
+            mConfirmBtn.classList.remove('d-none');
+            mConfirmBtn.disabled = false;
+            mConfirmBtn.setAttribute('aria-disabled', 'false');
+            mConfirmBtn.textContent = 'Ir para o carrinho';
+          }
+          atualizarBotaoModal();
+          modal.show();
+        }
+
+        function atualizarBotaoModal() {
+          if (!mTicketBtn) return;
+          const id = mTicketBtn.dataset.id;
+          if (!id) return;
+          const evento = eventosPorId.get(id);
+          if (!evento) return;
+          const status = normalizarStatus(evento.status);
+          const rotuloPrincipal = rotuloPrincipalPorStatus(status);
+          const ehBlock = status === 'block';
+          const ehSemiBlock = status === 'semi-block';
+          if (evento.apenasDetalhes || evento.jaPegou) {
+            if (mTicketBtn) {
+              mTicketBtn.disabled = true;
+              mTicketBtn.setAttribute('aria-disabled', 'true');
+              mTicketBtn.setAttribute('aria-pressed', 'false');
+            }
+            if (mQuantidadeSelect) {
+              mQuantidadeSelect.disabled = true;
+            }
+            return;
+          }
+          const selecionado = selecoesAtuais.has(id) || carrinho.has(id);
+          const bloqueado = !selecionado && eventoConflitanteComSelecoes(evento);
+
+          if (selecionado) {
+            mTicketBtn.disabled = false;
+            mTicketBtn.setAttribute('aria-disabled', 'false');
+            mTicketBtn.setAttribute('aria-pressed', 'true');
+            mTicketBtn.textContent = '🛒 No carrinho';
+            mTicketBtn.classList.add('btn-success');
+            mTicketBtn.classList.remove('btn-outline-secondary');
+            mTicketBtn.classList.remove('btn-outline-primary');
+          } else if (bloqueado) {
+            mTicketBtn.disabled = true;
+            mTicketBtn.setAttribute('aria-disabled', 'true');
+            mTicketBtn.setAttribute('aria-pressed', 'false');
+            mTicketBtn.textContent = '🎟️ Indisponível';
+            mTicketBtn.classList.remove('btn-success');
+            if (!mTicketBtn.classList.contains('btn-outline-secondary')) {
+              mTicketBtn.classList.add('btn-outline-secondary');
+            }
+            mTicketBtn.classList.remove('btn-outline-primary');
+          } else {
+            mTicketBtn.disabled = false;
+            mTicketBtn.setAttribute('aria-disabled', 'false');
+            mTicketBtn.setAttribute('aria-pressed', 'false');
+            mTicketBtn.textContent = rotuloPrincipal;
+            mTicketBtn.classList.remove('btn-success');
+            mTicketBtn.classList.remove('btn-outline-secondary');
+            if (!mTicketBtn.classList.contains('btn-outline-primary')) {
+              mTicketBtn.classList.add('btn-outline-primary');
+            }
+          }
+          if (mConfirmBtn) {
+            mConfirmBtn.classList.remove('d-none');
+            mConfirmBtn.disabled = false;
+            mConfirmBtn.setAttribute('aria-disabled', 'false');
+            mConfirmBtn.textContent = rotuloConfirmarPorStatus(status);
+          }
+          if (mQuantidadeSelect) {
+            mQuantidadeSelect.disabled = bloqueado || ehBlock;
+          }
+        }
+
+        function atualizarResultado() {
+          if (!elResultInfo) return;
+          elResultInfo.textContent = `Exibindo ${eventosFiltrados.length} de ${eventos.length}`;
+        }
+
+        function formatarDataHora(quando, hora) {
+          const dataReferencia = construirDataReferencia(quando, hora);
+          if (!dataReferencia) {
+            return { texto: '', normalizado: '', horaCurta: '' };
+          }
+          const partes = new Intl.DateTimeFormat('pt-BR', {
+            timeZone: 'America/Recife',
+            day: '2-digit',
+            month: 'long',
+            hour: '2-digit',
+            minute: '2-digit'
+          }).formatToParts(dataReferencia);
+          const dia = partes.find((p) => p.type === 'day')?.value || '';
+          const mes = (partes.find((p) => p.type === 'month')?.value || '').toLowerCase();
+          const horaParte = partes.find((p) => p.type === 'hour')?.value || '00';
+          const minutoParte = partes.find((p) => p.type === 'minute')?.value || '00';
+          const sufixoHora = minutoParte !== '00' ? `${horaParte}h${minutoParte}` : `${horaParte}h`;
+          const texto = dia && mes ? `${dia} ${mes}, ${sufixoHora}` : '';
+          const normalizado = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'America/Recife',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+          }).format(dataReferencia);
+          return {
+            texto,
+            normalizado,
+            horaCurta: `${horaParte}:${minutoParte}`
+          };
+        }
+
+        function gerarCarimboData(dataReferencia) {
+          if (!dataReferencia) {
+            return { diaSemana: '', dataCurta: '' };
+          }
+          const formatterSemana = new Intl.DateTimeFormat('pt-BR', {
+            timeZone: 'America/Recife',
+            weekday: 'short'
+          });
+          const formatterData = new Intl.DateTimeFormat('pt-BR', {
+            timeZone: 'America/Recife',
+            day: '2-digit',
+            month: '2-digit'
+          });
+          const semanaBruta = formatterSemana.format(dataReferencia);
+          const diaSemana = semanaBruta
+            .replace(/\./g, '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toUpperCase();
+          const dataCompleta = formatterData.format(dataReferencia);
+          const [dia, mes] = dataCompleta.split('/');
+          const dataCurta = dia && mes ? `${dia}.${mes}` : '';
+          return { diaSemana, dataCurta };
+        }
+
+        function toRecifeDate(quando, horaFallback) {
+          return construirDataReferencia(quando, horaFallback);
+        }
+
+        function construirDataReferencia(quando, horaFallback) {
+          if (!quando) return null;
+          const valor = String(quando).trim();
+          if (!valor) return null;
+          const horaPreferida = horaFallback !== undefined && horaFallback !== null
+            ? String(horaFallback).trim()
+            : '';
+
+          if (/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+            return criarDataComTimezone(valor, horaPreferida);
+          }
+
+          if (/(Z|[+-]\d{2}:?\d{2})$/i.test(valor)) {
+            const dataComOffset = new Date(valor);
+            if (!Number.isNaN(dataComOffset.getTime())) {
+              if (horaPreferida) {
+                const dataRecife = new Intl.DateTimeFormat('en-CA', {
+                  timeZone: 'America/Recife',
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit'
+                }).format(dataComOffset);
+                const ajustada = criarDataComTimezone(dataRecife, horaPreferida);
+                if (ajustada) {
+                  return ajustada;
+                }
+              }
+              return dataComOffset;
+            }
+          }
+
+          const matchSemOffset = valor.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2})(?:\.\d+)?$/);
+          if (matchSemOffset) {
+            return criarDataComTimezone(matchSemOffset[1], matchSemOffset[2]);
+          }
+
+          const dataDireta = new Date(valor);
+          if (!Number.isNaN(dataDireta.getTime())) {
+            return dataDireta;
+          }
+
+          const dataParte = valor.slice(0, 10);
+          if (dataParte && /^\d{4}-\d{2}-\d{2}$/.test(dataParte)) {
+            return criarDataComTimezone(dataParte, horaPreferida);
+          }
+
+          return null;
+        }
+
+        function criarDataComTimezone(dataStr, horaStr) {
+          if (!dataStr) return null;
+          const dataLimpa = String(dataStr).trim();
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(dataLimpa)) {
+            return null;
+          }
+          const horaNormalizada = normalizarHora(horaStr);
+          const combinada = `${dataLimpa}T${horaNormalizada}-03:00`;
+          const data = new Date(combinada);
+          return Number.isNaN(data.getTime()) ? null : data;
+        }
+
+        function normalizarHora(hora) {
+          if (!hora) return '00:00:00';
+          if (/^\d{2}:\d{2}:\d{2}$/.test(hora)) return hora;
+          if (/^\d{2}:\d{2}$/.test(hora)) return `${hora}:00`;
+          return '00:00:00';
+        }
+      })();
+    </script>
+
+  </body>
+</html>
