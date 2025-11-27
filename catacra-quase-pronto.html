@@ -587,9 +587,6 @@
         async function fetchEventos(url = API_URL) {
           try {
             const cpf = obterCPF();
-            if (!cpf) {
-              return [];
-            }
             const resposta = await fetch(url, {
               method: 'POST',
               headers: {
@@ -597,7 +594,7 @@
                 'Content-Type': 'application/json',
                 'Cache-Control': 'no-store'
               },
-              body: JSON.stringify({ cpf })
+              body: JSON.stringify({ cpf: cpf || null })
             });
             if (!resposta.ok) {
               throw new Error(`Erro HTTP ${resposta.status}`);
@@ -1603,7 +1600,7 @@
             return apenasDigitos;
           }
           console.warn('CPF inválido fornecido para requisições do catálogo.');
-          return '';
+          return null;
         }
 
         function nomeEhVisitante() {
