@@ -92,6 +92,11 @@
       .catalog-loading .catalog-loading-text{display:flex;flex-direction:column;font-weight:700;line-height:1.3}
       .catalog-loading .catalog-loading-text small{font-weight:500;color:var(--text-muted)}
       .catalog-loading.d-none{display:none!important}
+      .cart-item-title{font-weight:700;font-size:.95rem;line-height:1.35}
+      .cart-item-meta{color:var(--text-muted);font-size:.85rem}
+      .cart-quantity{width:80px}
+      #carrinhoLista .list-group-item{border:1px solid var(--border-color);border-radius:12px;margin-bottom:.5rem;box-shadow:0 6px 14px rgba(0,35,79,.08)}
+      #btnCarrinho{min-width:180px}
       #modalDetalhes .modal-dialog{max-width:980px}
       #modalDetalhes .modal-content{border-radius:18px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.18)}
       #modalDetalhes .modal-header,#modalDetalhes .modal-footer{background:var(--surface);border-color:rgba(0,0,0,.05)}
@@ -127,6 +132,25 @@
             <h1 class="display-5 fw-bold mb-2">Catraca Conecta • Sua bilheteria eletrônica gratuita</h1>
             <p class="lead mb-0">Programação oficial da Secretaria de Cultura do Recife • Explore as peças e escolha seu teatro.</p>
           </div>
+          <div class="ms-md-auto">
+            <button
+              id="btnCarrinho"
+              class="btn btn-light position-relative shadow-sm"
+              type="button"
+              data-bs-toggle="offcanvas"
+              data-bs-target="#offcanvasCarrinho"
+              aria-controls="offcanvasCarrinho"
+            >
+              🛒 Meu carrinho
+              <span
+                id="badgeCarrinho"
+                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none"
+                aria-label="Quantidade de itens no carrinho"
+              >
+                0
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </header>
@@ -134,7 +158,7 @@
     <section class="py-3">
       <div class="container">
         <div class="alert alert-primary mb-0" role="status">
-          🎭 Olá, {{ (() => { const nome = String($json.given_name ?? '').trim(); return nome ? nome[0].toUpperCase() + nome.slice(1).toLowerCase() : 'Visitante'; })() }}! ✨ Seja bem-vindo(a) à programação do Festival de Teatro do Recife — escolha seu espetáculo e aproveite o show!
+          🎭 Olá, {{ (() => { const nome = String($json.given_name ?? '').trim(); return nome ? nome[0].toUpperCase() + nome.slice(1).toLowerCase() : 'visitante'; })() }}! ✨ Seja bem-vindo(a) à programação do Festival de Teatro do Recife — escolha seu espetáculo e aproveite o show!
         </div>
       </div>
     </section>
@@ -221,7 +245,7 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button id="modalTicketBtn" type="button" class="btn btn-outline-primary" aria-pressed="false">🎟️ Pegar ingresso</button>
+            <button id="modalTicketBtn" type="button" class="btn btn-outline-primary" aria-pressed="false">🛒 Colocar no carrinho</button>
             <div class="d-flex align-items-center gap-2 ms-0 me-auto" id="modalQuantidadeWrapper">
               <label for="modalQuantidade" class="form-label small mb-0">Quantidade</label>
               <select id="modalQuantidade" class="form-select form-select-sm w-auto">
@@ -242,10 +266,10 @@
               id="modalConfirmBtn"
               type="button"
               class="btn btn-primary"
-              aria-disabled="true"
-              disabled
+              data-bs-toggle="offcanvas"
+              data-bs-target="#offcanvasCarrinho"
             >
-              Confirmar
+              Ir para o carrinho
             </button>
             <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Fechar</button>
           </div>
@@ -289,6 +313,32 @@
       </div>
     </div>
 
+    <!-- OFFCANVAS: CARRINHO -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasCarrinho" aria-labelledby="offcanvasCarrinhoLabel">
+      <div class="offcanvas-header">
+        <div>
+          <h5 class="offcanvas-title" id="offcanvasCarrinhoLabel">Meu carrinho</h5>
+          <small class="text-muted">Ingressos grátis — ajuste a quantidade e confirme</small>
+        </div>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
+      </div>
+      <div class="offcanvas-body d-flex flex-column gap-3">
+        <div id="carrinhoLista" class="list-group"></div>
+        <div id="carrinhoVazio" class="text-center text-muted py-3 d-none">Nenhum ingresso no carrinho ainda.</div>
+        <div id="carrinhoErro" class="text-danger small"></div>
+        <div class="d-flex align-items-center justify-content-between border-top pt-3 mt-auto">
+          <div>
+            <div class="fw-semibold">Total</div>
+            <div class="text-muted small">R$ 0,00 (ingressos gratuitos)</div>
+          </div>
+          <div class="d-flex flex-column align-items-end gap-2">
+            <div class="fw-semibold" id="carrinhoTotalItens">0 itens</div>
+            <button id="carrinhoConfirmar" class="btn btn-primary" type="button">Confirmar ingressos</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- RODAPÉ -->
     <footer class="py-5">
       <div class="container text-center small text-muted">
@@ -304,6 +354,15 @@
         const API_URL_JA_PEGOS = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/d0bbd65b-b4f6-45cf-8f98-2aff0bcb03a5';
         const CONFIRMAR_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/322fa1a9-b9aa-4e22-8762-fe0e63895727';
         const CANCELAR_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/cancelar-ingresso';
+        const LOGIN_URL =
+          'https://login.recife.pe.gov.br/auth/realms/recife/protocol/openid-connect/auth?response_type=code&redirect_uri=https%3A%2F%2Fconecta.recife.pe.gov.br%2Facesso&client_id=psp&nonce=4adee81a4d65dcb0d64369e776f1ad31&state=f71377d8222ff81c25db077b04cacc7c&scope=openid';
+        const NOME_USUARIO = (() => {
+          const bruto = String($json.given_name ?? '').trim();
+          if (bruto) {
+            return bruto[0].toUpperCase() + bruto.slice(1).toLowerCase();
+          }
+          return 'visitante';
+        })();
         const CPF_FIXO = '{{ String(($json.cpf ?? $json.preferred_username ?? '')).replace(/\D+/g, '').slice(0,11) }}';
         const ICON_LIBRAS_SRC = 'https://www.ifmg.edu.br/conselheirolafaiete/noticias/anexos-noticias/libras-768x767.png/@@images/image.png';
         const ICON_AD_SRC = 'https://w7.pngwing.com/pngs/691/979/png-transparent-computer-icons-audio-description-pause-miscellaneous-text-trademark.png';
@@ -344,6 +403,7 @@
         const selecoesAtuais = new Set();
         const eventosPorId = new Map();
         const eventosBloqueadosPorId = new Map();
+        const carrinho = new Map();
         let eventos = [];
         let eventosFiltrados = [];
         let eventosJaPegos = [];
@@ -381,6 +441,13 @@
         let modalCancelar;
         let modalCancelarBtnConfirmar;
         let eventoParaCancelar = null;
+        let carrinhoOffcanvas;
+        let carrinhoLista;
+        let carrinhoVazio;
+        let carrinhoBadge;
+        let carrinhoErro;
+        let carrinhoTotalItens;
+        let carrinhoConfirmarBtn;
 
         if (document.readyState === 'loading') {
           document.addEventListener('DOMContentLoaded', init);
@@ -430,6 +497,14 @@
           mTicketBtn = document.querySelector('#modalTicketBtn');
           mConfirmBtn = document.querySelector('#modalConfirmBtn');
           mCancelarBtn = document.querySelector('#modalCancelarBtn');
+          carrinhoLista = document.querySelector('#carrinhoLista');
+          carrinhoVazio = document.querySelector('#carrinhoVazio');
+          carrinhoBadge = document.querySelector('#badgeCarrinho');
+          carrinhoErro = document.querySelector('#carrinhoErro');
+          carrinhoTotalItens = document.querySelector('#carrinhoTotalItens');
+          carrinhoConfirmarBtn = document.querySelector('#carrinhoConfirmar');
+          const carrinhoOffcanvasEl = document.querySelector('#offcanvasCarrinho');
+          carrinhoOffcanvas = carrinhoOffcanvasEl ? new bootstrap.Offcanvas(carrinhoOffcanvasEl) : null;
           const modalCancelarEl = document.querySelector('#modalCancelar');
           modalCancelar = modalCancelarEl ? new bootstrap.Modal(modalCancelarEl) : null;
           if (modalCancelarEl && modalCancelar) {
@@ -466,6 +541,8 @@
           atualizarResultado();
           registrarEventos();
           await carregarEventosJaPegos();
+          renderizarCarrinho();
+          atualizarBadgeCarrinho();
         }
 
         function injetarEstilos() {
@@ -740,11 +817,11 @@
         }
 
         function rotuloPrincipalPorStatus(status) {
-          return normalizarStatus(status) === 'block' ? '🎟️ Devolver ingresso' : '🎟️ Pegar ingresso';
+          return normalizarStatus(status) === 'block' ? '🎟️ Devolver ingresso' : '🛒 Colocar no carrinho';
         }
 
         function rotuloConfirmarPorStatus(status) {
-          return normalizarStatus(status) === 'semi-block' ? 'Devolver ingresso' : 'Confirmar';
+          return normalizarStatus(status) === 'semi-block' ? 'Devolver ingresso' : 'Ir para o carrinho';
         }
 
         function interpretarAcessibilidade(valor) {
@@ -912,20 +989,13 @@
                 abrirModalCancelar(evento);
                 return;
               }
-              const chave = evento.quandoNormalizado || DATE_KEY_EMPTY;
-              togglePorData(chave, id);
+              adicionarAoCarrinho(evento, obterQuantidadeSelecionada());
+              atualizarBotaoModal();
             });
           }
-          if (mConfirmBtn) {
+          if (mConfirmBtn && carrinhoOffcanvas) {
             mConfirmBtn.addEventListener('click', () => {
-              const id = mConfirmBtn.dataset.id;
-              const evento = id ? eventosPorId.get(id) || eventosBloqueadosPorId.get(id) : null;
-              const status = normalizarStatus(evento?.status);
-              if (status === 'semi-block') {
-                abrirModalCancelar(evento);
-                return;
-              }
-              confirmarIngresso(mConfirmBtn);
+              carrinhoOffcanvas.show();
             });
           }
           if (mCancelarBtn) {
@@ -937,6 +1007,9 @@
           }
           if (modalCancelarBtnConfirmar) {
             modalCancelarBtnConfirmar.addEventListener('click', cancelarIngresso);
+          }
+          if (carrinhoConfirmarBtn) {
+            carrinhoConfirmarBtn.addEventListener('click', confirmarCarrinho);
           }
         }
 
@@ -1533,6 +1606,221 @@
           return '';
         }
 
+        function nomeEhVisitante() {
+          return !NOME_USUARIO || NOME_USUARIO.toLowerCase() === 'visitante';
+        }
+
+        function garantirUsuarioAutenticado() {
+          if (!nomeEhVisitante()) return true;
+          window.location.href = LOGIN_URL;
+          return false;
+        }
+
+        function obterTotalItensCarrinho() {
+          let total = 0;
+          carrinho.forEach((item) => {
+            total += Number(item.quantidade || 0);
+          });
+          return total;
+        }
+
+        function atualizarBadgeCarrinho() {
+          if (!carrinhoBadge) return;
+          const total = obterTotalItensCarrinho();
+          carrinhoBadge.textContent = String(total);
+          carrinhoBadge.classList.toggle('d-none', total <= 0);
+        }
+
+        function atualizarTotalCarrinho() {
+          if (carrinhoTotalItens) {
+            const totalItens = obterTotalItensCarrinho();
+            carrinhoTotalItens.textContent = totalItens === 1 ? '1 item' : `${totalItens} itens`;
+          }
+          if (carrinhoConfirmarBtn) {
+            carrinhoConfirmarBtn.disabled = carrinho.size === 0;
+          }
+        }
+
+        function removerDoCarrinho(id) {
+          if (!id) return;
+          carrinho.delete(id);
+          selecoesAtuais.delete(id);
+          renderizarCarrinho();
+          atualizarBadgeCarrinho();
+          atualizarEstadoTodos();
+          atualizarBotaoModal();
+        }
+
+        function renderizarCarrinho() {
+          if (!carrinhoLista) return;
+          carrinhoLista.innerHTML = '';
+          if (carrinhoErro) carrinhoErro.textContent = '';
+          if (!carrinho.size) {
+            carrinhoLista.classList.add('d-none');
+            if (carrinhoVazio) carrinhoVazio.classList.remove('d-none');
+            atualizarTotalCarrinho();
+            return;
+          }
+          carrinhoLista.classList.remove('d-none');
+          if (carrinhoVazio) carrinhoVazio.classList.add('d-none');
+
+          carrinho.forEach((item) => {
+            const entrada = document.createElement('div');
+            entrada.className = 'list-group-item d-flex flex-column gap-2';
+            const topo = document.createElement('div');
+            topo.className = 'd-flex justify-content-between align-items-start gap-2';
+            const titulo = document.createElement('div');
+            titulo.className = 'cart-item-title';
+            titulo.textContent = item.titulo || '—';
+            const meta = document.createElement('div');
+            meta.className = 'cart-item-meta';
+            meta.textContent = item.quando || '—';
+            titulo.appendChild(document.createElement('br'));
+            titulo.appendChild(meta);
+            topo.appendChild(titulo);
+
+            const preco = document.createElement('div');
+            preco.className = 'text-end';
+            preco.innerHTML = '<div class="fw-semibold">R$ 0,00</div><div class="text-muted small">Gratuito</div>';
+            topo.appendChild(preco);
+            entrada.appendChild(topo);
+
+            const controles = document.createElement('div');
+            controles.className = 'd-flex align-items-center justify-content-between gap-2';
+
+            const blocoQtd = document.createElement('div');
+            blocoQtd.className = 'd-flex align-items-center gap-2';
+            const labelQtd = document.createElement('label');
+            labelQtd.className = 'small text-muted mb-0';
+            labelQtd.textContent = 'Quantidade';
+            const selectQtd = document.createElement('select');
+            selectQtd.className = 'form-select form-select-sm cart-quantity';
+            ['1', '2'].forEach((valor) => {
+              const opt = document.createElement('option');
+              opt.value = valor;
+              opt.textContent = valor;
+              if (valor === String(item.quantidade || 1)) opt.selected = true;
+              selectQtd.appendChild(opt);
+            });
+            selectQtd.addEventListener('change', () => {
+              const novaQtd = Math.min(2, Math.max(1, Number(selectQtd.value) || 1));
+              item.quantidade = novaQtd;
+              carrinho.set(item.id, item);
+              atualizarBadgeCarrinho();
+              atualizarTotalCarrinho();
+            });
+            blocoQtd.appendChild(labelQtd);
+            blocoQtd.appendChild(selectQtd);
+            controles.appendChild(blocoQtd);
+
+            const botaoRemover = document.createElement('button');
+            botaoRemover.className = 'btn btn-outline-danger btn-sm';
+            botaoRemover.type = 'button';
+            botaoRemover.textContent = 'Excluir';
+            botaoRemover.addEventListener('click', () => removerDoCarrinho(item.id));
+            controles.appendChild(botaoRemover);
+            entrada.appendChild(controles);
+
+            carrinhoLista.appendChild(entrada);
+          });
+
+          atualizarTotalCarrinho();
+        }
+
+        function adicionarAoCarrinho(evento, quantidade = 1) {
+          if (!evento) return;
+          if (!garantirUsuarioAutenticado()) return;
+          const qtdSegura = Math.min(2, Math.max(1, Number(quantidade) || 1));
+          const existente = carrinho.get(evento.id);
+          const quantidadeFinal = existente ? Math.min(2, qtdSegura) : qtdSegura;
+          carrinho.set(evento.id, {
+            id: evento.id,
+            titulo: evento.nome,
+            quando: evento.quandoFormatado || evento.quando,
+            quantidade: quantidadeFinal,
+            status: evento.status
+          });
+          selecoesAtuais.add(evento.id);
+          renderizarCarrinho();
+          atualizarBadgeCarrinho();
+          atualizarEstadoTodos();
+        }
+
+        async function confirmarItem(payload, contexto = {}) {
+          const { botao = null, card = null, rotuloPadrao = 'Confirmar' } = contexto;
+          const { id, quantidade = 1 } = payload || {};
+          if (!id) return false;
+          const cpf = payload?.cpf || obterCPF();
+          if (!cpf) {
+            if (card) {
+              mostrarAvisoErro(card, 'CPF inválido.');
+            }
+            return false;
+          }
+
+          const dadosEnvio = { id, cpf };
+          if (quantidade) {
+            dadosEnvio.quantidade = quantidade;
+          }
+
+          if (card) {
+            limparAvisoErro(card);
+          }
+
+          if (botao) {
+            botao.disabled = true;
+            botao.setAttribute('aria-disabled', 'true');
+            botao.textContent = 'Confirmando…';
+          }
+
+          try {
+            const resposta = await fetch(CONFIRMAR_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(dadosEnvio)
+            });
+            if (!resposta.ok) {
+              throw new Error(`HTTP ${resposta.status}`);
+            }
+            if (botao && botao.dataset?.confirmar === 'true') {
+              botao.textContent = 'Confirmado!';
+              setTimeout(() => {
+                if (!botao.isConnected) return;
+                if (botao.dataset.confirmar === 'true') {
+                  botao.textContent = rotuloPadrao;
+                }
+              }, 2000);
+            }
+            if (card) {
+              card.dispatchEvent(
+                new CustomEvent('ingresso:confirmado', { detail: { id, cpf, quantidade: dadosEnvio.quantidade }, bubbles: true })
+              );
+            }
+            return true;
+          } catch (erro) {
+            console.error('Falha ao confirmar ingresso', erro);
+            if (botao) {
+              botao.textContent = rotuloPadrao;
+            }
+            if (card) {
+              mostrarAvisoErro(card, 'Falha ao confirmar. Tente novamente.');
+            }
+            return false;
+          } finally {
+            if (botao) {
+              botao.disabled = false;
+              botao.setAttribute('aria-disabled', 'false');
+              if (botao === mConfirmBtn) {
+                if (!botao.textContent || botao.textContent === 'Confirmando…') {
+                  botao.textContent = rotuloPadrao;
+                }
+              } else if (botao.dataset?.confirmar !== 'true' && (!botao.textContent || botao.textContent === 'Confirmando…')) {
+                botao.textContent = 'Detalhes';
+              }
+            }
+          }
+        }
+
         async function confirmarIngresso(botao) {
           if (!botao || botao.disabled) return;
           let card = botao.closest('[data-id]');
@@ -1547,67 +1835,47 @@
           if (!card) {
             card = encontrarCardPorId(id);
           }
+          const quantidade = obterQuantidadeSelecionada();
+          const rotuloPadrao = botao.dataset?.labelPadrao || 'Confirmar';
+          const sucesso = await confirmarItem({ id, quantidade }, { botao, card, rotuloPadrao });
+          if (sucesso) {
+            reloadComAtraso();
+          }
+        }
+
+        async function confirmarCarrinho() {
+          if (!carrinhoConfirmarBtn || carrinhoConfirmarBtn.disabled) return;
+          if (!carrinho.size) return;
+          if (!garantirUsuarioAutenticado()) return;
           const cpf = obterCPF();
           if (!cpf) {
-            if (card) {
-              mostrarAvisoErro(card, 'CPF inválido.');
+            if (carrinhoErro) {
+              carrinhoErro.textContent = 'CPF inválido. Faça login para continuar.';
             }
             return;
           }
-          const rotuloPadrao = botao.dataset.labelPadrao || 'Confirmar';
-          const quantidade = obterQuantidadeSelecionada();
-          const payload = { id, cpf };
-          if (quantidade) {
-            payload.quantidade = quantidade;
+          carrinhoConfirmarBtn.disabled = true;
+          const rotuloPadrao = 'Confirmar ingressos';
+          carrinhoConfirmarBtn.textContent = 'Confirmando…';
+          if (carrinhoErro) carrinhoErro.textContent = '';
+          let sucessoGeral = true;
+          for (const item of carrinho.values()) {
+            const ok = await confirmarItem({ id: item.id, quantidade: item.quantidade, cpf });
+            if (!ok) {
+              sucessoGeral = false;
+              break;
+            }
           }
-
-          if (card) {
-            limparAvisoErro(card);
-          }
-
-          botao.disabled = true;
-          botao.setAttribute('aria-disabled', 'true');
-          botao.textContent = 'Confirmando…';
-
-          try {
-            const resposta = await fetch(CONFIRMAR_URL, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload)
-            });
-            if (!resposta.ok) {
-              throw new Error(`HTTP ${resposta.status}`);
-            }
-            if (botao.dataset.confirmar === 'true') {
-              botao.textContent = 'Confirmado!';
-              setTimeout(() => {
-                if (!botao.isConnected) return;
-                if (botao.dataset.confirmar === 'true') {
-                  botao.textContent = rotuloPadrao;
-                }
-              }, 2000);
-            }
-            if (card) {
-              card.dispatchEvent(new CustomEvent('ingresso:confirmado', { detail: { id, cpf, quantidade: payload.quantidade }, bubbles: true }));
-            }
+          if (sucessoGeral) {
+            carrinhoConfirmarBtn.textContent = 'Confirmado!';
             reloadComAtraso();
-          } catch (erro) {
-            console.error('Falha ao confirmar ingresso', erro);
-            botao.textContent = rotuloPadrao;
-            if (card) {
-              mostrarAvisoErro(card, 'Falha ao confirmar. Tente novamente.');
-            }
-          } finally {
-            botao.disabled = false;
-            botao.setAttribute('aria-disabled', 'false');
-            if (botao === mConfirmBtn) {
-              if (!botao.textContent || botao.textContent === 'Confirmando…') {
-                botao.textContent = rotuloPadrao;
-              }
-            } else if (botao.dataset.confirmar !== 'true' && (!botao.textContent || botao.textContent === 'Confirmando…')) {
-              botao.textContent = 'Detalhes';
+          } else {
+            carrinhoConfirmarBtn.textContent = rotuloPadrao;
+            if (carrinhoErro) {
+              carrinhoErro.textContent = 'Não foi possível confirmar todos os ingressos. Tente novamente.';
             }
           }
+          carrinhoConfirmarBtn.disabled = false;
         }
 
         function abrirModalCancelar(evento) {
@@ -1825,28 +2093,10 @@
             mCancelarBtn.setAttribute('aria-disabled', ehSemiBlock ? 'false' : 'true');
           }
           if (mConfirmBtn) {
-            const esconderConfirmar = somenteDetalhes || ehBlock || ehSemiBlock;
-            if (esconderConfirmar) {
-              mConfirmBtn.classList.add('d-none');
-              mConfirmBtn.disabled = true;
-              mConfirmBtn.setAttribute('aria-disabled', 'true');
-              mConfirmBtn.dataset.id = '';
-              mConfirmBtn.dataset.quando = '';
-              mConfirmBtn.dataset.confirmar = 'false';
-              mConfirmBtn.dataset.confirmarId = '';
-            } else {
-              mConfirmBtn.classList.remove('d-none');
-              mConfirmBtn.dataset.id = evento.id;
-              mConfirmBtn.dataset.quando = evento.quandoNormalizado || DATE_KEY_EMPTY;
-              mConfirmBtn.dataset.confirmar = 'true';
-              mConfirmBtn.dataset.confirmarId = evento.id;
-              mConfirmBtn.setAttribute('aria-label', 'Confirmar ingresso');
-              const rotuloConfirmar = rotuloConfirmarPorStatus(status);
-              mConfirmBtn.dataset.labelPadrao = rotuloConfirmar;
-              if (mConfirmBtn.textContent !== 'Confirmando…') {
-                mConfirmBtn.textContent = rotuloConfirmar;
-              }
-            }
+            mConfirmBtn.classList.remove('d-none');
+            mConfirmBtn.disabled = false;
+            mConfirmBtn.setAttribute('aria-disabled', 'false');
+            mConfirmBtn.textContent = 'Ir para o carrinho';
           }
           atualizarBotaoModal();
           modal.show();
@@ -1860,7 +2110,6 @@
           if (!evento) return;
           const status = normalizarStatus(evento.status);
           const rotuloPrincipal = rotuloPrincipalPorStatus(status);
-          const rotuloConfirmar = rotuloConfirmarPorStatus(status);
           const ehBlock = status === 'block';
           const ehSemiBlock = status === 'semi-block';
           if (evento.apenasDetalhes || evento.jaPegou) {
@@ -1869,23 +2118,19 @@
               mTicketBtn.setAttribute('aria-disabled', 'true');
               mTicketBtn.setAttribute('aria-pressed', 'false');
             }
-            if (mConfirmBtn) {
-              mConfirmBtn.disabled = true;
-              mConfirmBtn.setAttribute('aria-disabled', 'true');
-            }
             if (mQuantidadeSelect) {
               mQuantidadeSelect.disabled = true;
             }
             return;
           }
-          const selecionado = selecoesAtuais.has(id);
+          const selecionado = selecoesAtuais.has(id) || carrinho.has(id);
           const bloqueado = !selecionado && eventoConflitanteComSelecoes(evento);
 
           if (selecionado) {
             mTicketBtn.disabled = false;
             mTicketBtn.setAttribute('aria-disabled', 'false');
             mTicketBtn.setAttribute('aria-pressed', 'true');
-            mTicketBtn.textContent = '🎟️ Ingresso selecionado';
+            mTicketBtn.textContent = '🛒 No carrinho';
             mTicketBtn.classList.add('btn-success');
             mTicketBtn.classList.remove('btn-outline-secondary');
             mTicketBtn.classList.remove('btn-outline-primary');
@@ -1910,29 +2155,11 @@
               mTicketBtn.classList.add('btn-outline-primary');
             }
           }
-          if (mConfirmBtn && mConfirmBtn.dataset.id === id) {
-            if (ehSemiBlock) {
-              mConfirmBtn.classList.add('d-none');
-              mConfirmBtn.disabled = true;
-              mConfirmBtn.setAttribute('aria-disabled', 'true');
-              mConfirmBtn.dataset.labelPadrao = rotuloConfirmar;
-            } else {
-              mConfirmBtn.classList.remove('d-none');
-              if (selecionado) {
-                mConfirmBtn.disabled = false;
-                mConfirmBtn.setAttribute('aria-disabled', 'false');
-                if (mConfirmBtn.dataset.confirmar === 'true' && mConfirmBtn.textContent !== 'Confirmando…') {
-                  mConfirmBtn.textContent = rotuloConfirmar;
-                }
-              } else {
-                mConfirmBtn.disabled = true;
-                mConfirmBtn.setAttribute('aria-disabled', 'true');
-                if (mConfirmBtn.dataset.confirmar === 'true' && mConfirmBtn.textContent !== 'Confirmando…') {
-                  mConfirmBtn.textContent = rotuloConfirmar;
-                }
-              }
-              mConfirmBtn.dataset.labelPadrao = rotuloConfirmar;
-            }
+          if (mConfirmBtn) {
+            mConfirmBtn.classList.remove('d-none');
+            mConfirmBtn.disabled = false;
+            mConfirmBtn.setAttribute('aria-disabled', 'false');
+            mConfirmBtn.textContent = rotuloConfirmarPorStatus(status);
           }
           if (mQuantidadeSelect) {
             mQuantidadeSelect.disabled = bloqueado || ehBlock;
