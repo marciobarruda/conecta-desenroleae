@@ -36,6 +36,9 @@
         font-family:"Public Sans",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
         background:var(--surface);color:var(--text-strong);min-height:100vh
       }
+      .cart-icon{border-radius:14px;min-width:72px;position:relative}
+      .cart-icon .badge{font-size:.8rem}
+      .cart-qty{max-width:88px}
       header.site-header{
         background:url("https://statics.recife.pe.gov.br/images/dynamics/automacao/header.png?w=3000") center/cover no-repeat;
         color:#fff;padding:3rem 0 2.25rem
@@ -121,7 +124,21 @@
     />
     <!-- HEADER -->
     <header class="site-header">
-      <div class="container">
+      <div class="container position-relative">
+        <div class="d-flex justify-content-end mb-3">
+          <button
+            id="btnCarrinho"
+            class="btn btn-light btn-lg shadow-sm cart-icon"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#offcanvasCarrinho"
+            aria-controls="offcanvasCarrinho"
+            aria-label="Abrir carrinho"
+          >
+            🛒
+            <span id="badgeCarrinho" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
+          </button>
+        </div>
         <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
           <div>
             <h1 class="display-5 fw-bold mb-2">Catraca Conecta • Sua bilheteria eletrônica gratuita</h1>
@@ -133,8 +150,8 @@
 
     <section class="py-3">
       <div class="container">
-        <div class="alert alert-primary mb-0" role="status">
-          🎭 Olá, {{ (() => { const nome = String($json.given_name ?? '').trim(); return nome ? nome[0].toUpperCase() + nome.slice(1).toLowerCase() : 'Visitante'; })() }}! ✨ Seja bem-vindo(a) à programação do Festival de Teatro do Recife — escolha seu espetáculo e aproveite o show!
+        <div class="alert alert-primary mb-0" role="status" id="saudacao">
+          🎭 Olá, Visitante! ✨ Seja bem-vindo(a) à programação do Festival de Teatro do Recife — escolha seu espetáculo e aproveite o show!
         </div>
       </div>
     </section>
@@ -221,7 +238,7 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button id="modalTicketBtn" type="button" class="btn btn-outline-primary" aria-pressed="false">🎟️ Pegar ingresso</button>
+            <button id="modalTicketBtn" type="button" class="btn btn-outline-primary" aria-pressed="false">🛒 Colocar no carrinho</button>
             <div class="d-flex align-items-center gap-2 ms-0 me-auto" id="modalQuantidadeWrapper">
               <label for="modalQuantidade" class="form-label small mb-0">Quantidade</label>
               <select id="modalQuantidade" class="form-select form-select-sm w-auto">
@@ -239,13 +256,14 @@
               Devolver ingresso
             </button>
             <button
-              id="modalConfirmBtn"
+              id="modalIrCarrinho"
               type="button"
               class="btn btn-primary"
-              aria-disabled="true"
-              disabled
+              data-bs-toggle="offcanvas"
+              data-bs-target="#offcanvasCarrinho"
+              aria-controls="offcanvasCarrinho"
             >
-              Confirmar
+              Ir para o carrinho
             </button>
             <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Fechar</button>
           </div>
@@ -289,6 +307,25 @@
       </div>
     </div>
 
+    <!-- OFFCANVAS: CARRINHO -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasCarrinho" aria-labelledby="offcanvasCarrinhoLabel">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="offcanvasCarrinhoLabel">Carrinho</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
+      </div>
+      <div class="offcanvas-body d-flex flex-column gap-3">
+        <div id="cartEmpty" class="text-muted">Seu carrinho está vazio.</div>
+        <div id="cartList" class="list-group"></div>
+        <div class="mt-auto w-100">
+          <div class="d-flex align-items-center justify-content-between fw-bold mb-3">
+            <span>Total</span>
+            <span>R$ 0,00</span>
+          </div>
+          <button id="carrinhoConfirmBtn" class="btn btn-primary w-100" disabled>Confirmar</button>
+        </div>
+      </div>
+    </div>
+
     <!-- RODAPÉ -->
     <footer class="py-5">
       <div class="container text-center small text-muted">
@@ -305,6 +342,12 @@
         const CONFIRMAR_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/322fa1a9-b9aa-4e22-8762-fe0e63895727';
         const CANCELAR_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/cancelar-ingresso';
         const CPF_FIXO = '{{ String(($json.cpf ?? $json.preferred_username ?? '')).replace(/\D+/g, '').slice(0,11) }}';
+        const LOGIN_URL = 'https://login.recife.pe.gov.br/auth/realms/recife/protocol/openid-connect/auth?response_type=code&redirect_uri=https%3A%2F%2Fconecta.recife.pe.gov.br%2Facesso&client_id=psp&nonce=4adee81a4d65dcb0d64369e776f1ad31&state=f71377d8222ff81c25db077b04cacc7c&scope=openid';
+        const NOME_USUARIO = (() => {
+          const nome = String($json.given_name ?? '').trim();
+          if (!nome) return 'Visitante';
+          return nome[0].toUpperCase() + nome.slice(1).toLowerCase();
+        })();
         const ICON_LIBRAS_SRC = 'https://www.ifmg.edu.br/conselheirolafaiete/noticias/anexos-noticias/libras-768x767.png/@@images/image.png';
         const ICON_AD_SRC = 'https://w7.pngwing.com/pngs/691/979/png-transparent-computer-icons-audio-description-pause-miscellaneous-text-trademark.png';
         const ACESSIBILIDADE_ICONES = [
@@ -344,6 +387,7 @@
         const selecoesAtuais = new Set();
         const eventosPorId = new Map();
         const eventosBloqueadosPorId = new Map();
+        const carrinhoItens = new Map();
         let eventos = [];
         let eventosFiltrados = [];
         let eventosJaPegos = [];
@@ -361,6 +405,15 @@
         let elFClass;
         let elFGenero;
         let elBtnLimpar;
+        let elSaudacao;
+        let btnCarrinho;
+        let badgeCarrinho;
+        let offcanvasCarrinho;
+        let offcanvasCarrinhoInstance;
+        let cartList;
+        let cartEmpty;
+        let carrinhoConfirmBtn;
+        let btnIrCarrinho;
 
         let modal;
         let mTitle;
@@ -376,7 +429,6 @@
         let mQuantidadeWrapper;
         let mSinopse;
         let mTicketBtn;
-        let mConfirmBtn;
         let mCancelarBtn;
         let modalCancelar;
         let modalCancelarBtnConfirmar;
@@ -397,6 +449,15 @@
           elFClass = document.querySelector('#fClass');
           elFGenero = document.querySelector('#fGenero');
           elBtnLimpar = document.querySelector('#btnLimpar');
+          elSaudacao = document.querySelector('#saudacao');
+          btnCarrinho = document.querySelector('#btnCarrinho');
+          badgeCarrinho = document.querySelector('#badgeCarrinho');
+          offcanvasCarrinho = document.querySelector('#offcanvasCarrinho');
+          offcanvasCarrinhoInstance = offcanvasCarrinho ? new bootstrap.Offcanvas(offcanvasCarrinho) : null;
+          cartList = document.querySelector('#cartList');
+          cartEmpty = document.querySelector('#cartEmpty');
+          carrinhoConfirmBtn = document.querySelector('#carrinhoConfirmBtn');
+          btnIrCarrinho = document.querySelector('#modalIrCarrinho');
 
           possuiFormulario = !!document.querySelector('form');
           campoCPF = document.querySelector('#cpf');
@@ -428,7 +489,6 @@
           mQuantidadeWrapper = document.querySelector('#modalQuantidadeWrapper');
           mSinopse = document.querySelector('#modalSinopse');
           mTicketBtn = document.querySelector('#modalTicketBtn');
-          mConfirmBtn = document.querySelector('#modalConfirmBtn');
           mCancelarBtn = document.querySelector('#modalCancelarBtn');
           const modalCancelarEl = document.querySelector('#modalCancelar');
           modalCancelar = modalCancelarEl ? new bootstrap.Modal(modalCancelarEl) : null;
@@ -445,6 +505,9 @@
 
           document.body.classList.add('portal-dyn');
           injetarEstilos();
+          atualizarSaudacao();
+          renderizarCarrinho();
+          atualizarBadgeCarrinho();
 
           eventosBloqueadosPorId.clear();
           selecoesAtuais.clear();
@@ -495,6 +558,164 @@
 .portal-dyn #modalQuantidadeWrapper select { min-width: 72px; }
 `;
           document.body.appendChild(estilo);
+        }
+
+        function atualizarSaudacao() {
+          if (!elSaudacao) return;
+          const nome = NOME_USUARIO && String(NOME_USUARIO).trim() ? NOME_USUARIO : 'Visitante';
+          elSaudacao.textContent = `🎭 Olá, ${nome}! ✨ Seja bem-vindo(a) à programação do Festival de Teatro do Recife — escolha seu espetáculo e aproveite o show!`;
+        }
+
+        function usuarioEhVisitante() {
+          return NOME_USUARIO === 'Visitante';
+        }
+
+        function redirecionarVisitanteParaLogin() {
+          if (!usuarioEhVisitante()) return false;
+          window.location.href = LOGIN_URL;
+          return true;
+        }
+
+        function atualizarBadgeCarrinho() {
+          if (!badgeCarrinho) return;
+          const total = Array.from(carrinhoItens.values()).reduce((acc, item) => acc + numeroSeguro(item.quantidade), 0);
+          badgeCarrinho.textContent = String(total);
+          badgeCarrinho.classList.toggle('d-none', total === 0);
+        }
+
+        function renderizarCarrinho() {
+          if (!cartList || !cartEmpty) return;
+          cartList.innerHTML = '';
+          if (!carrinhoItens.size) {
+            cartEmpty.classList.remove('d-none');
+            if (carrinhoConfirmBtn) {
+              carrinhoConfirmBtn.disabled = true;
+              carrinhoConfirmBtn.textContent = 'Confirmar';
+            }
+            atualizarBadgeCarrinho();
+            return;
+          }
+
+          cartEmpty.classList.add('d-none');
+          carrinhoItens.forEach((item) => {
+            const linha = document.createElement('div');
+            linha.className = 'list-group-item d-flex flex-column gap-2';
+            linha.dataset.id = item.id;
+
+            const topo = document.createElement('div');
+            topo.className = 'd-flex justify-content-between align-items-start gap-3';
+
+            const info = document.createElement('div');
+            info.className = 'flex-grow-1';
+            const titulo = document.createElement('div');
+            titulo.className = 'fw-bold';
+            titulo.textContent = item.titulo || '—';
+            const data = document.createElement('div');
+            data.className = 'small text-muted';
+            data.textContent = item.data || '—';
+            info.appendChild(titulo);
+            info.appendChild(data);
+
+            const btnRemover = document.createElement('button');
+            btnRemover.type = 'button';
+            btnRemover.className = 'btn btn-outline-danger btn-sm';
+            btnRemover.dataset.remove = 'true';
+            btnRemover.textContent = 'Remover';
+
+            topo.appendChild(info);
+            topo.appendChild(btnRemover);
+
+            const controles = document.createElement('div');
+            controles.className = 'd-flex align-items-center gap-2';
+            const labelQtd = document.createElement('span');
+            labelQtd.className = 'small text-muted';
+            labelQtd.textContent = 'Qtd.';
+            const inputQtd = document.createElement('input');
+            inputQtd.type = 'number';
+            inputQtd.min = '1';
+            inputQtd.max = '2';
+            inputQtd.value = String(Math.min(2, Math.max(1, numeroSeguro(item.quantidade) || 1)));
+            inputQtd.className = 'form-control form-control-sm cart-qty';
+            inputQtd.dataset.cartQty = 'true';
+            const valor = document.createElement('span');
+            valor.className = 'ms-auto fw-semibold';
+            valor.textContent = 'R$ 0,00';
+
+            controles.appendChild(labelQtd);
+            controles.appendChild(inputQtd);
+            controles.appendChild(valor);
+
+            linha.appendChild(topo);
+            linha.appendChild(controles);
+            cartList.appendChild(linha);
+          });
+
+          if (carrinhoConfirmBtn) {
+            carrinhoConfirmBtn.disabled = false;
+            carrinhoConfirmBtn.textContent = 'Confirmar';
+          }
+          atualizarBadgeCarrinho();
+        }
+
+        function removerItemCarrinho(id) {
+          if (!id) return;
+          carrinhoItens.delete(id);
+          selecoesAtuais.delete(id);
+          atualizarEstadoTodos();
+          atualizarBotaoModal();
+          renderizarCarrinho();
+        }
+
+        function aoClicarRemoverCarrinho(evento) {
+          const botao = evento.target.closest('[data-remove]');
+          if (!botao) return;
+          const item = botao.closest('[data-id]');
+          if (!item || !item.dataset.id) return;
+          removerItemCarrinho(item.dataset.id);
+        }
+
+        function aoAlterarQuantidadeCarrinho(evento) {
+          const input = evento.target.closest('[data-cart-qty]');
+          if (!input) return;
+          const container = input.closest('[data-id]');
+          if (!container) return;
+          const valor = Math.min(2, Math.max(1, numeroSeguro(input.value) || 1));
+          input.value = String(valor);
+          const item = carrinhoItens.get(container.dataset.id);
+          if (item) {
+            item.quantidade = valor;
+          }
+          atualizarBadgeCarrinho();
+        }
+
+        function garantirSelecao(evento) {
+          if (!evento || evento.status === 'block' || evento.apenasDetalhes || evento.jaPegou) return false;
+          if (!selecoesAtuais.has(evento.id) && eventoConflitanteComSelecoes(evento)) {
+            return false;
+          }
+          selecoesAtuais.add(evento.id);
+          atualizarEstadoTodos();
+          atualizarBotaoModal();
+          return true;
+        }
+
+        function adicionarEventoAoCarrinho(evento, quantidade) {
+          if (!evento) return;
+          if (redirecionarVisitanteParaLogin()) return;
+          if (!garantirSelecao(evento)) return;
+
+          const quantidadeSegura = Math.min(2, Math.max(1, numeroSeguro(quantidade) || 1));
+          const dataTexto = evento.quandoFormatado || evento.quando || evento.data || '—';
+          carrinhoItens.set(evento.id, {
+            id: evento.id,
+            titulo: evento.nome || '—',
+            data: dataTexto,
+            quantidade: quantidadeSegura
+          });
+          renderizarCarrinho();
+          if (offcanvasCarrinhoInstance) {
+            offcanvasCarrinhoInstance.show();
+          }
         }
 
         function alternarCarregamento(ativo) {
@@ -737,7 +958,7 @@
         }
 
         function rotuloPrincipalPorStatus(status) {
-          return normalizarStatus(status) === 'block' ? '🎟️ Devolver ingresso' : '🎟️ Pegar ingresso';
+          return normalizarStatus(status) === 'block' ? '🎟️ Devolver ingresso' : '🛒 Colocar no carrinho';
         }
 
         function rotuloConfirmarPorStatus(status) {
@@ -898,6 +1119,13 @@
               limparFiltros();
             });
           }
+          if (cartList) {
+            cartList.addEventListener('click', aoClicarRemoverCarrinho);
+            cartList.addEventListener('input', aoAlterarQuantidadeCarrinho);
+          }
+          if (carrinhoConfirmBtn) {
+            carrinhoConfirmBtn.addEventListener('click', confirmarCarrinho);
+          }
           if (mTicketBtn) {
             mTicketBtn.addEventListener('click', () => {
               const id = mTicketBtn.dataset.id;
@@ -909,20 +1137,7 @@
                 abrirModalCancelar(evento);
                 return;
               }
-              const chave = evento.quandoNormalizado || DATE_KEY_EMPTY;
-              togglePorData(chave, id);
-            });
-          }
-          if (mConfirmBtn) {
-            mConfirmBtn.addEventListener('click', () => {
-              const id = mConfirmBtn.dataset.id;
-              const evento = id ? eventosPorId.get(id) || eventosBloqueadosPorId.get(id) : null;
-              const status = normalizarStatus(evento?.status);
-              if (status === 'semi-block') {
-                abrirModalCancelar(evento);
-                return;
-              }
-              confirmarIngresso(mConfirmBtn);
+              adicionarEventoAoCarrinho(evento, obterQuantidadeSelecionada());
             });
           }
           if (mCancelarBtn) {
@@ -1607,6 +1822,48 @@
           }
         }
 
+        async function confirmarCarrinho() {
+          if (!carrinhoItens.size) return;
+          const cpf = obterCPF();
+          if (!cpf) return;
+          if (carrinhoConfirmBtn) {
+            carrinhoConfirmBtn.disabled = true;
+            carrinhoConfirmBtn.textContent = 'Confirmando…';
+          }
+          try {
+            for (const item of carrinhoItens.values()) {
+              const payload = {
+                id: item.id,
+                cpf,
+                quantidade: Math.min(2, Math.max(1, numeroSeguro(item.quantidade) || 1))
+              };
+              await enviarConfirmacaoDeCarrinho(payload);
+            }
+            reloadComAtraso();
+          } catch (erro) {
+            console.error('Falha ao confirmar carrinho', erro);
+            if (carrinhoConfirmBtn) {
+              carrinhoConfirmBtn.textContent = 'Tente novamente';
+            }
+          } finally {
+            if (carrinhoConfirmBtn) {
+              carrinhoConfirmBtn.disabled = false;
+            }
+          }
+        }
+
+        async function enviarConfirmacaoDeCarrinho(payload) {
+          const resposta = await fetch(CONFIRMAR_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (!resposta.ok) {
+            throw new Error(`HTTP ${resposta.status}`);
+          }
+          return resposta;
+        }
+
         function abrirModalCancelar(evento) {
           if (!evento) return;
           eventoParaCancelar = evento;
@@ -1698,6 +1955,8 @@
           if (evento.apenasDetalhes || evento.jaPegou) {
             if (selecoesAtuais.has(id)) {
               selecoesAtuais.delete(id);
+              carrinhoItens.delete(id);
+              renderizarCarrinho();
               atualizarEstadoTodos();
               atualizarBotaoModal();
             }
@@ -1705,6 +1964,8 @@
           }
           if (selecoesAtuais.has(id)) {
             selecoesAtuais.delete(id);
+            carrinhoItens.delete(id);
+            renderizarCarrinho();
           } else {
             if (eventoConflitanteComSelecoes(evento)) {
               return;
