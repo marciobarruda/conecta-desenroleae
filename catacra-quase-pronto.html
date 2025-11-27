@@ -449,13 +449,18 @@
         let carrinhoTotalItens;
         let carrinhoConfirmarBtn;
 
+        let inicializado = false;
+
         if (document.readyState === 'loading') {
           document.addEventListener('DOMContentLoaded', init);
         } else {
           init();
         }
+        window.addEventListener('load', init);
 
         async function init() {
+          if (inicializado) return;
+          inicializado = true;
           elLoader = document.querySelector('#catalogLoading');
           elGrid = document.querySelector('#grid');
           elResultInfo = document.querySelector('#resultInfo');
