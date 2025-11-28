@@ -279,6 +279,24 @@
       </div>
     </div>
 
+    <!-- MODAL: SUCESSO RESERVA -->
+    <div class="modal fade" id="modalSucesso" tabindex="-1" aria-labelledby="modalSucessoTitulo" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title fw-bold" id="modalSucessoTitulo">Reserva realizada</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <p class="mb-0" id="modalSucessoMensagem">Tudo certo com sua reserva!</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-success" data-bs-dismiss="modal">Fechar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- OFFCANVAS: FAVORITOS -->
     <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasFav" aria-labelledby="offcanvasFavLabel">
       <div class="offcanvas-header">
@@ -416,6 +434,9 @@
         let mCancelarBtn;
         let modalCancelar;
         let modalCancelarBtnConfirmar;
+        let modalSucesso;
+        let modalSucessoEl;
+        let modalSucessoMensagem;
         let eventoParaCancelar = null;
 
         if (document.readyState === 'loading') {
@@ -479,6 +500,17 @@
             });
           }
           modalCancelarBtnConfirmar = document.querySelector('#modalCancelarConfirmBtn');
+          modalSucessoEl = document.querySelector('#modalSucesso');
+          modalSucesso = modalSucessoEl ? new bootstrap.Modal(modalSucessoEl) : null;
+          modalSucessoMensagem = document.querySelector('#modalSucessoMensagem');
+          if (modalSucessoEl) {
+            modalSucessoEl.addEventListener('hidden.bs.modal', () => {
+              if (modalSucessoEl.dataset.recarregar === 'true') {
+                modalSucessoEl.dataset.recarregar = '';
+                reloadComAtraso(300);
+              }
+            });
+          }
 
           document.body.classList.add('portal-dyn');
           injetarEstilos();
@@ -1684,6 +1716,13 @@
           }, atraso);
         }
 
+        function exibirModalSucesso(mensagem, { recarregarDepois = false } = {}) {
+          if (!modalSucesso || !modalSucessoMensagem || !modalSucessoEl) return;
+          modalSucessoMensagem.textContent = mensagem || 'Reserva realizada com sucesso!';
+          modalSucessoEl.dataset.recarregar = recarregarDepois ? 'true' : '';
+          modalSucesso.show();
+        }
+
         function sanitizarCPF(valor) {
           return String(valor ?? '').replace(/\D/g, '');
         }
@@ -1715,6 +1754,7 @@
           if (!card) {
             card = encontrarCardPorId(id);
           }
+          const ehCheckoutCarrinho = botao?.id === 'cartCheckoutBtn';
           const cpf = obterCPF();
           if (!cpf) {
             if (card) {
@@ -1751,6 +1791,12 @@
             if (!resposta.ok) {
               throw new Error(`HTTP ${resposta.status}`);
             }
+            let mensagemRetorno = '';
+            try {
+              mensagemRetorno = (await resposta.text())?.trim();
+            } catch (err) {
+              console.warn('Não foi possível ler a mensagem de retorno.', err);
+            }
             if (botao.dataset.confirmar === 'true') {
               botao.textContent = 'Confirmado!';
               setTimeout(() => {
@@ -1763,7 +1809,14 @@
             if (card) {
               card.dispatchEvent(new CustomEvent('ingresso:confirmado', { detail: { id, cpf, quantidade: payload.quantidade }, bubbles: true }));
             }
-            reloadComAtraso();
+            if (ehCheckoutCarrinho) {
+              const mensagemSucesso =
+                mensagemRetorno ||
+                'Que massa! 🎭✨ Sua reserva foi concluída com sucesso. Basta apresentar o QRCode do ConectaRecife na bilheteria para curtir a experiência. 💛';
+              exibirModalSucesso(mensagemSucesso, { recarregarDepois: true });
+            } else {
+              reloadComAtraso();
+            }
           } catch (erro) {
             console.error('Falha ao confirmar ingresso', erro);
             botao.textContent = rotuloPadrao;
