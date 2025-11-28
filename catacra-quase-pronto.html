@@ -938,7 +938,12 @@
               }
               const quantidade = Math.max(1, Number(mQuantidadeSelect?.value) || 1);
               if (window.catracaCart && typeof window.catracaCart.adicionar === 'function') {
-                window.catracaCart.adicionar({ id, nome: nome || evento.nome, quantidade });
+                window.catracaCart.adicionar({
+                  id,
+                  nome: nome || evento.nome,
+                  quantidade,
+                  poster: mTicketBtn.dataset.poster || evento.poster || ''
+                });
               }
               if (modal) {
                 modal.hide();
@@ -1826,6 +1831,7 @@
               mTicketBtn.dataset.nome = '';
               mTicketBtn.dataset.quando = '';
               mTicketBtn.dataset.hora = '';
+              mTicketBtn.dataset.poster = '';
             } else {
               mTicketBtn.classList.remove('d-none');
               mTicketBtn.setAttribute('aria-pressed', 'false');
@@ -1835,6 +1841,7 @@
               mTicketBtn.dataset.nome = evento.nome || '';
               mTicketBtn.dataset.quando = evento.quandoNormalizado || DATE_KEY_EMPTY;
               mTicketBtn.dataset.hora = evento.horaCurta || '';
+              mTicketBtn.dataset.poster = evento.poster || '';
               mTicketBtn.textContent = rotuloPrincipalPorStatus(status);
               mTicketBtn.disabled = false;
               mTicketBtn.setAttribute('aria-disabled', 'false');
@@ -2144,8 +2151,10 @@
           if (!item || !item.id) return;
           const quantidade = Math.max(1, Number(item.quantidade) || 1);
           const atual = carrinho.get(item.id) || { ...item, quantidade: 0 };
+          const poster = item.poster || atual.poster || '';
+          const nome = item.nome || atual.nome || 'Item';
           atual.quantidade += quantidade;
-          carrinho.set(item.id, { ...atual });
+          carrinho.set(item.id, { ...atual, poster, nome });
           atualizarCarrinho();
         }
 
@@ -2183,12 +2192,20 @@
             itens.forEach((item) => {
               const nome = item.nome || 'Item';
               const preco = Number(item.preco) || 0;
+              const poster = item.poster || '';
               const li = document.createElement('div');
-              li.className = 'list-group-item d-flex justify-content-between align-items-start gap-2';
+              li.className = 'list-group-item d-flex align-items-center gap-3';
               li.innerHTML = `
-                <div>
-                  <div class="fw-semibold">${nome}</div>
-                  <small class="text-muted">${item.quantidade}x • R$ ${preco.toFixed(2).replace('.', ',')}</small>
+                <div class="d-flex align-items-center gap-2 flex-grow-1">
+                  <div class="ratio ratio-1x1 rounded overflow-hidden bg-light" style="width: 64px; max-width: 64px;">
+                    ${poster
+                      ? `<img src="${poster}" alt="Pôster de ${nome}" class="w-100 h-100 object-fit-cover">`
+                      : '<div class="d-flex align-items-center justify-content-center w-100 h-100 text-muted small">🎟️</div>'}
+                  </div>
+                  <div class="flex-grow-1">
+                    <div class="fw-semibold">${nome}</div>
+                    <small class="text-muted">${item.quantidade}x • R$ ${preco.toFixed(2).replace('.', ',')}</small>
+                  </div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                   <span class="fw-bold">R$ ${(preco * item.quantidade).toFixed(2).replace('.', ',')}</span>
