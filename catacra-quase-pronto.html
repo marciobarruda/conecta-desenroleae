@@ -311,7 +311,15 @@
           <span>Total</span>
           <span>R$ <span id="cartTotalAside">0,00</span></span>
         </div>
-        <button class="btn btn-primary w-100" type="button">Reservar ingressos</button>
+        <button
+          id="cartCheckoutBtn"
+          class="btn btn-primary w-100"
+          type="button"
+          data-confirmar="true"
+          data-label-padrao="Reservar ingressos"
+        >
+          Reservar ingressos
+        </button>
       </div>
     </div>
 
@@ -1584,15 +1592,18 @@
           return '';
         }
 
-        async function confirmarIngresso(botao) {
+        async function confirmarIngresso(botao, opcoes = {}) {
           if (!botao || botao.disabled) return;
-          let card = botao.closest('[data-id]');
-          let id = botao.dataset.id || botao.dataset.confirmarId || '';
+          let card = opcoes.cardOverride || botao.closest('[data-id]');
+          let id = opcoes.idOverride || botao.dataset.id || botao.dataset.confirmarId || '';
           if (!id && card) {
             id = card.getAttribute('data-id') || '';
           }
           if (!id && botao === mConfirmBtn && mTicketBtn) {
             id = mTicketBtn.dataset.id || '';
+          }
+          if (!id && opcoes.idOverride) {
+            id = opcoes.idOverride;
           }
           if (!id) return;
           if (!card) {
@@ -1605,8 +1616,13 @@
             }
             return;
           }
-          const rotuloPadrao = botao.dataset.labelPadrao || 'Confirmar';
-          const quantidade = obterQuantidadeSelecionada();
+          const rotuloPadrao =
+            botao.dataset.labelPadrao || (botao.textContent || '').trim() || 'Confirmar';
+          const quantidadeSelecionada = opcoes.quantidadeOverride;
+          const quantidade =
+            Number.isFinite(quantidadeSelecionada) && quantidadeSelecionada > 0
+              ? quantidadeSelecionada
+              : obterQuantidadeSelecionada();
           const payload = { id, cpf };
           if (quantidade) {
             payload.quantidade = quantidade;
@@ -1999,7 +2015,14 @@
 
         window.catracaPortal = {
           ...(window.catracaPortal || {}),
-          abrirModalPorId
+          abrirModalPorId,
+          confirmarIngressoDoCarrinho: ({ botao, id, quantidade } = {}) => {
+            if (!id) return;
+            confirmarIngresso(botao || mConfirmBtn, {
+              idOverride: id,
+              quantidadeOverride: quantidade
+            });
+          }
         };
 
         function atualizarResultado() {
@@ -2145,6 +2168,7 @@
         let cartTotalAside;
         let cartItems;
         let cartButton;
+        let cartCheckoutBtn;
 
         if (document.readyState === 'loading') {
           document.addEventListener('DOMContentLoaded', initCarrinho);
@@ -2158,6 +2182,7 @@
           cartTotalAside = document.querySelector('#cartTotalAside');
           cartItems = document.querySelector('#cartItems');
           cartButton = document.querySelector('#cartButton');
+          cartCheckoutBtn = document.querySelector('#cartCheckoutBtn');
 
           const offcanvasElement = document.querySelector('#marketCart');
           cartOffcanvas = offcanvasElement ? new bootstrap.Offcanvas(offcanvasElement) : null;
@@ -2185,6 +2210,19 @@
               if (remover && remover.hasAttribute('data-remove')) {
                 removerDoCarrinho(remover.getAttribute('data-id'));
               }
+            });
+          }
+          if (cartCheckoutBtn) {
+            cartCheckoutBtn.addEventListener('click', () => {
+              const itens = Array.from(carrinho.values());
+              if (!itens.length) return;
+              const item = itens[0];
+              const quantidade = Number(item.quantidade);
+              window.catracaPortal?.confirmarIngressoDoCarrinho?.({
+                botao: cartCheckoutBtn,
+                id: item.id,
+                quantidade: Number.isFinite(quantidade) && quantidade > 0 ? quantidade : 1
+              });
             });
           }
         }
