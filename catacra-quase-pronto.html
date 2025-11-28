@@ -974,10 +974,10 @@
           }
         }
 
-        function abrirModalPorId(id) {
+        function abrirModalPorId(id, opcoes = {}) {
           if (!id) return;
           const dados = eventosPorId.get(id) || eventosBloqueadosPorId.get(id);
-          if (dados) abrirModal(dados);
+          if (dados) abrirModal(dados, opcoes);
         }
 
         function popularFiltros(lista) {
@@ -1796,11 +1796,12 @@
           }
         }
 
-        function abrirModal(evento) {
+        function abrirModal(evento, opcoes = {}) {
           if (!mTitle) return;
           const status = normalizarStatus(evento.status);
           const ehBlock = status === 'block';
           const ehSemiBlock = status === 'semi-block';
+          const apenasFechar = Boolean(opcoes.apenasFechar);
           mTitle.textContent = evento.nome;
           if (mPoster) {
             mPoster.src = evento.posterdetalhes || evento.poster || '';
@@ -1827,8 +1828,9 @@
           }
           if (mSinopse) mSinopse.textContent = evento.sinopse || '—';
           const somenteDetalhes = Boolean(evento.apenasDetalhes || evento.jaPegou);
+          const esconderAcoes = somenteDetalhes || apenasFechar;
           if (mTicketBtn) {
-            if (somenteDetalhes) {
+            if (esconderAcoes) {
               mTicketBtn.classList.add('d-none');
               mTicketBtn.disabled = true;
               mTicketBtn.setAttribute('aria-disabled', 'true');
@@ -1853,7 +1855,7 @@
               mTicketBtn.setAttribute('aria-disabled', 'false');
             }
           }
-          const esconderQuantidade = somenteDetalhes || ehBlock;
+          const esconderQuantidade = somenteDetalhes || ehBlock || apenasFechar;
           configurarSelectQuantidade(status);
           if (mQuantidadeWrapper) {
             mQuantidadeWrapper.classList.toggle('d-none', esconderQuantidade);
@@ -1863,13 +1865,14 @@
             mQuantidadeSelect.disabled = esconderQuantidade;
           }
           if (mCancelarBtn) {
+            const ocultarCancelar = apenasFechar || !ehSemiBlock;
             mCancelarBtn.dataset.id = evento.id;
-            mCancelarBtn.classList.toggle('d-none', !ehSemiBlock);
-            mCancelarBtn.disabled = !ehSemiBlock;
-            mCancelarBtn.setAttribute('aria-disabled', ehSemiBlock ? 'false' : 'true');
+            mCancelarBtn.classList.toggle('d-none', ocultarCancelar);
+            mCancelarBtn.disabled = ocultarCancelar;
+            mCancelarBtn.setAttribute('aria-disabled', ocultarCancelar ? 'true' : 'false');
           }
           if (mConfirmBtn) {
-            const esconderConfirmar = somenteDetalhes || ehBlock || ehSemiBlock;
+            const esconderConfirmar = somenteDetalhes || ehBlock || ehSemiBlock || apenasFechar;
             if (esconderConfirmar) {
               mConfirmBtn.classList.add('d-none');
               mConfirmBtn.disabled = true;
@@ -2162,7 +2165,7 @@
               if (abrir) {
                 const id = abrir.getAttribute('data-cart-open');
                 if (window.catracaPortal?.abrirModalPorId) {
-                  window.catracaPortal.abrirModalPorId(id);
+                  window.catracaPortal.abrirModalPorId(id, { apenasFechar: true });
                   if (cartOffcanvas) cartOffcanvas.hide();
                 }
                 return;
