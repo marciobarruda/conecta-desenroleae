@@ -311,7 +311,7 @@
           <span>Total</span>
           <span>R$ <span id="cartTotalAside">0,00</span></span>
         </div>
-        <button class="btn btn-primary w-100" type="button">Finalizar compra</button>
+        <button class="btn btn-primary w-100" type="button">Reservar ingressos</button>
       </div>
     </div>
 
@@ -330,6 +330,10 @@
         const API_URL_JA_PEGOS = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/d0bbd65b-b4f6-45cf-8f98-2aff0bcb03a5';
         const CONFIRMAR_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/322fa1a9-b9aa-4e22-8762-fe0e63895727';
         const CANCELAR_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/cancelar-ingresso';
+        const LOGIN_URL =
+          'https://login.recife.pe.gov.br/auth/realms/recife/protocol/openid-connect/auth?response_type=code&redirect_uri=https%3A%2F%2Fconecta.recife.pe.gov.br%2Facesso&client_id=psp&nonce=4adee81a4d65dcb0d64369e776f1ad31&state=f71377d8222ff81c25db077b04cacc7c&scope=openid';
+        const NOME_USUARIO =
+          '{{ (() => { const nome = String($json.given_name ?? "").trim(); return nome ? nome[0].toUpperCase() + nome.slice(1).toLowerCase() : "Visitante"; })() }}';
         const CPF_FIXO = '{{ String(($json.cpf ?? $json.preferred_username ?? '')).replace(/\D+/g, '').slice(0,11) }}';
         const ICON_LIBRAS_SRC = 'https://www.ifmg.edu.br/conselheirolafaiete/noticias/anexos-noticias/libras-768x767.png/@@images/image.png';
         const ICON_AD_SRC = 'https://w7.pngwing.com/pngs/691/979/png-transparent-computer-icons-audio-description-pause-miscellaneous-text-trademark.png';
@@ -926,6 +930,9 @@
           }
           if (mTicketBtn) {
             mTicketBtn.addEventListener('click', () => {
+              const nomeUsuario = (NOME_USUARIO || '').trim();
+              const visitante = !nomeUsuario || nomeUsuario.toLowerCase() === 'visitante';
+
               const id = mTicketBtn.dataset.id;
               const nome = mTicketBtn.dataset.nome || (mTitle ? mTitle.textContent : '');
               if (!id) return;
@@ -934,6 +941,10 @@
               const status = normalizarStatus(evento.status);
               if (status === 'block') {
                 abrirModalCancelar(evento);
+                return;
+              }
+              if (visitante) {
+                window.location.href = LOGIN_URL;
                 return;
               }
               const quantidade = Math.max(1, Number(mQuantidadeSelect?.value) || 1);
