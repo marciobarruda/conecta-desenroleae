@@ -290,11 +290,36 @@
             font-size: 0.85rem;
             font-weight: 600;
         }
-        .qr-limit-col {
+        #tabela-leitores {
+            table-layout: fixed;
+        }
+        #tabela-leitores th,
+        #tabela-leitores td {
+            vertical-align: middle;
+        }
+        #tabela-leitores .col-evento {
+            min-width: 150px;
+        }
+        #tabela-leitores .col-data {
+            width: 130px;
+        }
+        #tabela-leitores .qr-limit-col,
+        #tabela-leitores .col-limit {
             min-width: 170px;
             max-width: 210px;
             white-space: normal;
             word-break: break-word;
+        }
+        #tabela-leitores .col-link {
+            width: 320px;
+        }
+        #tabela-leitores .col-link .leitor-link {
+            word-break: break-word;
+            white-space: normal;
+            display: block;
+        }
+        #tabela-leitores .col-acoes {
+            width: 120px;
         }
         .file-preview img {
             max-height: 160px;
@@ -487,7 +512,7 @@
                                         <th scope="col">Data</th>
                                         <th scope="col">Hora</th>
                                         <th scope="col">Local</th>
-                                        <th scope="col" class="text-end">Ações</th>
+                                        <th scope="col" class="text-end col-acoes">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -559,10 +584,10 @@
                             <table class="table table-hover align-middle" id="tabela-leitores">
                                 <thead class="table-light">
                                     <tr>
-                                        <th scope="col">Evento</th>
-                                        <th scope="col" class="text-center">Data</th>
-                                        <th scope="col" class="qr-limit-col text-center">QRCodes por CPF</th>
-                                        <th scope="col">Link do leitor</th>
+                                        <th scope="col" class="col-evento">Evento</th>
+                                        <th scope="col" class="text-center col-data">Data</th>
+                                        <th scope="col" class="qr-limit-col col-limit text-center">QRCodes por CPF</th>
+                                        <th scope="col" class="col-link">Link do leitor</th>
                                         <th scope="col" class="text-end">Ações</th>
                                     </tr>
                                 </thead>
@@ -913,35 +938,34 @@
                     const dataEvento = formatDateBR(item.data_evento || item.quando || item.data || '');
 
                     const colunas = [
-                        eventoNome,
-                        dataEvento || '-',
-                        limite,
-                        linkGerado
+                        { valor: eventoNome, classe: 'col-evento' },
+                        { valor: dataEvento || '-', classe: 'text-center col-data' },
+                        { valor: limite, classe: 'text-center qr-limit-col col-limit' },
+                        { valor: linkGerado, classe: 'col-link', ehLink: true }
                     ];
 
-                    colunas.forEach((valor, indice) => {
+                    colunas.forEach(coluna => {
                         const td = document.createElement('td');
-                        if (indice === 1 || indice === 2) {
-                            td.classList.add('text-center');
+                        if (coluna.classe) {
+                            td.className = coluna.classe;
                         }
-                        if (indice === 2) {
-                            td.classList.add('qr-limit-col');
-                        }
-                        if (indice === 3 && valor && valor !== '-') {
+
+                        if (coluna.ehLink && coluna.valor && coluna.valor !== '-') {
                             const linkEl = document.createElement('a');
-                            linkEl.href = valor;
+                            linkEl.href = coluna.valor;
                             linkEl.target = '_blank';
                             linkEl.rel = 'noopener noreferrer';
-                            linkEl.textContent = valor;
+                            linkEl.textContent = coluna.valor;
+                            linkEl.className = 'leitor-link text-break';
                             td.appendChild(linkEl);
                         } else {
-                            td.textContent = valor || '-';
+                            td.textContent = coluna.valor || '-';
                         }
                         linha.appendChild(td);
                     });
 
                     const acaoTd = document.createElement('td');
-                    acaoTd.className = 'text-end';
+                    acaoTd.className = 'text-end col-acoes';
                     const excluir = criarBotao('🗑️', 'Excluir leitor', 'btn-outline-danger', () => prepararExclusaoLeitor(item));
                     acaoTd.appendChild(excluir);
                     linha.appendChild(acaoTd);
