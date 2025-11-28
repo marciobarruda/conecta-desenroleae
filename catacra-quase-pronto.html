@@ -430,6 +430,7 @@
         let mSinopse;
         let mTicketBtn;
         let mCancelarBtn;
+        let mConfirmBtn;
         let modalCancelar;
         let modalCancelarBtnConfirmar;
         let eventoParaCancelar = null;
@@ -490,6 +491,7 @@
           mSinopse = document.querySelector('#modalSinopse');
           mTicketBtn = document.querySelector('#modalTicketBtn');
           mCancelarBtn = document.querySelector('#modalCancelarBtn');
+          mConfirmBtn = null;
           const modalCancelarEl = document.querySelector('#modalCancelar');
           modalCancelar = modalCancelarEl ? new bootstrap.Modal(modalCancelarEl) : null;
           if (modalCancelarEl && modalCancelar) {
@@ -1371,7 +1373,15 @@
           corpo.appendChild(blocoInfo);
 
           const acoes = document.createElement('div');
-          acoes.className = 'ticket-actions mt-3';
+          acoes.className = 'ticket-actions mt-3 d-grid gap-2';
+
+          const botaoIngresso = document.createElement('button');
+          botaoIngresso.type = 'button';
+          botaoIngresso.className = 'btn btn-primary btn-modern w-100 btn-pegar-ingresso';
+          botaoIngresso.setAttribute('aria-pressed', 'false');
+          botaoIngresso.setAttribute('aria-disabled', 'false');
+          botaoIngresso.textContent = rotuloPrincipalPorStatus(status);
+          acoes.appendChild(botaoIngresso);
 
           const botaoDetalhes = document.createElement('button');
           botaoDetalhes.type = 'button';
