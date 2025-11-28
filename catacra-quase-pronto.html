@@ -251,7 +251,7 @@
                 </select>
               </div>
               <button id="modalTicketBtn" type="button" class="btn btn-outline-primary" aria-pressed="false">🛒 Adicionar ao carrinho</button>
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+              <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Fechar</button>
             </div>
           </div>
         </div>
@@ -2277,6 +2277,7 @@
       (function () {
         const carrinho = new Map();
         let cartOffcanvas;
+        let cartOffcanvasElement;
         let cartCount;
         let cartTotal;
         let cartTotalAside;
@@ -2310,8 +2311,8 @@
           cartButton = document.querySelector('#cartButton');
           cartCheckoutBtn = document.querySelector('#cartCheckoutBtn');
 
-          const offcanvasElement = document.querySelector('#marketCart');
-          cartOffcanvas = offcanvasElement ? new bootstrap.Offcanvas(offcanvasElement) : null;
+          cartOffcanvasElement = document.querySelector('#marketCart');
+          cartOffcanvas = cartOffcanvasElement ? new bootstrap.Offcanvas(cartOffcanvasElement) : null;
 
           registrarEventos();
           atualizarCarrinho();
@@ -2320,6 +2321,14 @@
         function registrarEventos() {
           if (cartButton && cartOffcanvas) {
             cartButton.addEventListener('click', () => cartOffcanvas.show());
+          }
+          if (cartButton && cartOffcanvasElement) {
+            cartOffcanvasElement.addEventListener('show.bs.offcanvas', () => {
+              cartButton.classList.add('d-none');
+            });
+            cartOffcanvasElement.addEventListener('hidden.bs.offcanvas', () => {
+              cartButton.classList.remove('d-none');
+            });
           }
           if (cartItems) {
             cartItems.addEventListener('click', (event) => {
