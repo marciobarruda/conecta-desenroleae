@@ -2284,6 +2284,7 @@
         let cartItems;
         let cartButton;
         let cartCheckoutBtn;
+        let cartFloating;
 
         if (document.readyState === 'loading') {
           document.addEventListener('DOMContentLoaded', initCarrinho);
@@ -2309,6 +2310,7 @@
           cartTotalAside = document.querySelector('#cartTotalAside');
           cartItems = document.querySelector('#cartItems');
           cartButton = document.querySelector('#cartButton');
+          cartFloating = document.querySelector('.cart-floating');
           cartCheckoutBtn = document.querySelector('#cartCheckoutBtn');
 
           cartOffcanvasElement = document.querySelector('#marketCart');
@@ -2322,12 +2324,14 @@
           if (cartButton && cartOffcanvas) {
             cartButton.addEventListener('click', () => cartOffcanvas.show());
           }
-          if (cartButton && cartOffcanvasElement) {
+          if (cartOffcanvasElement) {
             cartOffcanvasElement.addEventListener('show.bs.offcanvas', () => {
-              cartButton.classList.add('d-none');
+              cartButton?.classList.add('d-none');
+              cartFloating?.classList.add('d-none');
             });
             cartOffcanvasElement.addEventListener('hidden.bs.offcanvas', () => {
-              cartButton.classList.remove('d-none');
+              cartButton?.classList.remove('d-none');
+              cartFloating?.classList.remove('d-none');
             });
           }
           if (cartItems) {
