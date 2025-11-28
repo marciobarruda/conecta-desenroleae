@@ -1536,12 +1536,15 @@
           const jaPegou = card.getAttribute('data-ja-pegou') === 'true';
           const status = obterStatusDoCard(card);
           const botao = card.querySelector('.btn-pegar-ingresso');
+          const botaoDetalhes = card.querySelector('.btn-detalhes');
 
           if (jaPegou) return;
 
           if (limiteAtingido) {
-            card.classList.add('is-muted', 'inativo');
-            card.setAttribute('aria-disabled', 'true');
+            card.dataset.limiteCarrinho = 'true';
+            card.classList.add('is-muted');
+            card.classList.remove('inativo');
+            card.removeAttribute('aria-disabled');
             if (botao) {
               botao.disabled = true;
               botao.setAttribute('aria-disabled', 'true');
@@ -1552,17 +1555,29 @@
                 botao.classList.add('btn-outline-secondary');
               }
             }
-          } else if (status !== 'block') {
-            card.classList.remove('inativo');
-            if (!selecoesAtuais.has(idCard)) {
-              card.classList.remove('is-muted');
+            if (botaoDetalhes) {
+              botaoDetalhes.disabled = false;
+              botaoDetalhes.setAttribute('aria-disabled', 'false');
             }
-            if (!card.dataset.bloqueado) {
-              card.removeAttribute('aria-disabled');
-            }
-            if (botao && !botao.disabled) {
-              resetarEstadoBotaoIngresso(botao);
-            }
+            return;
+          }
+
+          delete card.dataset.limiteCarrinho;
+          card.classList.remove('inativo');
+          if (status === 'block') {
+            card.classList.add('is-muted');
+          } else if (!selecoesAtuais.has(idCard)) {
+            card.classList.remove('is-muted');
+          }
+          if (!card.dataset.bloqueado) {
+            card.removeAttribute('aria-disabled');
+          }
+          if (botao && !botao.disabled) {
+            resetarEstadoBotaoIngresso(botao);
+          }
+          if (botaoDetalhes) {
+            botaoDetalhes.disabled = false;
+            botaoDetalhes.setAttribute('aria-disabled', 'false');
           }
         }
 
@@ -1837,7 +1852,8 @@
             const id = card.getAttribute('data-id');
             const dados = eventosPorId.get(id) || eventosBloqueadosPorId.get(id);
             if (dados) {
-              abrirModal(dados);
+              const limiteCarrinho = card.dataset.limiteCarrinho === 'true';
+              abrirModal(dados, { apenasFechar: limiteCarrinho });
             }
           }
         }
