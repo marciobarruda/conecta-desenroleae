@@ -974,6 +974,12 @@
           }
         }
 
+        function abrirModalPorId(id) {
+          if (!id) return;
+          const dados = eventosPorId.get(id) || eventosBloqueadosPorId.get(id);
+          if (dados) abrirModal(dados);
+        }
+
         function popularFiltros(lista) {
           preencherSelect(elFLocal, lista.map((e) => e.local).filter(Boolean));
           preencherSelect(elFClass, lista.map((e) => e.classificacao).filter(Boolean));
@@ -1977,6 +1983,11 @@
           }
         }
 
+        window.catracaPortal = {
+          ...(window.catracaPortal || {}),
+          abrirModalPorId
+        };
+
         function atualizarResultado() {
           if (!elResultInfo) return;
           elResultInfo.textContent = `Exibindo ${eventosFiltrados.length} de ${eventos.length}`;
@@ -2145,6 +2156,23 @@
           if (cartButton && cartOffcanvas) {
             cartButton.addEventListener('click', () => cartOffcanvas.show());
           }
+          if (cartItems) {
+            cartItems.addEventListener('click', (event) => {
+              const abrir = event.target.closest('[data-cart-open]');
+              if (abrir) {
+                const id = abrir.getAttribute('data-cart-open');
+                if (window.catracaPortal?.abrirModalPorId) {
+                  window.catracaPortal.abrirModalPorId(id);
+                  if (cartOffcanvas) cartOffcanvas.hide();
+                }
+                return;
+              }
+              const remover = event.target.closest('[data-id]');
+              if (remover && remover.hasAttribute('data-remove')) {
+                removerDoCarrinho(remover.getAttribute('data-id'));
+              }
+            });
+          }
         }
 
         function adicionarAoCarrinho(item) {
@@ -2197,11 +2225,13 @@
               li.className = 'list-group-item d-flex align-items-center gap-3';
               li.innerHTML = `
                 <div class="d-flex align-items-center gap-2 flex-grow-1">
-                  <div class="ratio ratio-1x1 rounded overflow-hidden bg-light" style="width: 64px; max-width: 64px;">
-                    ${poster
-                      ? `<img src="${poster}" alt="Pôster de ${nome}" class="w-100 h-100 object-fit-cover">`
-                      : '<div class="d-flex align-items-center justify-content-center w-100 h-100 text-muted small">🎟️</div>'}
-                  </div>
+                  <button type="button" class="btn p-0 border-0 bg-transparent" data-cart-open="${item.id}" aria-label="Ver detalhes de ${nome}">
+                    <div class="ratio ratio-1x1 rounded overflow-hidden bg-light" style="width: 64px; max-width: 64px;">
+                      ${poster
+                        ? `<img src="${poster}" alt="Pôster de ${nome}" class="w-100 h-100 object-fit-cover">`
+                        : '<div class="d-flex align-items-center justify-content-center w-100 h-100 text-muted small">🎟️</div>'}
+                    </div>
+                  </button>
                   <div class="flex-grow-1">
                     <div class="fw-semibold">${nome}</div>
                     <small class="text-muted">${item.quantidade}x • R$ ${preco.toFixed(2).replace('.', ',')}</small>
@@ -2209,10 +2239,9 @@
                 </div>
                 <div class="d-flex align-items-center gap-2">
                   <span class="fw-bold">R$ ${(preco * item.quantidade).toFixed(2).replace('.', ',')}</span>
-                  <button class="btn btn-sm btn-outline-danger" type="button" data-id="${item.id}">Remover</button>
+                  <button class="btn btn-sm btn-outline-danger" type="button" data-id="${item.id}" data-remove>Remover</button>
                 </div>
               `;
-              li.querySelector('button').addEventListener('click', () => removerDoCarrinho(item.id));
               cartItems.appendChild(li);
             });
           }
