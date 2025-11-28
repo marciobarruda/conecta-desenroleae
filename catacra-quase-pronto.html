@@ -197,7 +197,10 @@
             <small>Preparamos tudo rapidinho para você ✨</small>
           </div>
         </div>
-        <div id="grid" class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 catalog-grid"></div>
+        <div
+          id="grid"
+          class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-3 catalog-grid"
+        ></div>
       </div>
     </section>
 
@@ -1160,7 +1163,7 @@
 
         function criarCard(evento) {
           const coluna = document.createElement('div');
-          coluna.className = 'col';
+          coluna.className = 'col-12 col-sm-6 col-lg-4 col-xl-3 d-flex';
 
           const card = document.createElement('article');
           card.className = 'ticket-card h-100 d-flex flex-column';
