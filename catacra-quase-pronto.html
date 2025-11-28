@@ -250,7 +250,7 @@
                   <option value="2">2</option>
                 </select>
               </div>
-              <button id="modalTicketBtn" type="button" class="btn btn-outline-primary" aria-pressed="false">🛒 Colocar no carrinho</button>
+              <button id="modalTicketBtn" type="button" class="btn btn-outline-primary" aria-pressed="false">🛒 Adicionar ao carrinho</button>
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
             </div>
           </div>
@@ -377,6 +377,8 @@
         const selecoesAtuais = new Set();
         const eventosPorId = new Map();
         const eventosBloqueadosPorId = new Map();
+        const quantidadesCarrinho = new Map();
+        const LIMITE_INGRESSOS = 2;
         let eventos = [];
         let eventosFiltrados = [];
         let eventosJaPegos = [];
@@ -395,6 +397,7 @@
         let elFGenero;
         let elBtnLimpar;
 
+        let modalEl;
         let modal;
         let mTitle;
         let mPoster;
@@ -444,7 +447,8 @@
             document.body.appendChild(campoCPF);
           }
 
-          modal = new bootstrap.Modal(document.querySelector('#modalDetalhes'));
+          modalEl = document.querySelector('#modalDetalhes');
+          modal = new bootstrap.Modal(modalEl);
           mTitle = document.querySelector('#modalTitulo');
           mPoster = document.querySelector('#modalPoster');
           mClass = document.querySelector('#modalClass');
@@ -482,23 +486,9 @@
           eventosBloqueadosPorId.clear();
           selecoesAtuais.clear();
 
-          alternarCarregamento(true);
-          const recebidosDisponiveis = await fetchEventos(API_URL);
-          exibindoFallbackSemEventos = recebidosDisponiveis.length === 0;
-          const baseDisponiveis = exibindoFallbackSemEventos
-            ? FALLBACK_EVENTOS
-            : recebidosDisponiveis.map(adaptarEventoApi).filter(Boolean);
-
-          eventos = prepararEventos(baseDisponiveis, { resetarMapa: true, mapa: eventosPorId });
-          eventosFiltrados = [...eventos];
-          eventosJaPegos = [];
-          eventosJaPegosFiltrados = [];
-          popularFiltros(eventos);
-          renderCards(eventosFiltrados);
-          alternarCarregamento(false);
-          atualizarResultado();
           registrarEventos();
-          await carregarEventosJaPegos();
+          sincronizarCarrinhoInicial();
+          await recarregarCatalogoPrincipal();
         }
 
         function injetarEstilos() {
@@ -572,6 +562,29 @@
           } catch (erro) {
             console.error('Falha ao buscar eventos', erro);
             return [];
+          }
+        }
+
+        async function recarregarCatalogoPrincipal() {
+          alternarCarregamento(true);
+          try {
+            const recebidosDisponiveis = await fetchEventos(API_URL);
+            exibindoFallbackSemEventos = recebidosDisponiveis.length === 0;
+            const baseDisponiveis = exibindoFallbackSemEventos
+              ? FALLBACK_EVENTOS
+              : recebidosDisponiveis.map(adaptarEventoApi).filter(Boolean);
+
+            eventos = prepararEventos(baseDisponiveis, { resetarMapa: true, mapa: eventosPorId });
+            eventosFiltrados = [...eventos];
+            eventosJaPegos = [];
+            eventosJaPegosFiltrados = [];
+            popularFiltros(eventos);
+            aplicarFiltros();
+            await carregarEventosJaPegos();
+            aplicarRestricoesCarrinho();
+          } finally {
+            alternarCarregamento(false);
+            atualizarResultado();
           }
         }
 
@@ -771,7 +784,7 @@
         }
 
         function rotuloPrincipalPorStatus(status) {
-          return normalizarStatus(status) === 'block' ? '🎟️ Devolver ingresso' : '🛒 Colocar no carrinho';
+          return normalizarStatus(status) === 'block' ? '🎟️ Devolver ingresso' : '🛒 Adicionar ao carrinho';
         }
 
         function rotuloConfirmarPorStatus(status) {
@@ -933,7 +946,7 @@
             });
           }
           if (mTicketBtn) {
-            mTicketBtn.addEventListener('click', () => {
+            mTicketBtn.addEventListener('click', async () => {
               const nomeUsuario = (NOME_USUARIO || '').trim();
               const visitante = !nomeUsuario || nomeUsuario.toLowerCase() === 'visitante';
 
@@ -951,6 +964,10 @@
                 window.location.href = LOGIN_URL;
                 return;
               }
+              const quantidadeAtual = obterQuantidadeNoCarrinho(id);
+              if (quantidadeAtual >= LIMITE_INGRESSOS) {
+                return;
+              }
               const quantidade = Math.max(1, Number(mQuantidadeSelect?.value) || 1);
               if (window.catracaCart && typeof window.catracaCart.adicionar === 'function') {
                 window.catracaCart.adicionar({
@@ -960,7 +977,11 @@
                   poster: mTicketBtn.dataset.poster || evento.poster || ''
                 });
               }
-              if (modal) {
+              if (modal && modalEl) {
+                const aoFechar = () => {
+                  recarregarCatalogoPrincipal();
+                };
+                modalEl.addEventListener('hidden.bs.modal', aoFechar, { once: true });
                 modal.hide();
               }
             });
@@ -987,6 +1008,9 @@
           if (modalCancelarBtnConfirmar) {
             modalCancelarBtnConfirmar.addEventListener('click', cancelarIngresso);
           }
+          document.addEventListener('carrinho:atualizado', (ev) => {
+            atualizarQuantidadesCarrinho(ev?.detail?.itens);
+          });
         }
 
         function abrirModalPorId(id, opcoes = {}) {
@@ -1479,6 +1503,77 @@
           }
         }
 
+        function atualizarQuantidadesCarrinho(itens = []) {
+          quantidadesCarrinho.clear();
+          if (Array.isArray(itens)) {
+            itens.forEach((item) => {
+              if (!item || item.id === undefined || item.id === null) return;
+              const quantidade = Math.max(0, Number(item.quantidade) || 0);
+              quantidadesCarrinho.set(String(item.id), quantidade);
+            });
+          }
+          aplicarRestricoesCarrinho();
+          atualizarBotaoModal();
+        }
+
+        function obterQuantidadeNoCarrinho(id) {
+          if (id === undefined || id === null) return 0;
+          return quantidadesCarrinho.get(String(id)) || 0;
+        }
+
+        function aplicarRestricoesCarrinho() {
+          if (!elGrid) return;
+          const cards = elGrid.querySelectorAll('[data-id]');
+          cards.forEach((card) => aplicarRestricoesCarrinhoEmCard(card));
+        }
+
+        function aplicarRestricoesCarrinhoEmCard(card) {
+          if (!card) return;
+          const idCard = card.getAttribute('data-id');
+          if (!idCard) return;
+          const quantidadeNoCarrinho = obterQuantidadeNoCarrinho(idCard);
+          const limiteAtingido = quantidadeNoCarrinho >= LIMITE_INGRESSOS;
+          const jaPegou = card.getAttribute('data-ja-pegou') === 'true';
+          const status = obterStatusDoCard(card);
+          const botao = card.querySelector('.btn-pegar-ingresso');
+
+          if (jaPegou) return;
+
+          if (limiteAtingido) {
+            card.classList.add('is-muted', 'inativo');
+            card.setAttribute('aria-disabled', 'true');
+            if (botao) {
+              botao.disabled = true;
+              botao.setAttribute('aria-disabled', 'true');
+              botao.setAttribute('aria-pressed', 'false');
+              botao.textContent = '🎟️ Limite no carrinho';
+              botao.classList.remove('btn-primary', 'btn-success');
+              if (!botao.classList.contains('btn-outline-secondary')) {
+                botao.classList.add('btn-outline-secondary');
+              }
+            }
+          } else if (status !== 'block') {
+            card.classList.remove('inativo');
+            if (!selecoesAtuais.has(idCard)) {
+              card.classList.remove('is-muted');
+            }
+            if (!card.dataset.bloqueado) {
+              card.removeAttribute('aria-disabled');
+            }
+            if (botao && !botao.disabled) {
+              resetarEstadoBotaoIngresso(botao);
+            }
+          }
+        }
+
+        function sincronizarCarrinhoInicial() {
+          if (window.catracaCart?.obterItens) {
+            atualizarQuantidadesCarrinho(window.catracaCart.obterItens());
+          } else {
+            aplicarRestricoesCarrinho();
+          }
+        }
+
         function aplicarEstadoSelecionado(card) {
           if (!card) return;
           const status = obterStatusDoCard(card);
@@ -1817,6 +1912,7 @@
           } else {
             resetarDisponibilidade();
           }
+          aplicarRestricoesCarrinho();
         }
 
         function abrirModal(evento, opcoes = {}) {
@@ -1824,6 +1920,8 @@
           const status = normalizarStatus(evento.status);
           const ehBlock = status === 'block';
           const ehSemiBlock = status === 'semi-block';
+          const quantidadeNoCarrinho = obterQuantidadeNoCarrinho(evento.id);
+          const atingiuLimiteCarrinho = quantidadeNoCarrinho >= LIMITE_INGRESSOS;
           const apenasFechar = Boolean(opcoes.apenasFechar);
           mTitle.textContent = evento.nome;
           if (mPoster) {
@@ -1878,7 +1976,7 @@
               mTicketBtn.setAttribute('aria-disabled', 'false');
             }
           }
-          const esconderQuantidade = somenteDetalhes || ehBlock || apenasFechar;
+          const esconderQuantidade = somenteDetalhes || ehBlock || apenasFechar || atingiuLimiteCarrinho;
           configurarSelectQuantidade(status);
           if (mQuantidadeWrapper) {
             mQuantidadeWrapper.classList.toggle('d-none', esconderQuantidade);
@@ -1929,6 +2027,8 @@
           const evento = eventosPorId.get(id);
           if (!evento) return;
           const status = normalizarStatus(evento.status);
+          const quantidadeNoCarrinho = obterQuantidadeNoCarrinho(id);
+          const atingiuLimiteCarrinho = quantidadeNoCarrinho >= LIMITE_INGRESSOS;
           const rotuloPrincipal = rotuloPrincipalPorStatus(status);
           const rotuloConfirmar = rotuloConfirmarPorStatus(status);
           const ehBlock = status === 'block';
@@ -1949,7 +2049,9 @@
             return;
           }
           const selecionado = selecoesAtuais.has(id);
-          const bloqueado = !selecionado && eventoConflitanteComSelecoes(evento);
+          const bloqueadoPorConflito = !selecionado && eventoConflitanteComSelecoes(evento);
+          const bloqueadoPorCarrinho = atingiuLimiteCarrinho;
+          const bloqueado = bloqueadoPorConflito || bloqueadoPorCarrinho;
 
           if (selecionado) {
             mTicketBtn.disabled = false;
@@ -1963,7 +2065,7 @@
             mTicketBtn.disabled = true;
             mTicketBtn.setAttribute('aria-disabled', 'true');
             mTicketBtn.setAttribute('aria-pressed', 'false');
-            mTicketBtn.textContent = '🎟️ Indisponível';
+            mTicketBtn.textContent = bloqueadoPorCarrinho ? '🎟️ Limite no carrinho' : '🎟️ Indisponível';
             mTicketBtn.classList.remove('btn-success');
             if (!mTicketBtn.classList.contains('btn-outline-secondary')) {
               mTicketBtn.classList.add('btn-outline-secondary');
@@ -2005,7 +2107,7 @@
             }
           }
           if (mQuantidadeSelect) {
-            mQuantidadeSelect.disabled = bloqueado || ehBlock;
+            mQuantidadeSelect.disabled = bloqueado || ehBlock || atingiuLimiteCarrinho;
           }
         }
 
@@ -2172,6 +2274,18 @@
           initCarrinho();
         }
 
+        function snapshotCarrinho() {
+          return Array.from(carrinho.values()).map((item) => ({ ...item }));
+        }
+
+        function emitirEventoCarrinho(itensSnapshot = []) {
+          document.dispatchEvent(
+            new CustomEvent('carrinho:atualizado', {
+              detail: { itens: Array.isArray(itensSnapshot) ? itensSnapshot : [] }
+            })
+          );
+        }
+
         function initCarrinho() {
           cartCount = document.querySelector('#cartCount');
           cartTotal = document.querySelector('#cartTotal');
@@ -2293,12 +2407,20 @@
               cartItems.appendChild(li);
             });
           }
+          const snapshot = itens.map((item) => ({ ...item }));
+          emitirEventoCarrinho(snapshot);
         }
 
         // Exponha funções básicas para futuras integrações sem reativar o marketplace visual.
         window.catracaCart = {
           adicionar: adicionarAoCarrinho,
           remover: removerDoCarrinho,
+          obterItens: snapshotCarrinho,
+          obterQuantidade: (id) => {
+            if (id === undefined || id === null) return 0;
+            const encontrado = carrinho.get(String(id));
+            return encontrado ? encontrado.quantidade || 0 : 0;
+          },
           limpar: () => {
             carrinho.clear();
             atualizarCarrinho();
