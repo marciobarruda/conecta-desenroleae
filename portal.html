@@ -61,401 +61,471 @@
       .ticket-body::before{left:-12px}
       .ticket-body::after{right:-12px}
       .ci{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 .4rem;border-radius:6px;font-weight:800;font-size:.85rem;color:#fff}
-      .ci.l{background:#2aa84a}     /* L */
-      .ci.c10{background:#1f87c9}   /* 10 */
-      .ci.c12{background:#f4b400}   /* 12 */
-      .ci.c14{background:#ef6c00}   /* 14 */
-      .ci.c16{background:#d84315}   /* 16 */
-      .ci.c18{background:#212121}   /* 18 */
+      .ci.l{background:#2aa84a}
+      .ci.c10{background:#1f87c9}
+      .ci.c12{background:#f4b400}
+      .ci.c14{background:#ef6c00}
+      .ci.c16{background:#d84315}
+      .ci.c18{background:#212121}
       .meta-label{font-size:.78rem;color:var(--text-muted)}
       .link-action{font-weight:700;text-decoration:none}
       .link-action:hover{text-decoration:underline}
       .btn-fav[aria-pressed="true"]{border-color:#ffc107!important}
       .catalog-grid .col{display:flex}
       .catalog-grid .ticket-card{display:flex;flex-direction:column;width:100%}
-      @media (max-width:768px){header.site-header{padding:2.25rem 0 1.75rem}.badge-open{width:100%;justify-content:center}}
-      @media (max-width:576px){.catalog-toolbar .row > * + *{margin-top:.5rem}}
+      .ticket-card.is-muted{filter:grayscale(1);opacity:.55;transition:filter .2s ease,opacity .2s ease}
+      .ticket-card.is-active{box-shadow:0 0 0 .15rem rgba(0,83,164,.35)}
+      #modalDetalhes .modal-dialog{max-width:980px}
+      #modalDetalhes .modal-content{border-radius:18px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.18)}
+      #modalDetalhes .modal-header,#modalDetalhes .modal-footer{background:var(--surface);border-color:rgba(0,0,0,.05)}
+      #modalDetalhes .modal-body{padding:2rem}
+      .modal-poster{background:#e9eef7;border-radius:14px;overflow:hidden;box-shadow:0 10px 26px rgba(0,45,98,.14);min-height:360px}
+      .modal-poster img{width:100%;height:100%;object-fit:cover;display:block}
+      @media (max-width:768px){
+        header.site-header{padding:2.25rem 0 1.75rem}
+        .badge-open{width:100%;justify-content:center}
+        #modalDetalhes .modal-body{padding:1.5rem}
+      }
+      @media (max-width:576px){
+        .catalog-toolbar .row > * + *{margin-top:.5rem}
+        #modalDetalhes .modal-body{padding:1.25rem}
+      }
+      /* ===== Ajustes adicionais para o catálogo dinâmico ===== */
+      main{
+        max-width:1100px;margin:-3rem auto 4rem;padding:0 1.5rem 3rem
+      }
+      section.catalogo{
+        background:var(--surface-strong);border-radius:18px;padding:2.5rem clamp(1.25rem,4vw,3rem);box-shadow:0 24px 60px rgba(0,40,90,.14)
+      }
+      .catalogo header{
+        margin-bottom:2rem;display:flex;flex-direction:column;gap:.5rem
+      }
+      .catalogo header h2{
+        font-size:1.75rem;font-weight:700;margin:0;color:var(--brand-secondary)
+      }
+      .catalogo header p{
+        margin:0;color:var(--text-muted)
+      }
+      .catalog-grid{
+        display:grid;gap:1.75rem;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))
+      }
+      .ticket-card{
+        cursor:pointer;transition:transform .2s ease,box-shadow .2s ease,filter .2s ease,opacity .2s ease
+      }
+      .ticket-card:hover{transform:translateY(-4px);box-shadow:0 24px 55px rgba(0,35,79,.18)}
+      .ticket-card.inativo{
+        filter:grayscale(100%);opacity:.55;pointer-events:none;transform:none;box-shadow:var(--shadow-strong)
+      }
+      .ticket-card.selecionado{
+        box-shadow:0 0 0 .15rem rgba(0,83,164,.35)
+      }
+      .ticket-cover{
+        aspect-ratio:16/10;background:#e7edf8;overflow:hidden
+      }
+      .ticket-cover img{
+        width:100%;height:100%;object-fit:cover;display:block
+      }
+      .ticket-body{
+        display:flex;flex-direction:column;gap:.85rem;padding:1.4rem 1.35rem 1.5rem
+      }
+      .ticket-title{
+        font-size:1.2rem;margin:0;font-weight:700;color:var(--text-strong)
+      }
+      .ticket-meta,.ticket-data,.ticket-disponiveis{
+        margin:0;font-size:.95rem;color:var(--text-muted)
+      }
+      .ticket-disponiveis{
+        font-weight:600;color:var(--brand-secondary)
+      }
+      .badge-classificacao{
+        display:inline-flex;align-items:center;padding:.25rem .55rem;border-radius:999px;background:rgba(0,163,255,.12);color:var(--brand-secondary);font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em
+      }
+      .ticket-actions{
+        display:flex;flex-wrap:wrap;gap:.75rem;margin-top:auto
+      }
+      .btn-ingresso,.btn-detalhes{
+        border:none;border-radius:10px;padding:.75rem 1rem;font-weight:600;font-size:.95rem;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease,background .2s ease
+      }
+      .btn-ingresso{
+        flex:1;background:var(--brand-primary);color:#fff;box-shadow:0 12px 25px rgba(0,83,164,.24)
+      }
+      .btn-ingresso:hover{transform:translateY(-1px);box-shadow:0 18px 28px rgba(0,83,164,.26)}
+      .btn-ingresso.selecionado{
+        background:#1f8f4d;box-shadow:0 14px 30px rgba(31,143,77,.24)
+      }
+      .btn-detalhes{
+        background:rgba(0,83,164,.12);color:var(--brand-secondary)
+      }
+      .btn-detalhes:hover{background:rgba(0,83,164,.18)}
+      .status-mensagem{
+        margin:2rem 0 0;text-align:center;color:var(--text-muted)
+      }
+      .status-mensagem[hidden]{display:none!important}
+      .modal-dinamico{
+        position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;pointer-events:none;transition:opacity .25s ease
+      }
+      .modal-dinamico.is-open{opacity:1;pointer-events:auto}
+      .modal-dinamico__backdrop{position:absolute;inset:0;background:rgba(17,28,45,.55)}
+      .modal-dinamico__dialog{
+        position:relative;background:#fff;border-radius:20px;overflow:hidden;width:min(92vw,960px);max-height:calc(100vh - 3rem);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0;box-shadow:0 28px 70px rgba(0,20,50,.38);transform:translateY(18px);transition:transform .25s ease
+      }
+      .modal-dinamico.is-open .modal-dinamico__dialog{transform:translateY(0)}
+      .modal-dinamico__close{
+        position:absolute;top:1.1rem;right:1.1rem;width:42px;height:42px;border-radius:50%;border:none;background:rgba(255,255,255,.88);color:var(--brand-secondary);font-size:1.3rem;font-weight:600;cursor:pointer;box-shadow:0 12px 28px rgba(0,0,0,.12)
+      }
+      .modal-dinamico__media{background:#e9eef7;min-height:360px}
+      .modal-dinamico__media img{width:100%;height:100%;object-fit:cover;display:block}
+      .modal-dinamico__content{
+        padding:clamp(1.5rem,2vw + 1rem,2.5rem);display:flex;flex-direction:column;gap:1rem;overflow-y:auto
+      }
+      .modal-dinamico__content h2{
+        margin:0;font-size:clamp(1.6rem,2vw + 1rem,2.25rem);color:var(--brand-secondary)
+      }
+      .modal-dinamico__sinopse{
+        margin:0;color:var(--text-strong);line-height:1.65
+      }
+      .modal-dinamico__info{
+        list-style:none;padding:0;margin:0;display:grid;gap:.5rem;font-size:.98rem;color:var(--text-muted)
+      }
+      .modal-dinamico__info strong{color:var(--brand-secondary)}
+      @media (max-width:880px){
+        .modal-dinamico__dialog{grid-template-columns:minmax(0,1fr)}
+        .modal-dinamico__media{max-height:320px}
+      }
+      @media (max-width:640px){
+        header.site-header{padding:2.25rem 0 1.75rem}
+        main{margin-top:-2.25rem}
+        section.catalogo{padding:2rem 1.25rem}
+        .ticket-actions{flex-direction:column}
+      }
     </style>
   </head>
   <body>
-    <!-- HEADER -->
     <header class="site-header">
-      <div class="container">
-        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-          <div>
-            <h1 class="display-5 fw-bold mb-2">Desenrole aê • Symplifica Conecta</h1>
-            <p class="lead mb-0">Programação oficial da Secretaria de Cultura do Recife • Explore as peças e escolha seu teatro.</p>
-          </div>
-          <div class="text-md-end">
-            <span class="badge-open"><span aria-hidden="true">🎭</span> Programação aberta</span>
-            <div class="mt-2">
-              <button class="btn btn-light btn-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasFav" aria-controls="offcanvasFav">
-                Favoritos <span class="badge text-bg-primary align-middle ms-1" id="favCount">0</span>
-              </button>
-            </div>
-          </div>
+      <div class="header-wrapper">
+        <div>
+          <h1>Desenrole aê</h1>
+          <p>Confira os espetáculos disponíveis e garanta seu ingresso gratuito.</p>
         </div>
       </div>
     </header>
 
-    <!-- FILTROS -->
-    <section class="py-4">
-      <div class="container">
-        <div class="card card-programa">
-          <div class="card-header"><div class="section-title mb-0">Filtrar programação</div></div>
-          <div class="card-body catalog-toolbar">
-            <div class="row g-3 align-items-end">
-              <div class="col-12 col-md-6 col-lg-5">
-                <label class="form-label small fw-semibold text-uppercase text-muted">Busca</label>
-                <input type="search" id="q" class="form-control" placeholder="Digite nome da peça, teatro ou trecho da sinopse…" />
-              </div>
-              <div class="col-6 col-md-3 col-lg-2">
-                <label class="form-label small fw-semibold text-uppercase text-muted">Teatro</label>
-                <select id="fTeatro" class="form-select"><option value="">Todos</option></select>
-              </div>
-              <div class="col-6 col-md-3 col-lg-2">
-                <label class="form-label small fw-semibold text-uppercase text-muted">Classificação</label>
-                <select id="fClass" class="form-select"><option value="">Todas</option></select>
-              </div>
-              <div class="col-6 col-md-3 col-lg-2">
-                <label class="form-label small fw-semibold text-uppercase text-muted">Gênero</label>
-                <select id="fGenero" class="form-select"><option value="">Todos</option></select>
-              </div>
-              <div class="col-6 col-md-3 col-lg-1 d-grid">
-                <button id="btnLimpar" class="btn btn-outline-secondary">Limpar</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <main>
+      <section class="catalogo" aria-labelledby="tituloCatalogo">
+        <header>
+          <h2 id="tituloCatalogo">Catálogo de espetáculos</h2>
+          <p>Os cards são carregados automaticamente a partir do webhook oficial.</p>
+        </header>
 
-    <!-- CATÁLOGO -->
-    <section class="py-3">
-      <div class="container">
-        <div class="d-flex align-items-center justify-content-between mb-3">
-          <div class="section-title mb-0">Catálogo de peças</div>
-          <small class="text-muted" id="resultInfo">Exibindo 0 de 0</small>
-        </div>
-        <div id="grid" class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 catalog-grid"></div>
-      </div>
-    </section>
+        <div class="catalog-grid" data-lista-eventos></div>
+        <p class="status-mensagem" data-status hidden></p>
+      </section>
+    </main>
 
-    <!-- MODAL: DETALHES -->
-    <div class="modal fade" id="modalDetalhes" tabindex="-1" aria-labelledby="modalTitulo" aria-hidden="true">
-      <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title fw-bold" id="modalTitulo">Título da peça</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-          </div>
-          <div class="modal-body">
-            <div class="row g-3">
-              <div class="col-12 col-md-5">
-                <div class="ratio ratio-2x3 bg-light">
-                  <img id="modalPoster" src="" alt="Pôster da peça" class="w-100 h-100 poster-img rounded">
-                </div>
-              </div>
-              <div class="col-12 col-md-7">
-                <div class="mb-2"><span class="ci" id="modalClass">L</span></div>
-                <p class="small text-uppercase text-muted fw-semibold mb-1">Teatro</p>
-                <p class="fw-semibold" id="modalTeatro">—</p>
-                <p class="small text-uppercase text-muted fw-semibold mb-1">Data</p>
-                <p class="fw-semibold" id="modalQuando">—</p>
-                <p class="small text-uppercase text-muted fw-semibold mb-1">Gênero</p>
-                <p class="fw-semibold" id="modalGenero">—</p>
-                <p class="mb-0 mt-3" id="modalSinopse">—</p>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button id="modalFavBtn" type="button" class="btn btn-outline-warning">Favoritar</button>
-            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Fechar</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- OFFCANVAS: FAVORITOS -->
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasFav" aria-labelledby="offcanvasFavLabel">
-      <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="offcanvasFavLabel">Favoritos</h5>
-        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
-      </div>
-      <div class="offcanvas-body">
-        <div id="favList" class="list-group"></div>
-        <div class="mt-3 d-flex gap-2">
-          <button id="btnExportFav" class="btn btn-outline-primary btn-sm">Exportar IDs</button>
-          <button id="btnClearFav" class="btn btn-outline-danger btn-sm">Limpar favoritos</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- RODAPÉ -->
-    <footer class="py-5">
-      <div class="container text-center small text-muted">
-        Secretaria de Cultura do Recife • Prefeitura do Recife
-      </div>
-    </footer>
-
-    <!-- SCRIPTS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      // ====== Dataset (inclui 'genero') ======
-      const pecas = [
-        { id:"aurora-nas-esquinas", nome:"Aurora nas Esquinas", classificacao:"12+", genero:"Drama", teatro:"Teatro Santa Isabel",
-          quando:"12 outubro, 16h", mapUrl:"#",
-          sinopse:"Uma viagem poética pelas ruas do Recife, onde memórias se cruzam com o cotidiano e cada esquina revela afetos e segredos que insistem em permanecer vivos.",
-          poster:"https://deliriumnerd.com/wp-content/uploads/2019/08/aurora-nas-sombras-darkside-destacada-1024x538.jpg" },
-        { id:"maresia", nome:"Maresia", classificacao:"Livre", genero:"Teatro-dança", teatro:"Teatro Apolo",
-          quando:"13 outubro, 19h", mapUrl:"#",
-          sinopse:"Entre calmarias e tempestades, uma família ribeirinha enfrenta mudanças climáticas e afetivas, assinando pactos silenciosos com o vento e a maré.",
-          poster:"https://www.papocult.com.br/wp-content/uploads/2023/08/Cia-Acaso-Maresia-divulgacao.jpg" },
-        { id:"o-auto-do-frevo", nome:"O Auto do Frevo", classificacao:"10+", genero:"Musical", teatro:"Paço do Frevo",
-          quando:"14 outubro, 18h", mapUrl:"#",
-          sinopse:"Musical festivo que mistura frevo, teatro e narrativa popular para contar a saga de um estandarte que ganha vida e sai em busca da sua orquestra.",
-          poster:"https://midias.diariodepernambuco.com.br/static/app/noticia_127983242361/2016/12/15/680255/20161215172830466281i.jpg" },
-        { id:"paredes-que-falam", nome:"Paredes que Falam", classificacao:"14+", genero:"Experimental", teatro:"Teatro Luiz Mendonça",
-          quando:"15 outubro, 20h", mapUrl:"#",
-          sinopse:"Em um edifício histórico prestes a ruir, moradores compartilham lembranças e disputas, enquanto o passado sussurra pelos azulejos e pelas portas entreabertas.",
-          poster:"https://f.i.uol.com.br/fotografia/2025/04/02/174362328467ed947488792_1743623284_3x2_md.jpg" },
-        { id:"cartas-para-clarice", nome:"Cartas para Clarice", classificacao:"16+", genero:"Drama", teatro:"Teatro Santa Isabel",
-          quando:"16 outubro, 19h", mapUrl:"#",
-          sinopse:"Fragmentos de cartas nunca enviadas se transformam em cena, explorando silêncio, identidade e a força das pequenas escolhas que mudam destinos.",
-          poster:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5LP_4Fc1TXjepIRxOZuSCHMFhY6yKJhRSsg&s" },
-        { id:"cidade-som", nome:"Cidade-Som", classificacao:"Livre", genero:"Instalação cênica", teatro:"Parque Dona Lindu",
-          quando:"17 outubro, 17h", mapUrl:"#",
-          sinopse:"Instalação cênica com música ao vivo em que o público percorre paisagens sonoras e descobre personagens escondidos no ruído da cidade.",
-          poster:"https://www.ceara.gov.br/wp-content/uploads/2024/06/2024-04-12_Orquestra_Juruviara_ThiagoMatine-22-scaled.jpeg" },
-        { id:"o-ultimo-fio", nome:"O Último Fio", classificacao:"18+", genero:"Tragédia", teatro:"Teatro Apolo",
-          quando:"18 outubro, 21h", mapUrl:"#",
-          sinopse:"Dois irmãos costuram lembranças para não esquecer o que o tempo tenta rasgar. Um drama íntimo sobre família, perda e possibilidades de recomeço.",
-          poster:"https://www.garanhunsnoticias.com.br/images/noticias/124568/7c2c527a1ffdc43b66f3be20629667e9.jpeg" },
-        { id:"couraça", nome:"Couraça", classificacao:"14+", genero:"Teatro físico", teatro:"Teatro Luiz Mendonça",
-          quando:"19 outubro, 20h", mapUrl:"#",
-          sinopse:"Corpos que dançam e falas entrecortadas constroem um mosaico sobre proteção e vulnerabilidade em tempos de urgência.",
-          poster:"https://www.estadao.com.br/blogs/blog/wp-content/uploads/sites/265/2015/10/Jaques-e-Seu-Amo-HugoPossolo-Ando-Camargo-Angelo-Brandini-foto-de-Jo%C3%A3o-Caldas-e1444340873610.jpg" },
-        { id:"menina-e-o-vento", nome:"A Menina e o Vento", classificacao:"10+", genero:"Infantil", teatro:"Paço do Frevo",
-          quando:"20 outubro, 16h", mapUrl:"#",
-          sinopse:"A amizade improvável entre uma criança curiosa e um vento brincalhão desafia regras e apresenta uma nova forma de habitar o mundo.",
-          poster:"https://www.sociedadehumboldt.org.br/conteudo/comunicacao/dicas/teatro/1206294/1.jpg" },
-        { id:"rio-subterraneo", nome:"Rio Subterrâneo", classificacao:"12+", genero:"Suspense", teatro:"Parque Dona Lindu",
-          quando:"21 outubro, 18h", mapUrl:"#",
-          sinopse:"Narrativa que revela um Recife oculto sob as águas, onde memórias afundadas retornam para guiar um grupo em busca de pertencimento.",
-          poster:"https://s2-oglobo.glbimg.com/Vg94jDR50UtDXMDM39fXOg8nRU0=/0x0:4928x3280/924x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_da025474c0c44edd99332dddb09cabe8/internal_photos/bs/2023/j/q/UyrFCpTqKuAdvuqyYJYQ/perversa-monica-bittencourt-em-cena-5-credito-da-foto-bruna-diacoyannis-1-.jpeg" }
-      ];
+      const API_URL = "https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/2917bb59-51f3-478a-a435-0753ab258f43";
+      const listaEventosEl = document.querySelector("[data-lista-eventos]");
+      const statusMensagemEl = document.querySelector("[data-status]");
 
-      // ====== Utilidades / estado ======
-      const $ = (s,el=document)=>el.querySelector(s);
-      const $$ = (s,el=document)=>Array.from(el.querySelectorAll(s));
-      const KEY_FAV="ftr_favs";
+      const estado = {
+        eventos: [],
+        mapaEventos: new Map(),
+        selecionadosPorData: {},
+        modalAberto: null,
+      };
 
-      const elGrid=$("#grid"), elResultInfo=$("#resultInfo"), elQ=$("#q"),
-            elFTeatro=$("#fTeatro"), elFClass=$("#fClass"), elFGenero=$("#fGenero"), elBtnLimpar=$("#btnLimpar"),
-            elFavCount=$("#favCount"), offcanvasFav=$("#offcanvasFav"),
-            elFavList=$("#favList"), elBtnExportFav=$("#btnExportFav"), elBtnClearFav=$("#btnClearFav");
+      window.addEventListener("load", fetchEventos);
+      listaEventosEl.addEventListener("click", delegarInteracaoNosCards);
 
-      const modal = new bootstrap.Modal($("#modalDetalhes"));
-      const mTitle=$("#modalTitulo"), mPoster=$("#modalPoster"), mClass=$("#modalClass"),
-            mTeatro=$("#modalTeatro"), mQuando=$("#modalQuando"), mGenero=$("#modalGenero"),
-            mSinopse=$("#modalSinopse"), mFavBtn=$("#modalFavBtn");
+      async function fetchEventos() {
+        atualizarStatus("Carregando eventos...");
+        try {
+          const resposta = await fetch(API_URL);
+          if (!resposta.ok) {
+            throw new Error(`Falha ao buscar eventos: ${resposta.status}`);
+          }
 
-      const getFavs=()=>{try{return JSON.parse(localStorage.getItem(KEY_FAV)||"[]")}catch{return []}};
-      const setFavs=(a)=>localStorage.setItem(KEY_FAV,JSON.stringify(a));
-      const isFav=(id)=>getFavs().includes(id);
-      const updateFavCount=()=>{elFavCount.textContent=getFavs().length};
-      const unique=(arr)=>[...new Set(arr)].sort((a,b)=>a.localeCompare(b,"pt-BR"));
+          const dados = await resposta.json();
+          if (!Array.isArray(dados)) {
+            throw new Error("O formato de dados retornado é inválido.");
+          }
 
-      // Símbolo de classificação (cores e rótulo)
-      function classSymbol(cl){
-        const map={
-          "Livre":{cls:"l",label:"L"},
-          "10+":{cls:"c10",label:"10"},
-          "12+":{cls:"c12",label:"12"},
-          "14+":{cls:"c14",label:"14"},
-          "16+":{cls:"c16",label:"16"},
-          "18+":{cls:"c18",label:"18"},
-        };
-        const m = map[cl]||map["Livre"];
-        return `<span class="ci ${m.cls}" title="Classificação: ${cl}" aria-label="Classificação ${cl}">${m.label}</span>`;
-      }
-
-      // ====== Filtros ======
-      function renderFilters(){
-        unique(pecas.map(p=>p.teatro)).forEach(t=>{
-          const o=document.createElement("option");o.value=t;o.textContent=t;elFTeatro.appendChild(o);
-        });
-        unique(pecas.map(p=>p.classificacao)).forEach(c=>{
-          const o=document.createElement("option");o.value=c;o.textContent=c;elFClass.appendChild(o);
-        });
-        unique(pecas.map(p=>p.genero)).forEach(g=>{
-          const o=document.createElement("option");o.value=g;o.textContent=g;elFGenero.appendChild(o);
-        });
-      }
-
-      // ====== Favoritos ======
-      function toggleFav(id){
-        const curr=getFavs(); const i=curr.indexOf(id);
-        if(i>=0) curr.splice(i,1); else curr.push(id);
-        setFavs(curr); updateFavCount(); renderFavList();
-        $$(`button[data-fav="${id}"]`).forEach(btn=>{
-          const on=curr.includes(id);
-          btn.setAttribute("aria-pressed", on ? "true":"false");
-          btn.classList.toggle("btn-outline-warning", !on);
-          btn.classList.toggle("btn-warning", on);
-          btn.innerHTML= on ? "★ Favorito" : "☆ Favoritar";
-        });
-        return curr.includes(id);
-      }
-
-      function renderFavList(){
-        const ids=getFavs();
-        if(!ids.length){ elFavList.innerHTML = `<div class="text-center text-muted">Nenhuma peça favoritada ainda.</div>`; return; }
-        elFavList.innerHTML = ids
-          .map(id=>pecas.find(p=>p.id===id)).filter(Boolean)
-          .map(p=>`
-            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-start">
-              <div class="me-3">
-                <div class="fw-semibold">${p.nome}</div>
-                <small>${p.teatro} • ${classSymbol(p.classificacao)} • ${p.genero}</small>
-              </div>
-              <div class="btn-group btn-group-sm">
-                <button class="btn btn-outline-primary" data-jump="${p.id}" data-bs-dismiss="offcanvas">Abrir</button>
-                <button class="btn btn-outline-danger" data-remove="${p.id}">Remover</button>
-              </div>
-            </a>`).join("");
-        $$("button[data-remove]",elFavList).forEach(b=>b.addEventListener("click",e=>{e.preventDefault();toggleFav(b.getAttribute("data-remove"));}));
-        $$("button[data-jump]",elFavList).forEach(b=>b.addEventListener("click",e=>{e.preventDefault();openDetails(b.getAttribute("data-jump"));}));
-      }
-
-      // ====== Card (estilo ingresso) ======
-      function cardTemplate(p){
-        const fav=isFav(p.id);
-        return `
-          <div class="col">
-            <div class="ticket-card h-100">
-              <div class="ticket-cover ratio ratio-16x9">
-                <img loading="lazy" src="${p.poster}" alt="Pôster da peça ${p.nome}" class="poster-img">
-              </div>
-              <div class="ticket-body">
-                <div class="d-flex align-items-center justify-content-between mb-1">
-                  <h5 class="mb-0 fw-bold text-truncate" title="${p.nome}">${p.nome}</h5>
-                  ${classSymbol(p.classificacao)}
-                </div>
-
-                <div class="row g-2 mt-2">
-                  <div class="col-7">
-                    <div class="meta-label">Local</div>
-                    <div class="fw-semibold small text-truncate" title="${p.teatro}">${p.teatro}</div>
-                  </div>
-                  <div class="col-5 text-end">
-                    <a href="${p.mapUrl||'#'}" class="link-action small text-primary" target="_blank" rel="noopener">VER LOCAL</a>
-                  </div>
-
-                  <div class="col-7">
-                    <div class="meta-label">Data</div>
-                    <div class="fw-semibold small">${p.quando||'—'}</div>
-                  </div>
-                  <div class="col-5 text-end">
-                    <button class="btn btn-link link-action small p-0" data-details="${p.id}">DETALHES</button>
-                  </div>
-
-                  <div class="col-12">
-                    <div class="meta-label">Gênero</div>
-                    <div class="fw-semibold small">${p.genero}</div>
-                  </div>
-                </div>
-
-                <div class="d-flex gap-2 mt-3">
-                  <button class="btn ${fav?'btn-warning':'btn-outline-warning'} btn-sm" data-fav="${p.id}" aria-pressed="${fav}">
-                    ${fav ? '★ Favorito' : '☆ Favoritar'}
-                  </button>
-                  <button class="btn btn-primary btn-sm" data-details="${p.id}">Abrir detalhes</button>
-                </div>
-              </div>
-            </div>
-          </div>`;
-      }
-
-      function renderGrid(list){
-        elGrid.innerHTML = list.map(cardTemplate).join("");
-        elResultInfo.textContent = `Exibindo ${list.length} de ${pecas.length}`;
-        $$("button[data-details]").forEach(b=>b.addEventListener("click",()=>openDetails(b.getAttribute("data-details"))));
-        $$("button[data-fav]").forEach(b=>b.addEventListener("click",()=>toggleFav(b.getAttribute("data-fav"))));
-      }
-
-      // ====== Busca/Filtros ======
-      function applyFilters(){
-        const q = elQ.value.trim().toLowerCase();
-        const t = elFTeatro.value;
-        const c = elFClass.value;
-        const g = elFGenero.value;
-
-        const filtered = pecas.filter(p=>{
-          const text = !q || [p.nome,p.teatro,p.sinopse,(p.genero||'')].some(v=>v.toLowerCase().includes(q));
-          const teat = !t || p.teatro===t;
-          const clas = !c || p.classificacao===c;
-          const genr = !g || p.genero===g;
-          return text && teat && clas && genr;
-        });
-        renderGrid(filtered);
-      }
-      function resetFilters(){
-        elQ.value=""; elFTeatro.value=""; elFClass.value=""; elFGenero.value="";
-        renderGrid(pecas);
-      }
-
-      // ====== Detalhes (Modal) ======
-      function openDetails(id){
-        const p = pecas.find(x=>x.id===id); if(!p) return;
-        mTitle.textContent = p.nome;
-        mPoster.src = p.poster; mPoster.alt = `Pôster da peça ${p.nome}`;
-        // símbolo no modal
-        mClass.className = "ci " + ({"Livre":"l","10+":"c10","12+":"c12","14+":"c14","16+":"c16","18+":"c18"}[p.classificacao]||"l");
-        mClass.textContent = ({"Livre":"L","10+":"10","12+":"12","14+":"14","16+":"16","18+":"18"}[p.classificacao]||"L");
-        mTeatro.textContent = p.teatro;
-        mQuando.textContent = p.quando || "—";
-        mGenero.textContent = p.genero || "—";
-        mSinopse.textContent = p.sinopse;
-        mFavBtn.dataset.id = p.id;
-        reflectModalFav(isFav(p.id));
-        modal.show();
-      }
-      function reflectModalFav(pressed){
-        mFavBtn.classList.toggle("btn-outline-warning", !pressed);
-        mFavBtn.classList.toggle("btn-warning", pressed);
-        mFavBtn.textContent = pressed ? "Remover dos favoritos" : "Favoritar";
-        mFavBtn.setAttribute("aria-pressed", pressed ? "true":"false");
-      }
-      mFavBtn.addEventListener("click",()=>{
-        const id=mFavBtn.dataset.id;
-        const now=toggleFav(id);
-        reflectModalFav(now);
-      });
-
-      // ====== Offcanvas eventos ======
-      offcanvasFav.addEventListener("show.bs.offcanvas", renderFavList);
-      elBtnExportFav.addEventListener("click",()=>{
-        const ids=getFavs(); if(!ids.length) return alert("Nenhum favorito para exportar.");
-        navigator.clipboard.writeText(ids.join(", ")).then(()=>alert("IDs copiados para a área de transferência."));
-      });
-      elBtnClearFav.addEventListener("click",()=>{
-        if(confirm("Limpar todos os favoritos?")){
-          localStorage.setItem(KEY_FAV,"[]"); updateFavCount(); renderFavList(); renderGrid(pecas);
+          estado.eventos = dados;
+          estado.mapaEventos = new Map(dados.map((item) => [item.id, item]));
+          renderCards(dados);
+          atualizarStatus(dados.length ? "" : "Nenhum evento disponível no momento.");
+        } catch (erro) {
+          console.error(erro);
+          atualizarStatus("Não foi possível carregar os eventos. Tente novamente mais tarde.");
         }
-      });
+      }
 
-      // ====== Eventos dos filtros ======
-      [elQ, elFTeatro, elFClass, elFGenero].forEach(el=>{
-        el.addEventListener("input", applyFilters);
-        el.addEventListener("change", applyFilters);
-      });
-      elBtnLimpar.addEventListener("click", resetFilters);
+      function atualizarStatus(mensagem) {
+        if (!mensagem) {
+          statusMensagemEl.textContent = "";
+          statusMensagemEl.hidden = true;
+          return;
+        }
+        statusMensagemEl.textContent = mensagem;
+        statusMensagemEl.hidden = false;
+      }
 
-      // ====== Boot ======
-      (function init(){
-        renderFilters(); updateFavCount(); renderGrid(pecas);
-      })();
+      function renderCards(eventos) {
+        listaEventosEl.innerHTML = "";
+        eventos.forEach((evento) => {
+          const card = document.createElement("article");
+          const dataNormalizada = normalizaData(evento.quando);
+          card.className = "ticket-card";
+          card.dataset.id = evento.id || "";
+          card.dataset.dateKey = dataNormalizada;
+          card.innerHTML = criarMarkupDoCard(evento);
+          listaEventosEl.appendChild(card);
+        });
+
+        Object.keys(estado.selecionadosPorData).forEach((chave) => {
+          toggleCardsPorData(chave);
+        });
+      }
+
+      function criarMarkupDoCard(evento) {
+        const dataHoraFormatada = formatarDataHora(evento.quando, evento.hora);
+        const quantidadeDisponiveis = typeof evento.disponiveis === "number" ? evento.disponiveis : "-";
+        const quantidadeTotal = typeof evento.disponibilizados === "number" ? evento.disponibilizados : "-";
+        const poster = evento.poster || "https://statics.recife.pe.gov.br/images/dynamics/conecta/placeholders/poster.png";
+        return `
+          <figure class="ticket-cover">
+            <img src="${escapeHtml(poster)}" alt="Pôster do espetáculo ${escapeHtml(evento.nome || "")}" loading="lazy" />
+          </figure>
+          <div class="ticket-body">
+            <span class="badge-classificacao">${escapeHtml(evento.classificacao || "Classificação livre")}</span>
+            <h3 class="ticket-title">${escapeHtml(evento.nome || "Espetáculo")}</h3>
+            <p class="ticket-meta">${escapeHtml(evento.genero || "Gênero não informado")} • ${escapeHtml(evento.local || "Local a definir")}</p>
+            <p class="ticket-data">${dataHoraFormatada || "Data a definir"}</p>
+            <p class="ticket-disponiveis">Disponíveis: ${quantidadeDisponiveis} / ${quantidadeTotal}</p>
+            <div class="ticket-actions">
+              <button
+                type="button"
+                class="btn-ingresso"
+                data-role="pegar-ingresso"
+                data-id="${escapeHtml(evento.id || "" )}"
+                data-quando="${escapeHtml(evento.quando || "" )}"
+                aria-pressed="false"
+              >Pegar ingresso 🎟️</button>
+              <button type="button" class="btn-detalhes" data-role="detalhes">Detalhes</button>
+            </div>
+          </div>
+        `;
+      }
+
+      function delegarInteracaoNosCards(evento) {
+        const botaoIngresso = evento.target.closest("[data-role=pegar-ingresso]");
+        if (botaoIngresso) {
+          evento.stopPropagation();
+          const id = botaoIngresso.dataset.id;
+          const dataQuando = botaoIngresso.dataset.quando;
+          if (id && dataQuando) {
+            alternarSelecaoDeIngresso(id, dataQuando);
+          }
+          return;
+        }
+
+        const botaoDetalhes = evento.target.closest("[data-role=detalhes]");
+        if (botaoDetalhes) {
+          evento.stopPropagation();
+          const card = botaoDetalhes.closest(".ticket-card");
+          if (card) {
+            const dados = estado.mapaEventos.get(card.dataset.id);
+            if (dados) {
+              abrirModal(dados);
+            }
+          }
+          return;
+        }
+
+        const card = evento.target.closest(".ticket-card");
+        if (card && !card.classList.contains("inativo")) {
+          const dados = estado.mapaEventos.get(card.dataset.id);
+          if (dados) {
+            abrirModal(dados);
+          }
+        }
+      }
+
+      function alternarSelecaoDeIngresso(id, dataQuando) {
+        const chaveData = normalizaData(dataQuando);
+        if (!chaveData) return;
+
+        const selecionadoAtual = estado.selecionadosPorData[chaveData];
+        if (selecionadoAtual === id) {
+          delete estado.selecionadosPorData[chaveData];
+        } else {
+          estado.selecionadosPorData[chaveData] = id;
+        }
+        toggleCardsPorData(chaveData);
+      }
+
+      function toggleCardsPorData(chaveData) {
+        const cards = listaEventosEl.querySelectorAll(`.ticket-card[data-date-key="${chaveData}"]`);
+        const selecionado = estado.selecionadosPorData[chaveData];
+
+        cards.forEach((card) => {
+          const botao = card.querySelector("[data-role=pegar-ingresso]");
+          if (!botao) return;
+
+          if (!selecionado) {
+            card.classList.remove("inativo", "selecionado");
+            botao.classList.remove("selecionado");
+            botao.textContent = "Pegar ingresso 🎟️";
+            botao.setAttribute("aria-pressed", "false");
+            return;
+          }
+
+          if (card.dataset.id === selecionado) {
+            card.classList.add("selecionado");
+            card.classList.remove("inativo");
+            botao.classList.add("selecionado");
+            botao.textContent = "Cancelar ingresso 🎟️";
+            botao.setAttribute("aria-pressed", "true");
+          } else {
+            card.classList.add("inativo");
+            card.classList.remove("selecionado");
+            botao.classList.remove("selecionado");
+            botao.textContent = "Pegar ingresso 🎟️";
+            botao.setAttribute("aria-pressed", "false");
+          }
+        });
+      }
+
+      function abrirModal(dadosDoEvento) {
+        fecharModal();
+
+        const modal = document.createElement("div");
+        modal.className = "modal-dinamico";
+        const dataHora = formatarDataHora(dadosDoEvento.quando, dadosDoEvento.hora);
+        const imagemDetalhes = dadosDoEvento.posterdetalhes || dadosDoEvento.poster || "";
+
+        modal.innerHTML = `
+          <div class="modal-dinamico__backdrop" data-role="fechar-modal" aria-hidden="true"></div>
+          <div class="modal-dinamico__dialog" role="dialog" aria-modal="true" aria-label="Detalhes do espetáculo ${escapeHtml(
+            dadosDoEvento.nome || ""
+          )}">
+            <button type="button" class="modal-dinamico__close" data-role="fechar-modal" aria-label="Fechar detalhes">×</button>
+            <div class="modal-dinamico__media">
+              <img src="${escapeHtml(imagemDetalhes)}" alt="Pôster detalhado do espetáculo ${escapeHtml(
+          dadosDoEvento.nome || ""
+        )}" />
+            </div>
+            <div class="modal-dinamico__content">
+              <h2>${escapeHtml(dadosDoEvento.nome || "Espetáculo")}</h2>
+              <p class="modal-dinamico__sinopse">${escapeHtml(dadosDoEvento.sinopse || "Sinopse não informada.")}</p>
+              <ul class="modal-dinamico__info">
+                <li><strong>Classificação:</strong> ${escapeHtml(dadosDoEvento.classificacao || "Não informada")}</li>
+                <li><strong>Gênero:</strong> ${escapeHtml(dadosDoEvento.genero || "Não informado")}</li>
+                <li><strong>Local:</strong> ${escapeHtml(dadosDoEvento.local || "A definir")}</li>
+                <li><strong>Quando:</strong> ${dataHora || "Em breve"}</li>
+                <li><strong>Ingressos:</strong> ${typeof dadosDoEvento.disponiveis === "number" ? dadosDoEvento.disponiveis : "-"} disponíveis de ${
+          typeof dadosDoEvento.disponibilizados === "number" ? dadosDoEvento.disponibilizados : "-"
+        }</li>
+              </ul>
+            </div>
+          </div>
+        `;
+
+        modal.addEventListener("click", (evento) => {
+          if (evento.target.matches("[data-role=fechar-modal]")) {
+            fecharModal();
+          }
+        });
+
+        document.body.appendChild(modal);
+        requestAnimationFrame(() => {
+          modal.classList.add("is-open");
+        });
+
+        estado.modalAberto = modal;
+        document.addEventListener("keydown", escListener);
+      }
+
+      function fecharModal() {
+        if (!estado.modalAberto) return;
+        const modal = estado.modalAberto;
+        modal.classList.remove("is-open");
+        modal.addEventListener(
+          "transitionend",
+          () => {
+            modal.remove();
+          },
+          { once: true }
+        );
+        estado.modalAberto = null;
+        document.removeEventListener("keydown", escListener);
+      }
+
+      function escListener(evento) {
+        if (evento.key === "Escape") {
+          fecharModal();
+        }
+      }
+
+      function normalizaData(valorIso) {
+        if (!valorIso) return "";
+        const data = new Date(valorIso);
+        if (Number.isNaN(data.getTime())) return "";
+        try {
+          return data.toISOString().slice(0, 10);
+        } catch (erro) {
+          console.warn("Não foi possível normalizar a data", erro);
+          return "";
+        }
+      }
+
+      function formatarDataHora(quando, hora) {
+        const dataFormatada = formatarData(quando);
+        const horaFormatada = formatarHora(hora);
+        return [dataFormatada, horaFormatada].filter(Boolean).join(", ");
+      }
+
+      function formatarData(quando) {
+        if (!quando) return "";
+        const data = new Date(quando);
+        if (Number.isNaN(data.getTime())) return "";
+
+        const formatter = new Intl.DateTimeFormat("pt-BR", {
+          day: "2-digit",
+          month: "long",
+          timeZone: "UTC",
+        });
+
+        const partes = formatter.formatToParts(data);
+        const dia = partes.find((parte) => parte.type === "day");
+        const mes = partes.find((parte) => parte.type === "month");
+        const numeroDia = dia ? String(parseInt(dia.value, 10)) : "";
+        const nomeMes = mes ? mes.value.toLowerCase() : "";
+        return numeroDia && nomeMes ? `${numeroDia} ${nomeMes}` : "";
+      }
+
+      function formatarHora(hora) {
+        if (!hora) return "";
+        const partes = hora.split(":");
+        const horas = partes[0];
+        const minutos = partes[1];
+        if (!horas) return "";
+        const horaBase = horas.padStart(2, "0");
+        if (minutos && minutos !== "00") {
+          return `${horaBase}:${minutos}h`;
+        }
+        return `${horaBase}h`;
+      }
+
+      function escapeHtml(valor) {
+        if (valor == null) return "";
+        return String(valor)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
     </script>
   </body>
 </html>
