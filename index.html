@@ -563,11 +563,12 @@
                                         <th scope="col" class="text-center">Data</th>
                                         <th scope="col" class="qr-limit-col text-center">QRCodes por CPF</th>
                                         <th scope="col">Link do leitor</th>
+                                        <th scope="col" class="text-end">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td colspan="4" class="text-center text-muted">Aguardando carregamento...</td>
+                                        <td colspan="5" class="text-center text-muted">Aguardando carregamento...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -895,7 +896,7 @@
                 if (!lista.length) {
                     const linha = document.createElement('tr');
                     const celula = document.createElement('td');
-                    celula.colSpan = 4;
+                    celula.colSpan = 5;
                     celula.className = 'text-center text-muted';
                     celula.textContent = 'Nenhum leitor cadastrado até o momento.';
                     linha.appendChild(celula);
@@ -938,6 +939,12 @@
                         }
                         linha.appendChild(td);
                     });
+
+                    const acaoTd = document.createElement('td');
+                    acaoTd.className = 'text-end';
+                    const excluir = criarBotao('🗑️', 'Excluir leitor', 'btn-outline-danger', () => prepararExclusaoLeitor(item));
+                    acaoTd.appendChild(excluir);
+                    linha.appendChild(acaoTd);
 
                     tabelaLeitoresBody.appendChild(linha);
                 });
@@ -1100,7 +1107,8 @@
 
             function prepararExclusaoLeitor(item) {
                 eventoParaExcluir = { tipo: 'leitor', dados: item };
-                modalExcluirBody.innerHTML = `Deseja realmente excluir o leitor vinculado ao evento <strong>${item.evento || item.id}</strong>?`;
+                const identificacao = item.evento || item.id || 'o leitor selecionado';
+                modalExcluirBody.innerHTML = `Deseja realmente excluir o leitor vinculado ao evento <strong>${identificacao}</strong>?`;
                 modalExcluir.show();
             }
 
@@ -1132,13 +1140,10 @@
 
             function deletarLeitor(item) {
                 const payload = {
-                    evento: item.id || item.evento,
-                    leitor_identificado: item.leitor_identificado,
-                    multiplas_leituras: item.multiplas_leituras,
-                    limite_leituras: item.limite_leituras || ''
+                    link: item.link || item.link_webhook || ''
                 };
 
-                fetch('https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/gerenciar-leitores', {
+                fetch('https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/excluir-leitor-qrcode', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -1235,7 +1240,7 @@
                     })
                     .then(aplicarPayloadLeitores)
                     .catch(() => {
-                        tabelaLeitoresBody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Não há leitores cadastrados.</td></tr>';
+                        tabelaLeitoresBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Não há leitores cadastrados.</td></tr>';
                         statusLeitores.textContent = 'Não há leitores cadastrados.';
                     });
             }
