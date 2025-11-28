@@ -114,7 +114,6 @@
       .cart-floating{position:fixed;top:18px;right:18px;z-index:1060;display:flex;align-items:center;gap:.5rem;box-shadow:0 12px 26px rgba(0,83,164,.2)}
       .cart-floating .btn{border-radius:999px;font-weight:700}
       .cart-floating .badge{font-size:.9rem}
-      .cart-total{font-weight:700;color:var(--brand-primary)}
     </style>
   </head>
   <body>
@@ -129,7 +128,6 @@
       <button class="btn btn-light border" type="button" id="cartButton" aria-label="Abrir carrinho">
         🛒 Carrinho <span class="badge text-bg-primary" id="cartCount">0</span>
       </button>
-      <div class="px-3 py-2 bg-white border rounded-pill small cart-total">Total: R$ <span id="cartTotal">0,00</span></div>
     </div>
     <!-- HEADER -->
     <header class="site-header">
@@ -233,7 +231,7 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button id="modalTicketBtn" type="button" class="btn btn-outline-primary" aria-pressed="false">🎟️ Pegar ingresso</button>
+            <button id="modalTicketBtn" type="button" class="btn btn-outline-primary" aria-pressed="false">🛒 Colocar no carrinho</button>
             <div class="d-flex align-items-center gap-2 ms-0 me-auto" id="modalQuantidadeWrapper">
               <label for="modalQuantidade" class="form-label small mb-0">Quantidade</label>
               <select id="modalQuantidade" class="form-select form-select-sm w-auto">
@@ -765,7 +763,7 @@
         }
 
         function rotuloPrincipalPorStatus(status) {
-          return normalizarStatus(status) === 'block' ? '🎟️ Devolver ingresso' : '🎟️ Pegar ingresso';
+          return normalizarStatus(status) === 'block' ? '🎟️ Devolver ingresso' : '🛒 Colocar no carrinho';
         }
 
         function rotuloConfirmarPorStatus(status) {
