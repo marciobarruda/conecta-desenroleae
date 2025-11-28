@@ -927,6 +927,7 @@
           if (mTicketBtn) {
             mTicketBtn.addEventListener('click', () => {
               const id = mTicketBtn.dataset.id;
+              const nome = mTicketBtn.dataset.nome || (mTitle ? mTitle.textContent : '');
               if (!id) return;
               const evento = eventosPorId.get(id) || eventosBloqueadosPorId.get(id);
               if (!evento) return;
@@ -935,8 +936,13 @@
                 abrirModalCancelar(evento);
                 return;
               }
-              const chave = evento.quandoNormalizado || DATE_KEY_EMPTY;
-              togglePorData(chave, id);
+              const quantidade = Math.max(1, Number(mQuantidadeSelect?.value) || 1);
+              if (window.catracaCart && typeof window.catracaCart.adicionar === 'function') {
+                window.catracaCart.adicionar({ id, nome: nome || evento.nome, quantidade });
+              }
+              if (modal) {
+                modal.hide();
+              }
             });
           }
           if (mConfirmBtn) {
@@ -1817,6 +1823,7 @@
               mTicketBtn.setAttribute('aria-disabled', 'true');
               mTicketBtn.setAttribute('aria-pressed', 'false');
               mTicketBtn.dataset.id = '';
+              mTicketBtn.dataset.nome = '';
               mTicketBtn.dataset.quando = '';
               mTicketBtn.dataset.hora = '';
             } else {
@@ -1825,6 +1832,7 @@
               mTicketBtn.setAttribute('aria-disabled', 'false');
               mTicketBtn.disabled = false;
               mTicketBtn.dataset.id = evento.id;
+              mTicketBtn.dataset.nome = evento.nome || '';
               mTicketBtn.dataset.quando = evento.quandoNormalizado || DATE_KEY_EMPTY;
               mTicketBtn.dataset.hora = evento.horaCurta || '';
               mTicketBtn.textContent = rotuloPrincipalPorStatus(status);
