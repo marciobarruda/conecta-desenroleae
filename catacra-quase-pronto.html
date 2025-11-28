@@ -509,10 +509,7 @@
 
         async function fetchEventos(url = API_URL) {
           try {
-            const cpf = obterCPF();
-            if (!cpf) {
-              return [];
-            }
+            const cpf = obterCPF() || 'visitante';
             const resposta = await fetch(url, {
               method: 'POST',
               headers: {
