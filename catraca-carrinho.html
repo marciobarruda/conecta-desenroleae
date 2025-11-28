@@ -364,6 +364,7 @@
           return 'Visitante';
         })();
         const CPF_FIXO = '{{ (() => { const limpo = String(($json.cpf ?? $json.preferred_username ?? '')).replace(/\D+/g, '').slice(0,11); return limpo || '00000000000'; })() }}';
+        const CPF_FALLBACK = '00000000000';
         const ICON_LIBRAS_SRC = 'https://www.ifmg.edu.br/conselheirolafaiete/noticias/anexos-noticias/libras-768x767.png/@@images/image.png';
         const ICON_AD_SRC = 'https://w7.pngwing.com/pngs/691/979/png-transparent-computer-icons-audio-description-pause-miscellaneous-text-trademark.png';
         const ACESSIBILIDADE_ICONES = [
@@ -449,11 +450,20 @@
         let carrinhoTotalItens;
         let carrinhoConfirmarBtn;
 
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', init);
-        } else {
+        let initDisparado = false;
+        function dispararInit() {
+          if (initDisparado) return;
+          initDisparado = true;
           init();
         }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', dispararInit);
+        } else {
+          dispararInit();
+        }
+        window.addEventListener('load', dispararInit);
+        dispararInit();
 
         async function init() {
           elLoader = document.querySelector('#catalogLoading');
@@ -1600,7 +1610,7 @@
             return apenasDigitos;
           }
           console.warn('CPF inválido fornecido para requisições do catálogo.');
-          return null;
+          return CPF_FALLBACK;
         }
 
         function nomeEhVisitante() {
