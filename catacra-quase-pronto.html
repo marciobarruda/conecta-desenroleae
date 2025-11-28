@@ -110,15 +110,7 @@
         #modalDetalhes .modal-body{padding:1.25rem}
       }
 
-      /* ===== Marketplace ===== */
-      .marketplace-section{background:#fff;border:1px solid rgba(0,83,164,.1);border-radius:18px;box-shadow:var(--shadow-strong);padding:2rem;margin-top:-3rem;position:relative;z-index:2}
-      .marketplace-section .section-title::before{background:var(--brand-secondary)}
-      .market-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem}
-      .market-card{border:1px solid rgba(0,83,164,.12);border-radius:14px;padding:1rem;background:linear-gradient(180deg,#f8fbff,#fff);box-shadow:0 12px 24px rgba(0,83,164,.08);display:flex;flex-direction:column;gap:.75rem}
-      .market-badge{background:rgba(0,83,164,.08);color:var(--brand-primary);padding:.25rem .75rem;border-radius:999px;font-weight:700;font-size:.85rem;align-self:flex-start}
-      .market-price{font-size:1.4rem;font-weight:800;color:var(--brand-secondary)}
-      .market-actions{display:flex;gap:.5rem;flex-wrap:wrap}
-      .market-actions .btn{flex:1 1 120px}
+      /* ===== Carrinho ===== */
       .cart-floating{position:fixed;top:18px;right:18px;z-index:1060;display:flex;align-items:center;gap:.5rem;box-shadow:0 12px 26px rgba(0,83,164,.2)}
       .cart-floating .btn{border-radius:999px;font-weight:700}
       .cart-floating .badge{font-size:.9rem}
@@ -157,15 +149,6 @@
           🎭 Olá, {{ (() => { const nome = String($json.given_name ?? '').trim(); return nome ? nome[0].toUpperCase() + nome.slice(1).toLowerCase() : 'Visitante'; })() }}! ✨ Seja bem-vindo(a) à programação do Festival de Teatro do Recife — escolha seu espetáculo e aproveite o show!
         </div>
       </div>
-    </section>
-
-    <!-- MARKETPLACE -->
-    <section class="container marketplace-section" aria-labelledby="marketplaceTitle">
-      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
-        <div class="section-title mb-0" id="marketplaceTitle">Marketplace cultural</div>
-        <p class="mb-0 text-muted">Garanta souvenirs e experiências exclusivas antes do espetáculo.</p>
-      </div>
-      <div id="marketGrid" class="market-grid"></div>
     </section>
 
     <!-- FILTROS -->
@@ -2117,18 +2100,8 @@
     </script>
     <script>
       (function () {
-        const produtos = [
-          { id: 'poster', nome: 'Pôster oficial', descricao: 'Impressão em papel premium 30x45 cm', preco: 35.9, selo: 'Colecionável' },
-          { id: 'combo', nome: 'Combo snacks', descricao: 'Pipoca gourmet + bebida', preco: 24.5, selo: 'Sabores locais' },
-          { id: 'camiseta', nome: 'Camiseta do festival', descricao: 'Algodão sustentável, tamanhos P ao GG', preco: 69.9, selo: 'Edição limitada' },
-          { id: 'backstage', nome: 'Passe backstage', descricao: 'Tour guiado pelo teatro e bastidores', preco: 120, selo: 'Experiência' },
-          { id: 'oficina', nome: 'Oficina criativa', descricao: 'Workshop de expressão corporal', preco: 80, selo: 'Aprendizado' },
-          { id: 'assinatura', nome: 'Assinatura streaming', descricao: 'Acesso a gravações exclusivas por 3 meses', preco: 49.9, selo: 'Digital' }
-        ];
-
         const carrinho = new Map();
         let cartOffcanvas;
-        let grid;
         let cartCount;
         let cartTotal;
         let cartTotalAside;
@@ -2136,13 +2109,12 @@
         let cartButton;
 
         if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', initMarketplace);
+          document.addEventListener('DOMContentLoaded', initCarrinho);
         } else {
-          initMarketplace();
+          initCarrinho();
         }
 
-        function initMarketplace() {
-          grid = document.querySelector('#marketGrid');
+        function initCarrinho() {
           cartCount = document.querySelector('#cartCount');
           cartTotal = document.querySelector('#cartTotal');
           cartTotalAside = document.querySelector('#cartTotalAside');
@@ -2152,9 +2124,8 @@
           const offcanvasElement = document.querySelector('#marketCart');
           cartOffcanvas = offcanvasElement ? new bootstrap.Offcanvas(offcanvasElement) : null;
 
-          renderProdutos();
-          atualizarCarrinho();
           registrarEventos();
+          atualizarCarrinho();
         }
 
         function registrarEventos() {
@@ -2163,49 +2134,12 @@
           }
         }
 
-        function renderProdutos() {
-          if (!grid) return;
-          grid.innerHTML = '';
-          produtos.forEach((produto) => {
-            const card = document.createElement('article');
-            card.className = 'market-card';
-            card.innerHTML = `
-              <span class="market-badge">${produto.selo}</span>
-              <div>
-                <h5 class="fw-bold mb-1">${produto.nome}</h5>
-                <p class="text-muted mb-0">${produto.descricao}</p>
-              </div>
-              <div class="d-flex align-items-center justify-content-between">
-                <span class="market-price">R$ ${produto.preco.toFixed(2).replace('.', ',')}</span>
-              </div>
-              <div class="market-actions">
-                <button class="btn btn-outline-primary" type="button" data-action="remove" data-id="${produto.id}">−</button>
-                <button class="btn btn-primary" type="button" data-action="add" data-id="${produto.id}">Adicionar</button>
-              </div>
-            `;
-
-            card.addEventListener('click', (evento) => {
-              const botao = evento.target.closest('[data-action]');
-              if (!botao) return;
-              const id = botao.getAttribute('data-id');
-              if (!id) return;
-              if (botao.dataset.action === 'add') {
-                adicionarAoCarrinho(id);
-              } else {
-                removerDoCarrinho(id);
-              }
-            });
-
-            grid.appendChild(card);
-          });
-        }
-
-        function adicionarAoCarrinho(id) {
-          const produto = produtos.find((item) => item.id === id);
-          if (!produto) return;
-          const atual = carrinho.get(id) || { ...produto, quantidade: 0 };
-          atual.quantidade += 1;
-          carrinho.set(id, atual);
+        function adicionarAoCarrinho(item) {
+          if (!item || !item.id) return;
+          const quantidade = Math.max(1, Number(item.quantidade) || 1);
+          const atual = carrinho.get(item.id) || { ...item, quantidade: 0 };
+          atual.quantidade += quantidade;
+          carrinho.set(item.id, { ...atual });
           atualizarCarrinho();
         }
 
@@ -2216,7 +2150,7 @@
           if (atual.quantidade <= 0) {
             carrinho.delete(id);
           } else {
-            carrinho.set(id, atual);
+            carrinho.set(id, { ...atual });
           }
           atualizarCarrinho();
         }
@@ -2224,7 +2158,7 @@
         function atualizarCarrinho() {
           const itens = Array.from(carrinho.values());
           const totalItens = itens.reduce((acc, item) => acc + item.quantidade, 0);
-          const totalValor = itens.reduce((acc, item) => acc + item.quantidade * item.preco, 0);
+          const totalValor = itens.reduce((acc, item) => acc + item.quantidade * (Number(item.preco) || 0), 0);
 
           if (cartCount) cartCount.textContent = totalItens;
           if (cartTotal) cartTotal.textContent = totalValor.toFixed(2).replace('.', ',');
@@ -2241,15 +2175,17 @@
             }
 
             itens.forEach((item) => {
+              const nome = item.nome || 'Item';
+              const preco = Number(item.preco) || 0;
               const li = document.createElement('div');
               li.className = 'list-group-item d-flex justify-content-between align-items-start gap-2';
               li.innerHTML = `
                 <div>
-                  <div class="fw-semibold">${item.nome}</div>
-                  <small class="text-muted">${item.quantidade}x • R$ ${item.preco.toFixed(2).replace('.', ',')}</small>
+                  <div class="fw-semibold">${nome}</div>
+                  <small class="text-muted">${item.quantidade}x • R$ ${preco.toFixed(2).replace('.', ',')}</small>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                  <span class="fw-bold">R$ ${(item.preco * item.quantidade).toFixed(2).replace('.', ',')}</span>
+                  <span class="fw-bold">R$ ${(preco * item.quantidade).toFixed(2).replace('.', ',')}</span>
                   <button class="btn btn-sm btn-outline-danger" type="button" data-id="${item.id}">Remover</button>
                 </div>
               `;
@@ -2258,6 +2194,16 @@
             });
           }
         }
+
+        // Exponha funções básicas para futuras integrações sem reativar o marketplace visual.
+        window.catracaCart = {
+          adicionar: adicionarAoCarrinho,
+          remover: removerDoCarrinho,
+          limpar: () => {
+            carrinho.clear();
+            atualizarCarrinho();
+          }
+        };
       })();
     </script>
 
