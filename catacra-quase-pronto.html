@@ -111,9 +111,11 @@
       }
 
       /* ===== Carrinho ===== */
-      .cart-floating{position:fixed;top:18px;right:18px;z-index:1060;display:flex;align-items:center;gap:.5rem;box-shadow:0 12px 26px rgba(0,83,164,.2)}
-      .cart-floating .btn{border-radius:999px;font-weight:700}
-      .cart-floating .badge{font-size:.9rem}
+      .cart-floating{position:fixed;top:18px;right:18px;z-index:1060;display:flex;align-items:center;gap:.5rem;padding:.35rem;border-radius:999px;background:linear-gradient(135deg,rgba(0,83,164,.12),rgba(0,163,255,.18));border:1px solid rgba(0,83,164,.18);box-shadow:0 16px 30px rgba(0,83,164,.25)}
+      .cart-floating .btn{border-radius:999px;font-weight:800;background:var(--brand-primary);color:#fff;border:none;padding:.65rem 1rem;box-shadow:0 10px 24px rgba(0,83,164,.35);text-transform:uppercase;letter-spacing:.02em}
+      .cart-floating .btn:focus-visible{outline:3px solid rgba(0,163,255,.55);outline-offset:3px}
+      .cart-floating .btn:hover{background:var(--brand-secondary);box-shadow:0 14px 30px rgba(0,58,115,.35)}
+      .cart-floating .badge{font-size:.95rem;background:#fff;color:var(--brand-primary);border:1px solid rgba(0,83,164,.28);box-shadow:0 4px 12px rgba(0,83,164,.25);min-width:32px}
     </style>
   </head>
   <body>
@@ -230,15 +232,7 @@
               </div>
             </div>
           </div>
-          <div class="modal-footer">
-            <button id="modalTicketBtn" type="button" class="btn btn-outline-primary" aria-pressed="false">🛒 Colocar no carrinho</button>
-            <div class="d-flex align-items-center gap-2 ms-0 me-auto" id="modalQuantidadeWrapper">
-              <label for="modalQuantidade" class="form-label small mb-0">Quantidade</label>
-              <select id="modalQuantidade" class="form-select form-select-sm w-auto">
-                <option value="1" selected>1</option>
-                <option value="2">2</option>
-              </select>
-            </div>
+          <div class="modal-footer justify-content-between flex-wrap gap-3">
             <button
               id="modalCancelarBtn"
               type="button"
@@ -248,16 +242,17 @@
             >
               Devolver ingresso
             </button>
-            <button
-              id="modalConfirmBtn"
-              type="button"
-              class="btn btn-primary"
-              aria-disabled="true"
-              disabled
-            >
-              Confirmar
-            </button>
-            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Fechar</button>
+            <div class="d-flex align-items-center gap-2 flex-wrap ms-auto" id="modalAcoesDireita">
+              <div class="d-flex align-items-center gap-2" id="modalQuantidadeWrapper">
+                <label for="modalQuantidade" class="form-label small mb-0">Quantidade</label>
+                <select id="modalQuantidade" class="form-select form-select-sm w-auto">
+                  <option value="1" selected>1</option>
+                  <option value="2">2</option>
+                </select>
+              </div>
+              <button id="modalTicketBtn" type="button" class="btn btn-outline-primary" aria-pressed="false">🛒 Colocar no carrinho</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
           </div>
         </div>
       </div>
@@ -529,6 +524,7 @@
 .portal-dyn .portal-dyn-acc-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .portal-dyn .portal-dyn-erro-confirmacao { display: block; margin-top: 0.25rem; font-size: 0.85rem; }
 .portal-dyn .ticket-subtitle { color: var(--text-muted); font-size: 0.9rem; line-height: 1.35; white-space: normal; }
+.portal-dyn #modalAcoesDireita { justify-content: flex-end; }
 .portal-dyn #modalQuantidadeWrapper { flex: 1 1 auto; }
 .portal-dyn #modalQuantidadeWrapper select { min-width: 72px; }
 `;
