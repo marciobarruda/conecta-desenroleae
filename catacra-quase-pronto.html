@@ -113,7 +113,7 @@
       }
 
       /* ===== Carrinho ===== */
-      .cart-floating{position:fixed;top:var(--cart-offset-top,18px);right:18px;z-index:1060;display:flex;align-items:center;gap:.5rem;padding:.4rem;border-radius:999px;background:linear-gradient(135deg,rgba(0,83,164,.92),rgba(0,163,255,.85));border:1px solid rgba(255,255,255,.25);box-shadow:0 16px 30px rgba(0,83,164,.35)}
+      .cart-floating{position:fixed;bottom:18px;right:18px;z-index:1060;display:flex;align-items:center;gap:.5rem;padding:.4rem;border-radius:999px;background:linear-gradient(135deg,rgba(0,83,164,.92),rgba(0,163,255,.85));border:1px solid rgba(255,255,255,.25);box-shadow:0 16px 30px rgba(0,83,164,.35)}
       .cart-floating .btn{border-radius:999px;font-weight:800;background:transparent;color:#fff;border:none;padding:.55rem .8rem;box-shadow:none;text-transform:uppercase;letter-spacing:.02em;display:flex;align-items:center;gap:.4rem}
       .cart-floating .btn:focus-visible{outline:3px solid rgba(255,255,255,.6);outline-offset:2px}
       .cart-floating .btn:hover{background:rgba(255,255,255,.08)}
@@ -2398,7 +2398,6 @@
         let cartCheckoutBtn;
         let cartFloating;
         let cartVisitorHelp;
-        let headerElement;
 
         if (document.readyState === 'loading') {
           document.addEventListener('DOMContentLoaded', initCarrinho);
@@ -2427,17 +2426,13 @@
           cartFloating = document.querySelector('.cart-floating');
           cartCheckoutBtn = document.querySelector('#cartCheckoutBtn');
           cartVisitorHelp = document.querySelector('#cartVisitorHelp');
-          headerElement = document.querySelector('header.site-header');
 
           cartOffcanvasElement = document.querySelector('#marketCart');
           cartOffcanvas = cartOffcanvasElement ? new bootstrap.Offcanvas(cartOffcanvasElement) : null;
 
           registrarEventos();
           atualizarAjudaVisitante();
-          atualizarPosicaoCarrinho();
           atualizarCarrinho();
-          window.addEventListener('resize', atualizarPosicaoCarrinho);
-          window.addEventListener('load', atualizarPosicaoCarrinho);
         }
 
         function atualizarAjudaVisitante() {
@@ -2446,14 +2441,6 @@
           if (cartVisitorHelp) {
             cartVisitorHelp.classList.toggle('d-none', !visitante);
           }
-        }
-
-        function atualizarPosicaoCarrinho() {
-          if (!cartFloating) return;
-          const headerAltura =
-            (headerElement?.getBoundingClientRect().height || 0) + (headerElement?.offsetTop || 0);
-          const distancia = Math.max(12, headerAltura + 12);
-          cartFloating.style.setProperty('--cart-offset-top', `${distancia}px`);
         }
 
         function registrarEventos() {
