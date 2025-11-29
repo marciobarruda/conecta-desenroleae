@@ -87,6 +87,8 @@
       .catalog-grid .ticket-card{display:flex;flex-direction:column;width:100%}
       .ticket-card.is-muted{filter:grayscale(1);opacity:.55;transition:filter .2s ease,opacity .2s ease}
       .ticket-card.is-active{box-shadow:0 0 0 .15rem rgba(0,83,164,.35)}
+      .ticket-cover.is-soldout img{filter:grayscale(1)}
+      .ticket-soldout{position:absolute;inset:50% 0 auto;transform:translateY(-50%);background:rgba(193,18,31,.82);color:#fff;text-align:center;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:.45rem .5rem;box-shadow:0 10px 24px rgba(0,0,0,.25);z-index:2}
       .catalog-loading{display:flex;align-items:center;justify-content:center;gap:1rem;padding:1.5rem;border:1px dashed rgba(27,38,59,.25);border-radius:1rem;background:linear-gradient(90deg,rgba(0,83,164,.06),rgba(0,163,255,.08),rgba(0,83,164,.06));background-size:200% 100%;animation:catalogShine 2.4s ease infinite;color:var(--text-strong)}
       .catalog-loading .catalog-loading-spinner{width:56px;height:56px;border:6px solid rgba(0,83,164,.18);border-top-color:var(--brand-highlight);border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0;box-shadow:0 6px 20px rgba(0,83,164,.18)}
       .catalog-loading .catalog-loading-text{display:flex;flex-direction:column;font-weight:700;line-height:1.3}
@@ -109,6 +111,14 @@
         .catalog-toolbar .row > * + *{margin-top:.5rem}
         #modalDetalhes .modal-body{padding:1.25rem}
       }
+
+      /* ===== Carrinho ===== */
+      .cart-floating{position:fixed;bottom:18px;right:18px;z-index:1060;display:flex;align-items:center;gap:.5rem;padding:.4rem;border-radius:999px;background:linear-gradient(135deg,rgba(0,83,164,.92),rgba(0,163,255,.85));border:1px solid rgba(255,255,255,.25);box-shadow:0 16px 30px rgba(0,83,164,.35)}
+      .cart-floating .btn{border-radius:999px;font-weight:800;background:transparent;color:#fff;border:none;padding:.55rem .8rem;box-shadow:none;text-transform:uppercase;letter-spacing:.02em;display:flex;align-items:center;gap:.4rem}
+      .cart-floating .btn:focus-visible{outline:3px solid rgba(255,255,255,.6);outline-offset:2px}
+      .cart-floating .btn:hover{background:rgba(255,255,255,.08)}
+      .cart-floating .badge{font-size:.9rem;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.4);box-shadow:0 4px 12px rgba(0,0,0,.2);min-width:32px}
+      .cart-floating .cart-icon{font-size:1.35rem;line-height:1;color:#fff;display:flex}
     </style>
   </head>
   <body>
@@ -119,6 +129,26 @@
       value="{{ String(($json.cpf ?? $json.preferred_username ?? '')).replace(/\D+/g, '').slice(0,11) }}"
       style="position: absolute; display: none;"
     />
+    <div class="cart-floating btn-group">
+      <button class="btn" type="button" id="cartButton" aria-label="Abrir carrinho">
+        <span class="cart-icon" aria-hidden="true">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="26"
+            height="26"
+            fill="currentColor"
+            viewBox="0 0 16 16"
+            role="presentation"
+            focusable="false"
+          >
+            <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .485.621l-1.5 6A.5.5 0 0 1 13 10H4a.5.5 0 0 1-.485-.379L2.11 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.14 4l.75 3H12.8l1.25-5H3.28l-.14.557L3.14 4z"/>
+            <path d="M5.5 12a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-2 1a2 2 0 1 1 4 0 2 2 0 0 1-4 0zm8.5-1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-2 1a2 2 0 1 1 4 0 2 2 0 0 1-4 0z"/>
+          </svg>
+        </span>
+        <span class="badge" id="cartCount">0</span>
+        <span class="visually-hidden">Abrir carrinho</span>
+      </button>
+    </div>
     <!-- HEADER -->
     <header class="site-header">
       <div class="container">
@@ -185,7 +215,10 @@
             <small>Preparamos tudo rapidinho para você ✨</small>
           </div>
         </div>
-        <div id="grid" class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 catalog-grid"></div>
+        <div
+          id="grid"
+          class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-3 catalog-grid"
+        ></div>
       </div>
     </section>
 
@@ -220,15 +253,7 @@
               </div>
             </div>
           </div>
-          <div class="modal-footer">
-            <button id="modalTicketBtn" type="button" class="btn btn-outline-primary" aria-pressed="false">🎟️ Pegar ingresso</button>
-            <div class="d-flex align-items-center gap-2 ms-0 me-auto" id="modalQuantidadeWrapper">
-              <label for="modalQuantidade" class="form-label small mb-0">Quantidade</label>
-              <select id="modalQuantidade" class="form-select form-select-sm w-auto">
-                <option value="1" selected>1</option>
-                <option value="2">2</option>
-              </select>
-            </div>
+          <div class="modal-footer justify-content-between flex-wrap gap-3">
             <button
               id="modalCancelarBtn"
               type="button"
@@ -238,16 +263,17 @@
             >
               Devolver ingresso
             </button>
-            <button
-              id="modalConfirmBtn"
-              type="button"
-              class="btn btn-primary"
-              aria-disabled="true"
-              disabled
-            >
-              Confirmar
-            </button>
-            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Fechar</button>
+            <div class="d-flex align-items-center gap-2 flex-wrap ms-auto" id="modalAcoesDireita">
+              <div class="d-flex align-items-center gap-2" id="modalQuantidadeWrapper">
+                <label for="modalQuantidade" class="form-label small mb-0">Quantidade</label>
+                <select id="modalQuantidade" class="form-select form-select-sm w-auto">
+                  <option value="1" selected>1</option>
+                  <option value="2">2</option>
+                </select>
+              </div>
+              <button id="modalTicketBtn" type="button" class="btn btn-outline-primary" aria-pressed="false">🛒 Adicionar ao carrinho</button>
+              <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Fechar</button>
+            </div>
           </div>
         </div>
       </div>
@@ -274,6 +300,24 @@
       </div>
     </div>
 
+    <!-- MODAL: SUCESSO RESERVA -->
+    <div class="modal fade" id="modalSucesso" tabindex="-1" aria-labelledby="modalSucessoTitulo" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title fw-bold" id="modalSucessoTitulo">Reserva realizada</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <p class="mb-0" id="modalSucessoMensagem">Tudo certo com sua reserva!</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-success" data-bs-dismiss="modal">Fechar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- OFFCANVAS: FAVORITOS -->
     <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasFav" aria-labelledby="offcanvasFavLabel">
       <div class="offcanvas-header">
@@ -285,6 +329,45 @@
         <div class="mt-3 d-flex gap-2">
           <button id="btnExportFav" class="btn btn-outline-primary btn-sm">Exportar IDs</button>
           <button id="btnClearFav" class="btn btn-outline-danger btn-sm">Limpar favoritos</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- OFFCANVAS: CARRINHO -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="marketCart" aria-labelledby="marketCartLabel">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="marketCartLabel">Seu carrinho</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
+      </div>
+      <div class="offcanvas-body d-flex flex-column gap-3">
+        <div
+          id="cartVisitorHelp"
+          class="alert alert-danger d-none small fw-semibold d-flex align-items-start gap-2"
+          role="status"
+        >
+          <span aria-hidden="true">🔒</span>
+          <span>
+            Para reservar ingressos, faça login no Conecta Recife. Entre com sua conta para liberar suas
+            reservas. 😊
+          </span>
+        </div>
+        <div id="cartItems" class="list-group list-group-flush"></div>
+        <div class="d-flex justify-content-between align-items-center fw-bold">
+          <span>Total</span>
+          <span>R$ <span id="cartTotalAside">0,00</span></span>
+        </div>
+        <button
+          id="cartCheckoutBtn"
+          class="btn btn-primary w-100"
+          type="button"
+          data-confirmar="true"
+          data-label-padrao="Reservar ingressos"
+        >
+          Reservar ingressos
+        </button>
+        <div id="cartQrcodeSection" class="border rounded p-3 bg-light d-none">
+          <h6 class="fw-bold mb-2">Como acesso o meu QRCode do Conecta?</h6>
+          <div id="cartQrcodeContent" class="text-center text-muted small">Carregando QRCode…</div>
         </div>
       </div>
     </div>
@@ -304,6 +387,10 @@
         const API_URL_JA_PEGOS = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/d0bbd65b-b4f6-45cf-8f98-2aff0bcb03a5';
         const CONFIRMAR_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/322fa1a9-b9aa-4e22-8762-fe0e63895727';
         const CANCELAR_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/cancelar-ingresso';
+        const LOGIN_URL =
+          'https://login.recife.pe.gov.br/auth/realms/recife/protocol/openid-connect/auth?response_type=code&redirect_uri=https%3A%2F%2Fconecta.recife.pe.gov.br%2Facesso&client_id=psp&nonce=4adee81a4d65dcb0d64369e776f1ad31&state=f71377d8222ff81c25db077b04cacc7c&scope=openid';
+        const NOME_USUARIO =
+          '{{ (() => { const nome = String($json.given_name ?? "").trim(); return nome ? nome[0].toUpperCase() + nome.slice(1).toLowerCase() : "Visitante"; })() }}';
         const CPF_FIXO = '{{ String(($json.cpf ?? $json.preferred_username ?? '')).replace(/\D+/g, '').slice(0,11) }}';
         const ICON_LIBRAS_SRC = 'https://www.ifmg.edu.br/conselheirolafaiete/noticias/anexos-noticias/libras-768x767.png/@@images/image.png';
         const ICON_AD_SRC = 'https://w7.pngwing.com/pngs/691/979/png-transparent-computer-icons-audio-description-pause-miscellaneous-text-trademark.png';
@@ -344,6 +431,8 @@
         const selecoesAtuais = new Set();
         const eventosPorId = new Map();
         const eventosBloqueadosPorId = new Map();
+        const quantidadesCarrinho = new Map();
+        const LIMITE_INGRESSOS = 2;
         let eventos = [];
         let eventosFiltrados = [];
         let eventosJaPegos = [];
@@ -362,6 +451,7 @@
         let elFGenero;
         let elBtnLimpar;
 
+        let modalEl;
         let modal;
         let mTitle;
         let mPoster;
@@ -380,6 +470,9 @@
         let mCancelarBtn;
         let modalCancelar;
         let modalCancelarBtnConfirmar;
+        let modalSucesso;
+        let modalSucessoEl;
+        let modalSucessoMensagem;
         let eventoParaCancelar = null;
 
         if (document.readyState === 'loading') {
@@ -411,7 +504,8 @@
             document.body.appendChild(campoCPF);
           }
 
-          modal = new bootstrap.Modal(document.querySelector('#modalDetalhes'));
+          modalEl = document.querySelector('#modalDetalhes');
+          modal = new bootstrap.Modal(modalEl);
           mTitle = document.querySelector('#modalTitulo');
           mPoster = document.querySelector('#modalPoster');
           mClass = document.querySelector('#modalClass');
@@ -442,6 +536,17 @@
             });
           }
           modalCancelarBtnConfirmar = document.querySelector('#modalCancelarConfirmBtn');
+          modalSucessoEl = document.querySelector('#modalSucesso');
+          modalSucesso = modalSucessoEl ? new bootstrap.Modal(modalSucessoEl) : null;
+          modalSucessoMensagem = document.querySelector('#modalSucessoMensagem');
+          if (modalSucessoEl) {
+            modalSucessoEl.addEventListener('hidden.bs.modal', () => {
+              if (modalSucessoEl.dataset.recarregar === 'true') {
+                modalSucessoEl.dataset.recarregar = '';
+                reloadComAtraso(300);
+              }
+            });
+          }
 
           document.body.classList.add('portal-dyn');
           injetarEstilos();
@@ -449,23 +554,9 @@
           eventosBloqueadosPorId.clear();
           selecoesAtuais.clear();
 
-          alternarCarregamento(true);
-          const recebidosDisponiveis = await fetchEventos(API_URL);
-          exibindoFallbackSemEventos = recebidosDisponiveis.length === 0;
-          const baseDisponiveis = exibindoFallbackSemEventos
-            ? FALLBACK_EVENTOS
-            : recebidosDisponiveis.map(adaptarEventoApi).filter(Boolean);
-
-          eventos = prepararEventos(baseDisponiveis, { resetarMapa: true, mapa: eventosPorId });
-          eventosFiltrados = [...eventos];
-          eventosJaPegos = [];
-          eventosJaPegosFiltrados = [];
-          popularFiltros(eventos);
-          renderCards(eventosFiltrados);
-          alternarCarregamento(false);
-          atualizarResultado();
           registrarEventos();
-          await carregarEventosJaPegos();
+          sincronizarCarrinhoInicial();
+          await recarregarCatalogoPrincipal();
         }
 
         function injetarEstilos() {
@@ -491,6 +582,7 @@
 .portal-dyn .portal-dyn-acc-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .portal-dyn .portal-dyn-erro-confirmacao { display: block; margin-top: 0.25rem; font-size: 0.85rem; }
 .portal-dyn .ticket-subtitle { color: var(--text-muted); font-size: 0.9rem; line-height: 1.35; white-space: normal; }
+.portal-dyn #modalAcoesDireita { justify-content: flex-end; }
 .portal-dyn #modalQuantidadeWrapper { flex: 1 1 auto; }
 .portal-dyn #modalQuantidadeWrapper select { min-width: 72px; }
 `;
@@ -538,6 +630,29 @@
           } catch (erro) {
             console.error('Falha ao buscar eventos', erro);
             return [];
+          }
+        }
+
+        async function recarregarCatalogoPrincipal() {
+          alternarCarregamento(true);
+          try {
+            const recebidosDisponiveis = await fetchEventos(API_URL);
+            exibindoFallbackSemEventos = recebidosDisponiveis.length === 0;
+            const baseDisponiveis = exibindoFallbackSemEventos
+              ? FALLBACK_EVENTOS
+              : recebidosDisponiveis.map(adaptarEventoApi).filter(Boolean);
+
+            eventos = prepararEventos(baseDisponiveis, { resetarMapa: true, mapa: eventosPorId });
+            eventosFiltrados = [...eventos];
+            eventosJaPegos = [];
+            eventosJaPegosFiltrados = [];
+            popularFiltros(eventos);
+            aplicarFiltros();
+            await carregarEventosJaPegos();
+            aplicarRestricoesCarrinho();
+          } finally {
+            alternarCarregamento(false);
+            atualizarResultado();
           }
         }
 
@@ -737,7 +852,7 @@
         }
 
         function rotuloPrincipalPorStatus(status) {
-          return normalizarStatus(status) === 'block' ? '🎟️ Devolver ingresso' : '🎟️ Pegar ingresso';
+          return normalizarStatus(status) === 'block' ? '🎟️ Devolver ingresso' : '🛒 Adicionar ao carrinho';
         }
 
         function rotuloConfirmarPorStatus(status) {
@@ -899,8 +1014,12 @@
             });
           }
           if (mTicketBtn) {
-            mTicketBtn.addEventListener('click', () => {
+            mTicketBtn.addEventListener('click', async () => {
+              const nomeUsuario = (NOME_USUARIO || '').trim();
+              const visitante = !nomeUsuario || nomeUsuario.toLowerCase() === 'visitante';
+
               const id = mTicketBtn.dataset.id;
+              const nome = mTicketBtn.dataset.nome || (mTitle ? mTitle.textContent : '');
               if (!id) return;
               const evento = eventosPorId.get(id) || eventosBloqueadosPorId.get(id);
               if (!evento) return;
@@ -909,8 +1028,30 @@
                 abrirModalCancelar(evento);
                 return;
               }
-              const chave = evento.quandoNormalizado || DATE_KEY_EMPTY;
-              togglePorData(chave, id);
+              if (visitante) {
+                window.location.href = LOGIN_URL;
+                return;
+              }
+              const quantidadeAtual = obterQuantidadeNoCarrinho(id);
+              if (quantidadeAtual >= LIMITE_INGRESSOS) {
+                return;
+              }
+              const quantidade = Math.max(1, Number(mQuantidadeSelect?.value) || 1);
+              if (window.catracaCart && typeof window.catracaCart.adicionar === 'function') {
+                window.catracaCart.adicionar({
+                  id,
+                  nome: nome || evento.nome,
+                  quantidade,
+                  poster: mTicketBtn.dataset.poster || evento.poster || ''
+                });
+              }
+              if (modal && modalEl) {
+                const aoFechar = () => {
+                  recarregarCatalogoPrincipal();
+                };
+                modalEl.addEventListener('hidden.bs.modal', aoFechar, { once: true });
+                modal.hide();
+              }
             });
           }
           if (mConfirmBtn) {
@@ -935,6 +1076,15 @@
           if (modalCancelarBtnConfirmar) {
             modalCancelarBtnConfirmar.addEventListener('click', cancelarIngresso);
           }
+          document.addEventListener('carrinho:atualizado', (ev) => {
+            atualizarQuantidadesCarrinho(ev?.detail?.itens);
+          });
+        }
+
+        function abrirModalPorId(id, opcoes = {}) {
+          if (!id) return;
+          const dados = eventosPorId.get(id) || eventosBloqueadosPorId.get(id);
+          if (dados) abrirModal(dados, opcoes);
         }
 
         function popularFiltros(lista) {
@@ -1035,7 +1185,7 @@
 
         function criarCard(evento) {
           const coluna = document.createElement('div');
-          coluna.className = 'col';
+          coluna.className = 'col-12 col-sm-6 col-lg-4 col-xl-3 d-flex';
 
           const card = document.createElement('article');
           card.className = 'ticket-card h-100 d-flex flex-column';
@@ -1046,7 +1196,9 @@
           card.setAttribute('data-hora', evento.horaCurta || '');
           card.setAttribute('data-ja-pegou', evento.jaPegou ? 'true' : 'false');
           const status = normalizarStatus(evento.status);
+          const esgotado = numeroSeguro(evento.disponiveis) <= 0;
           card.dataset.status = status;
+          card.dataset.esgotado = esgotado ? 'true' : 'false';
           if (status === 'block') {
             card.classList.add('is-muted');
           }
@@ -1062,6 +1214,13 @@
           imagem.src = evento.poster || '';
           imagem.alt = `Pôster da peça ${evento.nome}`;
           capa.appendChild(imagem);
+          if (esgotado) {
+            capa.classList.add('is-soldout');
+            const tarja = document.createElement('div');
+            tarja.className = 'ticket-soldout';
+            tarja.textContent = 'ESGOTADO';
+            capa.appendChild(tarja);
+          }
           if (evento.quandoCarimboDia && evento.quandoCarimboData) {
             const seloData = document.createElement('div');
             seloData.className = 'ticket-date-badge';
@@ -1377,6 +1536,7 @@
             const jaPegou = card.getAttribute('data-ja-pegou') === 'true';
             const statusCard = obterStatusDoCard(card);
             const ehBlock = statusCard === 'block';
+            const esgotado = card.dataset.esgotado === 'true';
             card.classList.remove('selecionado', 'is-active');
             if (jaPegou) {
               card.classList.add('portal-dyn-ja-pego');
@@ -1421,8 +1581,117 @@
           }
         }
 
+        function atualizarQuantidadesCarrinho(itens = []) {
+          quantidadesCarrinho.clear();
+          if (Array.isArray(itens)) {
+            itens.forEach((item) => {
+              if (!item || item.id === undefined || item.id === null) return;
+              const quantidade = Math.max(0, Number(item.quantidade) || 0);
+              quantidadesCarrinho.set(String(item.id), quantidade);
+            });
+          }
+          aplicarRestricoesCarrinho();
+          atualizarBotaoModal();
+        }
+
+        function obterQuantidadeNoCarrinho(id) {
+          if (id === undefined || id === null) return 0;
+          return quantidadesCarrinho.get(String(id)) || 0;
+        }
+
+        function aplicarRestricoesCarrinho() {
+          if (!elGrid) return;
+          const cards = elGrid.querySelectorAll('[data-id]');
+          cards.forEach((card) => aplicarRestricoesCarrinhoEmCard(card));
+        }
+
+        function aplicarRestricoesCarrinhoEmCard(card) {
+          if (!card) return;
+          const idCard = card.getAttribute('data-id');
+          if (!idCard) return;
+          const quantidadeNoCarrinho = obterQuantidadeNoCarrinho(idCard);
+          const limiteAtingido = quantidadeNoCarrinho >= LIMITE_INGRESSOS;
+          const jaPegou = card.getAttribute('data-ja-pegou') === 'true';
+          const status = obterStatusDoCard(card);
+          const botao = card.querySelector('.btn-pegar-ingresso');
+          const botaoDetalhes = card.querySelector('.btn-detalhes');
+          const esgotado = card.dataset.esgotado === 'true';
+
+          if (jaPegou) return;
+
+          if (esgotado) {
+            card.classList.remove('is-muted');
+            card.classList.remove('inativo');
+            card.removeAttribute('aria-disabled');
+            if (botao) {
+              botao.disabled = true;
+              botao.setAttribute('aria-disabled', 'true');
+              botao.setAttribute('aria-pressed', 'false');
+              botao.textContent = 'ESGOTADO';
+              botao.classList.remove('btn-primary', 'btn-success');
+              if (!botao.classList.contains('btn-outline-secondary')) {
+                botao.classList.add('btn-outline-secondary');
+              }
+            }
+            if (botaoDetalhes) {
+              botaoDetalhes.disabled = false;
+              botaoDetalhes.setAttribute('aria-disabled', 'false');
+            }
+            return;
+          }
+
+          if (limiteAtingido) {
+            card.dataset.limiteCarrinho = 'true';
+            card.classList.add('is-muted');
+            card.classList.remove('inativo');
+            card.removeAttribute('aria-disabled');
+            if (botao) {
+              botao.disabled = true;
+              botao.setAttribute('aria-disabled', 'true');
+              botao.setAttribute('aria-pressed', 'false');
+              botao.textContent = '🎟️ Limite no carrinho';
+              botao.classList.remove('btn-primary', 'btn-success');
+              if (!botao.classList.contains('btn-outline-secondary')) {
+                botao.classList.add('btn-outline-secondary');
+              }
+            }
+            if (botaoDetalhes) {
+              botaoDetalhes.disabled = false;
+              botaoDetalhes.setAttribute('aria-disabled', 'false');
+            }
+            return;
+          }
+
+          delete card.dataset.limiteCarrinho;
+          card.classList.remove('inativo');
+          if (status === 'block') {
+            card.classList.add('is-muted');
+          } else if (!selecoesAtuais.has(idCard)) {
+            card.classList.remove('is-muted');
+          }
+          if (!card.dataset.bloqueado) {
+            card.removeAttribute('aria-disabled');
+          }
+          if (botao && !botao.disabled) {
+            resetarEstadoBotaoIngresso(botao);
+          }
+          if (botaoDetalhes) {
+            botaoDetalhes.disabled = false;
+            botaoDetalhes.setAttribute('aria-disabled', 'false');
+          }
+        }
+
+        function sincronizarCarrinhoInicial() {
+          if (window.catracaCart?.obterItens) {
+            atualizarQuantidadesCarrinho(window.catracaCart.obterItens());
+          } else {
+            aplicarRestricoesCarrinho();
+          }
+        }
+
         function aplicarEstadoSelecionado(card) {
           if (!card) return;
+          if (card.dataset.esgotado === 'true') return;
           const status = obterStatusDoCard(card);
           card.classList.add('selecionado');
           card.classList.add('is-active');
@@ -1516,6 +1785,13 @@
           }, atraso);
         }
 
+        function exibirModalSucesso(mensagem, { recarregarDepois = false } = {}) {
+          if (!modalSucesso || !modalSucessoMensagem || !modalSucessoEl) return;
+          modalSucessoMensagem.textContent = mensagem || 'Reserva realizada com sucesso!';
+          modalSucessoEl.dataset.recarregar = recarregarDepois ? 'true' : '';
+          modalSucesso.show();
+        }
+
         function sanitizarCPF(valor) {
           return String(valor ?? '').replace(/\D/g, '');
         }
@@ -1530,20 +1806,24 @@
           return '';
         }
 
-        async function confirmarIngresso(botao) {
+        async function confirmarIngresso(botao, opcoes = {}) {
           if (!botao || botao.disabled) return;
-          let card = botao.closest('[data-id]');
-          let id = botao.dataset.id || botao.dataset.confirmarId || '';
+          let card = opcoes.cardOverride || botao.closest('[data-id]');
+          let id = opcoes.idOverride || botao.dataset.id || botao.dataset.confirmarId || '';
           if (!id && card) {
             id = card.getAttribute('data-id') || '';
           }
           if (!id && botao === mConfirmBtn && mTicketBtn) {
             id = mTicketBtn.dataset.id || '';
           }
+          if (!id && opcoes.idOverride) {
+            id = opcoes.idOverride;
+          }
           if (!id) return;
           if (!card) {
             card = encontrarCardPorId(id);
           }
+          const ehCheckoutCarrinho = botao?.id === 'cartCheckoutBtn';
           const cpf = obterCPF();
           if (!cpf) {
             if (card) {
@@ -1551,8 +1831,13 @@
             }
             return;
           }
-          const rotuloPadrao = botao.dataset.labelPadrao || 'Confirmar';
-          const quantidade = obterQuantidadeSelecionada();
+          const rotuloPadrao =
+            botao.dataset.labelPadrao || (botao.textContent || '').trim() || 'Confirmar';
+          const quantidadeSelecionada = opcoes.quantidadeOverride;
+          const quantidade =
+            Number.isFinite(quantidadeSelecionada) && quantidadeSelecionada > 0
+              ? quantidadeSelecionada
+              : obterQuantidadeSelecionada();
           const payload = { id, cpf };
           if (quantidade) {
             payload.quantidade = quantidade;
@@ -1575,6 +1860,12 @@
             if (!resposta.ok) {
               throw new Error(`HTTP ${resposta.status}`);
             }
+            let mensagemRetorno = '';
+            try {
+              mensagemRetorno = (await resposta.text())?.trim();
+            } catch (err) {
+              console.warn('Não foi possível ler a mensagem de retorno.', err);
+            }
             if (botao.dataset.confirmar === 'true') {
               botao.textContent = 'Confirmado!';
               setTimeout(() => {
@@ -1587,7 +1878,14 @@
             if (card) {
               card.dispatchEvent(new CustomEvent('ingresso:confirmado', { detail: { id, cpf, quantidade: payload.quantidade }, bubbles: true }));
             }
-            reloadComAtraso();
+            if (ehCheckoutCarrinho) {
+              const mensagemSucesso =
+                mensagemRetorno ||
+                'Que massa! 🎭✨ Sua reserva foi concluída com sucesso. Basta apresentar o QRCode do ConectaRecife na bilheteria para curtir a experiência. 💛';
+              exibirModalSucesso(mensagemSucesso, { recarregarDepois: true });
+            } else {
+              reloadComAtraso();
+            }
           } catch (erro) {
             console.error('Falha ao confirmar ingresso', erro);
             botao.textContent = rotuloPadrao;
@@ -1676,7 +1974,9 @@
             const id = card.getAttribute('data-id');
             const dados = eventosPorId.get(id) || eventosBloqueadosPorId.get(id);
             if (dados) {
-              abrirModal(dados);
+              const limiteCarrinho = card.dataset.limiteCarrinho === 'true';
+              const esgotado = card.dataset.esgotado === 'true';
+              abrirModal(dados, { apenasFechar: limiteCarrinho || esgotado });
             }
           }
         }
@@ -1690,6 +1990,9 @@
               atualizarEstadoTodos();
               atualizarBotaoModal();
             }
+            return;
+          }
+          if (numeroSeguro(evento.disponiveis) <= 0) {
             return;
           }
           if (evento.status === 'block') {
@@ -1751,13 +2054,18 @@
           } else {
             resetarDisponibilidade();
           }
+          aplicarRestricoesCarrinho();
         }
 
-        function abrirModal(evento) {
+        function abrirModal(evento, opcoes = {}) {
           if (!mTitle) return;
+          const esgotado = numeroSeguro(evento.disponiveis) <= 0;
           const status = normalizarStatus(evento.status);
           const ehBlock = status === 'block';
           const ehSemiBlock = status === 'semi-block';
+          const quantidadeNoCarrinho = obterQuantidadeNoCarrinho(evento.id);
+          const atingiuLimiteCarrinho = quantidadeNoCarrinho >= LIMITE_INGRESSOS;
+          const apenasFechar = Boolean(opcoes.apenasFechar || esgotado);
           mTitle.textContent = evento.nome;
           if (mPoster) {
             mPoster.src = evento.posterdetalhes || evento.poster || '';
@@ -1784,29 +2092,34 @@
           }
           if (mSinopse) mSinopse.textContent = evento.sinopse || '—';
           const somenteDetalhes = Boolean(evento.apenasDetalhes || evento.jaPegou);
+          const esconderAcoes = somenteDetalhes || apenasFechar || esgotado;
           if (mTicketBtn) {
-            if (somenteDetalhes) {
+            if (esconderAcoes) {
               mTicketBtn.classList.add('d-none');
               mTicketBtn.disabled = true;
               mTicketBtn.setAttribute('aria-disabled', 'true');
               mTicketBtn.setAttribute('aria-pressed', 'false');
               mTicketBtn.dataset.id = '';
+              mTicketBtn.dataset.nome = '';
               mTicketBtn.dataset.quando = '';
               mTicketBtn.dataset.hora = '';
+              mTicketBtn.dataset.poster = '';
             } else {
               mTicketBtn.classList.remove('d-none');
               mTicketBtn.setAttribute('aria-pressed', 'false');
               mTicketBtn.setAttribute('aria-disabled', 'false');
               mTicketBtn.disabled = false;
               mTicketBtn.dataset.id = evento.id;
+              mTicketBtn.dataset.nome = evento.nome || '';
               mTicketBtn.dataset.quando = evento.quandoNormalizado || DATE_KEY_EMPTY;
               mTicketBtn.dataset.hora = evento.horaCurta || '';
+              mTicketBtn.dataset.poster = evento.poster || '';
               mTicketBtn.textContent = rotuloPrincipalPorStatus(status);
               mTicketBtn.disabled = false;
               mTicketBtn.setAttribute('aria-disabled', 'false');
             }
           }
-          const esconderQuantidade = somenteDetalhes || ehBlock;
+          const esconderQuantidade = somenteDetalhes || ehBlock || apenasFechar || atingiuLimiteCarrinho;
           configurarSelectQuantidade(status);
           if (mQuantidadeWrapper) {
             mQuantidadeWrapper.classList.toggle('d-none', esconderQuantidade);
@@ -1816,13 +2129,14 @@
             mQuantidadeSelect.disabled = esconderQuantidade;
           }
           if (mCancelarBtn) {
+            const ocultarCancelar = apenasFechar || !ehSemiBlock;
             mCancelarBtn.dataset.id = evento.id;
-            mCancelarBtn.classList.toggle('d-none', !ehSemiBlock);
-            mCancelarBtn.disabled = !ehSemiBlock;
-            mCancelarBtn.setAttribute('aria-disabled', ehSemiBlock ? 'false' : 'true');
+            mCancelarBtn.classList.toggle('d-none', ocultarCancelar);
+            mCancelarBtn.disabled = ocultarCancelar;
+            mCancelarBtn.setAttribute('aria-disabled', ocultarCancelar ? 'true' : 'false');
           }
           if (mConfirmBtn) {
-            const esconderConfirmar = somenteDetalhes || ehBlock || ehSemiBlock;
+            const esconderConfirmar = somenteDetalhes || ehBlock || ehSemiBlock || apenasFechar;
             if (esconderConfirmar) {
               mConfirmBtn.classList.add('d-none');
               mConfirmBtn.disabled = true;
@@ -1856,6 +2170,8 @@
           const evento = eventosPorId.get(id);
           if (!evento) return;
           const status = normalizarStatus(evento.status);
+          const quantidadeNoCarrinho = obterQuantidadeNoCarrinho(id);
+          const atingiuLimiteCarrinho = quantidadeNoCarrinho >= LIMITE_INGRESSOS;
           const rotuloPrincipal = rotuloPrincipalPorStatus(status);
           const rotuloConfirmar = rotuloConfirmarPorStatus(status);
           const ehBlock = status === 'block';
@@ -1876,7 +2192,9 @@
             return;
           }
           const selecionado = selecoesAtuais.has(id);
-          const bloqueado = !selecionado && eventoConflitanteComSelecoes(evento);
+          const bloqueadoPorConflito = !selecionado && eventoConflitanteComSelecoes(evento);
+          const bloqueadoPorCarrinho = atingiuLimiteCarrinho;
+          const bloqueado = bloqueadoPorConflito || bloqueadoPorCarrinho;
 
           if (selecionado) {
             mTicketBtn.disabled = false;
@@ -1890,7 +2208,7 @@
             mTicketBtn.disabled = true;
             mTicketBtn.setAttribute('aria-disabled', 'true');
             mTicketBtn.setAttribute('aria-pressed', 'false');
-            mTicketBtn.textContent = '🎟️ Indisponível';
+            mTicketBtn.textContent = bloqueadoPorCarrinho ? '🎟️ Limite no carrinho' : '🎟️ Indisponível';
             mTicketBtn.classList.remove('btn-success');
             if (!mTicketBtn.classList.contains('btn-outline-secondary')) {
               mTicketBtn.classList.add('btn-outline-secondary');
@@ -1932,9 +2250,21 @@
             }
           }
           if (mQuantidadeSelect) {
-            mQuantidadeSelect.disabled = bloqueado || ehBlock;
+            mQuantidadeSelect.disabled = bloqueado || ehBlock || atingiuLimiteCarrinho;
           }
         }
+
+        window.catracaPortal = {
+          ...(window.catracaPortal || {}),
+          abrirModalPorId,
+          confirmarIngressoDoCarrinho: ({ botao, id, quantidade } = {}) => {
+            if (!id) return;
+            confirmarIngresso(botao || mConfirmBtn, {
+              idOverride: id,
+              quantidadeOverride: quantidade
+            });
+          }
+        };
 
         function atualizarResultado() {
           if (!elResultInfo) return;
@@ -2068,6 +2398,280 @@
           if (/^\d{2}:\d{2}$/.test(hora)) return `${hora}:00`;
           return '00:00:00';
         }
+      })();
+    </script>
+    <script>
+      (function () {
+        const NOME_USUARIO_CART =
+          '{{ (() => { const nome = String($json.given_name ?? "").trim(); return nome ? nome[0].toUpperCase() + nome.slice(1).toLowerCase() : "Visitante"; })() }}';
+        const QRCODE_WEBHOOK =
+          'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/gif-qrcodeconecta';
+        const carrinho = new Map();
+        let cartOffcanvas;
+        let cartOffcanvasElement;
+        let cartCount;
+        let cartTotal;
+        let cartTotalAside;
+        let cartItems;
+        let cartButton;
+        let cartCheckoutBtn;
+        let cartFloating;
+        let cartVisitorHelp;
+        let cartQrcodeSection;
+        let cartQrcodeContent;
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', initCarrinho);
+        } else {
+          initCarrinho();
+        }
+
+        function snapshotCarrinho() {
+          return Array.from(carrinho.values()).map((item) => ({ ...item }));
+        }
+
+        function emitirEventoCarrinho(itensSnapshot = []) {
+          document.dispatchEvent(
+            new CustomEvent('carrinho:atualizado', {
+              detail: { itens: Array.isArray(itensSnapshot) ? itensSnapshot : [] }
+            })
+          );
+        }
+
+        function initCarrinho() {
+          cartCount = document.querySelector('#cartCount');
+          cartTotal = document.querySelector('#cartTotal');
+          cartTotalAside = document.querySelector('#cartTotalAside');
+          cartItems = document.querySelector('#cartItems');
+          cartButton = document.querySelector('#cartButton');
+          cartFloating = document.querySelector('.cart-floating');
+          cartCheckoutBtn = document.querySelector('#cartCheckoutBtn');
+          cartVisitorHelp = document.querySelector('#cartVisitorHelp');
+          cartQrcodeSection = document.querySelector('#cartQrcodeSection');
+          cartQrcodeContent = document.querySelector('#cartQrcodeContent');
+
+          cartOffcanvasElement = document.querySelector('#marketCart');
+          cartOffcanvas = cartOffcanvasElement ? new bootstrap.Offcanvas(cartOffcanvasElement) : null;
+
+          registrarEventos();
+          atualizarAjudaVisitante();
+          carregarQrcodeConecta();
+          atualizarCarrinho();
+        }
+
+        async function carregarQrcodeConecta() {
+          if (!cartQrcodeContent) return;
+          try {
+            const resposta = await fetch(QRCODE_WEBHOOK, { method: 'GET' });
+            if (!resposta.ok) {
+              throw new Error(`Erro HTTP ${resposta.status}`);
+            }
+            const texto = await resposta.text();
+            const base64 = extrairBase64Qrcode(texto);
+            if (!base64) {
+              throw new Error('Conteúdo vazio');
+            }
+            const dataUrl = construirDataUrlImagem(base64);
+            if (!dataUrl) {
+              throw new Error('Não foi possível montar a imagem');
+            }
+            exibirQrcode(dataUrl);
+          } catch (erro) {
+            console.error('Falha ao carregar QRCode do Conecta', erro);
+            exibirErroQrcode();
+          }
+        }
+
+        function extrairBase64Qrcode(conteudo) {
+          if (!conteudo) return '';
+          const bruto = conteudo.trim();
+          if (!bruto) return '';
+          try {
+            const json = JSON.parse(bruto);
+            if (json && typeof json === 'object') {
+              const candidato = json.gif || json.data || json.base64 || json.payload || '';
+              if (typeof candidato === 'string' && candidato.trim()) return candidato.trim();
+            }
+          } catch (_) {
+            /* segue com texto cru */
+          }
+          return bruto;
+        }
+
+        function construirDataUrlImagem(valor) {
+          if (!valor || typeof valor !== 'string') return '';
+          const limpo = valor.trim();
+          if (!limpo) return '';
+          if (/^data:image\//i.test(limpo)) return limpo;
+          if (limpo.includes(';base64,')) {
+            if (limpo.startsWith('data:')) return limpo;
+            return `data:image/gif;${limpo}`;
+          }
+          return `data:image/gif;base64,${limpo}`;
+        }
+
+        function exibirQrcode(src) {
+          if (!cartQrcodeContent || !cartQrcodeSection) return;
+          const img = document.createElement('img');
+          img.src = src;
+          img.alt = 'QRCode do Conecta Recife';
+          img.className = 'img-fluid rounded shadow-sm';
+          cartQrcodeContent.innerHTML = '';
+          cartQrcodeContent.appendChild(img);
+          cartQrcodeContent.classList.remove('text-muted');
+          cartQrcodeSection.classList.remove('d-none');
+        }
+
+        function exibirErroQrcode() {
+          if (!cartQrcodeContent || !cartQrcodeSection) return;
+          cartQrcodeContent.textContent = 'Não foi possível carregar o QRCode agora. Tente novamente mais tarde.';
+          cartQrcodeContent.classList.add('text-muted');
+          cartQrcodeSection.classList.remove('d-none');
+        }
+
+        function atualizarAjudaVisitante() {
+          const nome = (NOME_USUARIO_CART || '').trim();
+          const visitante = !nome || nome.toLowerCase() === 'visitante';
+          if (cartVisitorHelp) {
+            cartVisitorHelp.classList.toggle('d-none', !visitante);
+          }
+        }
+
+        function registrarEventos() {
+          if (cartButton && cartOffcanvas) {
+            cartButton.addEventListener('click', () => cartOffcanvas.show());
+          }
+          if (cartOffcanvasElement) {
+            cartOffcanvasElement.addEventListener('show.bs.offcanvas', () => {
+              cartButton?.classList.add('d-none');
+              cartFloating?.classList.add('d-none');
+            });
+            cartOffcanvasElement.addEventListener('hidden.bs.offcanvas', () => {
+              cartButton?.classList.remove('d-none');
+              cartFloating?.classList.remove('d-none');
+            });
+          }
+          if (cartItems) {
+            cartItems.addEventListener('click', (event) => {
+              const abrir = event.target.closest('[data-cart-open]');
+              if (abrir) {
+                const id = abrir.getAttribute('data-cart-open');
+                if (window.catracaPortal?.abrirModalPorId) {
+                  window.catracaPortal.abrirModalPorId(id, { apenasFechar: true });
+                  if (cartOffcanvas) cartOffcanvas.hide();
+                }
+                return;
+              }
+              const remover = event.target.closest('[data-id]');
+              if (remover && remover.hasAttribute('data-remove')) {
+                removerDoCarrinho(remover.getAttribute('data-id'));
+              }
+            });
+          }
+          if (cartCheckoutBtn) {
+            cartCheckoutBtn.addEventListener('click', () => {
+              const itens = Array.from(carrinho.values());
+              if (!itens.length) return;
+              const item = itens[0];
+              const quantidade = Number(item.quantidade);
+              window.catracaPortal?.confirmarIngressoDoCarrinho?.({
+                botao: cartCheckoutBtn,
+                id: item.id,
+                quantidade: Number.isFinite(quantidade) && quantidade > 0 ? quantidade : 1
+              });
+            });
+          }
+        }
+
+        function adicionarAoCarrinho(item) {
+          if (!item || !item.id) return;
+          const quantidade = Math.max(1, Number(item.quantidade) || 1);
+          const atual = carrinho.get(item.id) || { ...item, quantidade: 0 };
+          const poster = item.poster || atual.poster || '';
+          const nome = item.nome || atual.nome || 'Item';
+          atual.quantidade += quantidade;
+          carrinho.set(item.id, { ...atual, poster, nome });
+          atualizarCarrinho();
+        }
+
+        function removerDoCarrinho(id) {
+          const atual = carrinho.get(id);
+          if (!atual) return;
+          atual.quantidade -= 1;
+          if (atual.quantidade <= 0) {
+            carrinho.delete(id);
+          } else {
+            carrinho.set(id, { ...atual });
+          }
+          atualizarCarrinho();
+        }
+
+        function atualizarCarrinho() {
+          const itens = Array.from(carrinho.values());
+          const totalItens = itens.reduce((acc, item) => acc + item.quantidade, 0);
+          const totalValor = itens.reduce((acc, item) => acc + item.quantidade * (Number(item.preco) || 0), 0);
+
+          if (cartCount) cartCount.textContent = totalItens;
+          if (cartTotal) cartTotal.textContent = totalValor.toFixed(2).replace('.', ',');
+          if (cartTotalAside) cartTotalAside.textContent = totalValor.toFixed(2).replace('.', ',');
+
+          if (cartItems) {
+            cartItems.innerHTML = '';
+            if (!itens.length) {
+              const vazio = document.createElement('div');
+              vazio.className = 'text-muted text-center py-3';
+              vazio.textContent = 'Seu carrinho está vazio.';
+              cartItems.appendChild(vazio);
+              return;
+            }
+
+            itens.forEach((item) => {
+              const nome = item.nome || 'Item';
+              const preco = Number(item.preco) || 0;
+              const poster = item.poster || '';
+              const li = document.createElement('div');
+              li.className = 'list-group-item d-flex align-items-center gap-3';
+              li.innerHTML = `
+                <div class="d-flex align-items-center gap-2 flex-grow-1">
+                  <button type="button" class="btn p-0 border-0 bg-transparent" data-cart-open="${item.id}" aria-label="Ver detalhes de ${nome}">
+                    <div class="ratio ratio-1x1 rounded overflow-hidden bg-light" style="width: 64px; max-width: 64px;">
+                      ${poster
+                        ? `<img src="${poster}" alt="Pôster de ${nome}" class="w-100 h-100 object-fit-cover">`
+                        : '<div class="d-flex align-items-center justify-content-center w-100 h-100 text-muted small">🎟️</div>'}
+                    </div>
+                  </button>
+                  <div class="flex-grow-1">
+                    <div class="fw-semibold">${nome}</div>
+                    <small class="text-muted">${item.quantidade}x • R$ ${preco.toFixed(2).replace('.', ',')}</small>
+                  </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="fw-bold">R$ ${(preco * item.quantidade).toFixed(2).replace('.', ',')}</span>
+                  <button class="btn btn-sm btn-outline-danger" type="button" data-id="${item.id}" data-remove>Remover</button>
+                </div>
+              `;
+              cartItems.appendChild(li);
+            });
+          }
+          const snapshot = itens.map((item) => ({ ...item }));
+          emitirEventoCarrinho(snapshot);
+        }
+
+        // Exponha funções básicas para futuras integrações sem reativar o marketplace visual.
+        window.catracaCart = {
+          adicionar: adicionarAoCarrinho,
+          remover: removerDoCarrinho,
+          obterItens: snapshotCarrinho,
+          obterQuantidade: (id) => {
+            if (id === undefined || id === null) return 0;
+            const encontrado = carrinho.get(String(id));
+            return encontrado ? encontrado.quantidade || 0 : 0;
+          },
+          limpar: () => {
+            carrinho.clear();
+            atualizarCarrinho();
+          }
+        };
       })();
     </script>
 
