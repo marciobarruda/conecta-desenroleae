@@ -87,6 +87,8 @@
       .catalog-grid .ticket-card{display:flex;flex-direction:column;width:100%}
       .ticket-card.is-muted{filter:grayscale(1);opacity:.55;transition:filter .2s ease,opacity .2s ease}
       .ticket-card.is-active{box-shadow:0 0 0 .15rem rgba(0,83,164,.35)}
+      .ticket-card[data-esgotado="true"]{filter:grayscale(1)}
+      .ticket-soldout{position:absolute;inset:50% 0 auto;transform:translateY(-50%);background:#c1121f;color:#fff;text-align:center;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:.45rem .5rem;box-shadow:0 10px 24px rgba(0,0,0,.25);z-index:2}
       .catalog-loading{display:flex;align-items:center;justify-content:center;gap:1rem;padding:1.5rem;border:1px dashed rgba(27,38,59,.25);border-radius:1rem;background:linear-gradient(90deg,rgba(0,83,164,.06),rgba(0,163,255,.08),rgba(0,83,164,.06));background-size:200% 100%;animation:catalogShine 2.4s ease infinite;color:var(--text-strong)}
       .catalog-loading .catalog-loading-spinner{width:56px;height:56px;border:6px solid rgba(0,83,164,.18);border-top-color:var(--brand-highlight);border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0;box-shadow:0 6px 20px rgba(0,83,164,.18)}
       .catalog-loading .catalog-loading-text{display:flex;flex-direction:column;font-weight:700;line-height:1.3}
@@ -1174,8 +1176,13 @@
           card.setAttribute('data-hora', evento.horaCurta || '');
           card.setAttribute('data-ja-pegou', evento.jaPegou ? 'true' : 'false');
           const status = normalizarStatus(evento.status);
+          const esgotado = numeroSeguro(evento.disponiveis) <= 0;
           card.dataset.status = status;
+          card.dataset.esgotado = esgotado ? 'true' : 'false';
           if (status === 'block') {
+            card.classList.add('is-muted');
+          }
+          if (esgotado) {
             card.classList.add('is-muted');
           }
           if (evento.jaPegou) {
@@ -1190,6 +1197,12 @@
           imagem.src = evento.poster || '';
           imagem.alt = `Pôster da peça ${evento.nome}`;
           capa.appendChild(imagem);
+          if (esgotado) {
+            const tarja = document.createElement('div');
+            tarja.className = 'ticket-soldout';
+            tarja.textContent = 'ESGOTADO';
+            capa.appendChild(tarja);
+          }
           if (evento.quandoCarimboDia && evento.quandoCarimboData) {
             const seloData = document.createElement('div');
             seloData.className = 'ticket-date-badge';
@@ -1505,6 +1518,7 @@
             const jaPegou = card.getAttribute('data-ja-pegou') === 'true';
             const statusCard = obterStatusDoCard(card);
             const ehBlock = statusCard === 'block';
+            const esgotado = card.dataset.esgotado === 'true';
             card.classList.remove('selecionado', 'is-active');
             if (jaPegou) {
               card.classList.add('portal-dyn-ja-pego');
@@ -1512,7 +1526,7 @@
               card.setAttribute('aria-disabled', 'true');
             } else {
               card.classList.remove('inativo');
-              if (ehBlock) {
+              if (ehBlock || esgotado) {
                 card.classList.add('is-muted');
               } else {
                 card.classList.remove('is-muted');
@@ -1583,8 +1597,30 @@
           const status = obterStatusDoCard(card);
           const botao = card.querySelector('.btn-pegar-ingresso');
           const botaoDetalhes = card.querySelector('.btn-detalhes');
+          const esgotado = card.dataset.esgotado === 'true';
 
           if (jaPegou) return;
+
+          if (esgotado) {
+            card.classList.add('is-muted');
+            card.classList.remove('inativo');
+            card.removeAttribute('aria-disabled');
+            if (botao) {
+              botao.disabled = true;
+              botao.setAttribute('aria-disabled', 'true');
+              botao.setAttribute('aria-pressed', 'false');
+              botao.textContent = 'ESGOTADO';
+              botao.classList.remove('btn-primary', 'btn-success');
+              if (!botao.classList.contains('btn-outline-secondary')) {
+                botao.classList.add('btn-outline-secondary');
+              }
+            }
+            if (botaoDetalhes) {
+              botaoDetalhes.disabled = false;
+              botaoDetalhes.setAttribute('aria-disabled', 'false');
+            }
+            return;
+          }
 
           if (limiteAtingido) {
             card.dataset.limiteCarrinho = 'true';
@@ -1637,6 +1673,7 @@
 
         function aplicarEstadoSelecionado(card) {
           if (!card) return;
+          if (card.dataset.esgotado === 'true') return;
           const status = obterStatusDoCard(card);
           card.classList.add('selecionado');
           card.classList.add('is-active');
@@ -1920,7 +1957,8 @@
             const dados = eventosPorId.get(id) || eventosBloqueadosPorId.get(id);
             if (dados) {
               const limiteCarrinho = card.dataset.limiteCarrinho === 'true';
-              abrirModal(dados, { apenasFechar: limiteCarrinho });
+              const esgotado = card.dataset.esgotado === 'true';
+              abrirModal(dados, { apenasFechar: limiteCarrinho || esgotado });
             }
           }
         }
@@ -1934,6 +1972,9 @@
               atualizarEstadoTodos();
               atualizarBotaoModal();
             }
+            return;
+          }
+          if (numeroSeguro(evento.disponiveis) <= 0) {
             return;
           }
           if (evento.status === 'block') {
@@ -2000,12 +2041,13 @@
 
         function abrirModal(evento, opcoes = {}) {
           if (!mTitle) return;
+          const esgotado = numeroSeguro(evento.disponiveis) <= 0;
           const status = normalizarStatus(evento.status);
           const ehBlock = status === 'block';
           const ehSemiBlock = status === 'semi-block';
           const quantidadeNoCarrinho = obterQuantidadeNoCarrinho(evento.id);
           const atingiuLimiteCarrinho = quantidadeNoCarrinho >= LIMITE_INGRESSOS;
-          const apenasFechar = Boolean(opcoes.apenasFechar);
+          const apenasFechar = Boolean(opcoes.apenasFechar || esgotado);
           mTitle.textContent = evento.nome;
           if (mPoster) {
             mPoster.src = evento.posterdetalhes || evento.poster || '';
@@ -2032,7 +2074,7 @@
           }
           if (mSinopse) mSinopse.textContent = evento.sinopse || '—';
           const somenteDetalhes = Boolean(evento.apenasDetalhes || evento.jaPegou);
-          const esconderAcoes = somenteDetalhes || apenasFechar;
+          const esconderAcoes = somenteDetalhes || apenasFechar || esgotado;
           if (mTicketBtn) {
             if (esconderAcoes) {
               mTicketBtn.classList.add('d-none');
