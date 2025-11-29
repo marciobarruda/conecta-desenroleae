@@ -113,11 +113,12 @@
       }
 
       /* ===== Carrinho ===== */
-      .cart-floating{position:fixed;top:var(--cart-offset-top,18px);right:18px;z-index:1060;display:flex;align-items:center;gap:.5rem;padding:.35rem;border-radius:999px;background:linear-gradient(135deg,rgba(0,83,164,.12),rgba(0,163,255,.18));border:1px solid rgba(0,83,164,.18);box-shadow:0 16px 30px rgba(0,83,164,.25)}
-      .cart-floating .btn{border-radius:999px;font-weight:800;background:var(--brand-primary);color:#fff;border:none;padding:.65rem 1rem;box-shadow:0 10px 24px rgba(0,83,164,.35);text-transform:uppercase;letter-spacing:.02em}
-      .cart-floating .btn:focus-visible{outline:3px solid rgba(0,163,255,.55);outline-offset:3px}
-      .cart-floating .btn:hover{background:var(--brand-secondary);box-shadow:0 14px 30px rgba(0,58,115,.35)}
-      .cart-floating .badge{font-size:.95rem;background:#fff;color:var(--brand-primary);border:1px solid rgba(0,83,164,.28);box-shadow:0 4px 12px rgba(0,83,164,.25);min-width:32px}
+      .cart-floating{position:fixed;top:var(--cart-offset-top,18px);right:18px;z-index:1060;display:flex;align-items:center;gap:.5rem;padding:.4rem;border-radius:999px;background:linear-gradient(135deg,rgba(0,83,164,.92),rgba(0,163,255,.85));border:1px solid rgba(255,255,255,.25);box-shadow:0 16px 30px rgba(0,83,164,.35)}
+      .cart-floating .btn{border-radius:999px;font-weight:800;background:transparent;color:#fff;border:none;padding:.55rem .8rem;box-shadow:none;text-transform:uppercase;letter-spacing:.02em;display:flex;align-items:center;gap:.4rem}
+      .cart-floating .btn:focus-visible{outline:3px solid rgba(255,255,255,.6);outline-offset:2px}
+      .cart-floating .btn:hover{background:rgba(255,255,255,.08)}
+      .cart-floating .badge{font-size:.9rem;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.4);box-shadow:0 4px 12px rgba(0,0,0,.2);min-width:32px}
+      .cart-floating .cart-icon{font-size:1.35rem;line-height:1}
     </style>
   </head>
   <body>
@@ -129,8 +130,10 @@
       style="position: absolute; display: none;"
     />
     <div class="cart-floating btn-group">
-      <button class="btn btn-light border" type="button" id="cartButton" aria-label="Abrir carrinho">
-        🛒 Carrinho <span class="badge text-bg-primary" id="cartCount">0</span>
+      <button class="btn" type="button" id="cartButton" aria-label="Abrir carrinho">
+        <span class="cart-icon" aria-hidden="true">🛒</span>
+        <span class="badge" id="cartCount">0</span>
+        <span class="visually-hidden">Abrir carrinho</span>
       </button>
     </div>
     <!-- HEADER -->
