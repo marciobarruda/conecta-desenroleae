@@ -310,8 +310,12 @@
             white-space: normal;
             word-break: break-word;
         }
+        #tabela-leitores .col-ingressos,
+        #tabela-leitores .col-bipados {
+            width: 140px;
+        }
         #tabela-leitores .col-link {
-            width: 320px;
+            width: 280px;
         }
         #tabela-leitores .col-link .leitor-link {
             word-break: break-word;
@@ -587,13 +591,15 @@
                                         <th scope="col" class="col-evento">Evento</th>
                                         <th scope="col" class="text-center col-data">Data</th>
                                         <th scope="col" class="qr-limit-col col-limit text-center">QRCodes por CPF</th>
+                                        <th scope="col" class="text-center col-ingressos">Ingressos distribuídos</th>
+                                        <th scope="col" class="text-center col-bipados">Bipados</th>
                                         <th scope="col" class="col-link">Link do leitor</th>
                                         <th scope="col" class="text-end">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td colspan="5" class="text-center text-muted">Aguardando carregamento...</td>
+                                        <td colspan="7" class="text-center text-muted">Aguardando carregamento...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -921,7 +927,7 @@
                 if (!lista.length) {
                     const linha = document.createElement('tr');
                     const celula = document.createElement('td');
-                    celula.colSpan = 5;
+                    celula.colSpan = 7;
                     celula.className = 'text-center text-muted';
                     celula.textContent = 'Nenhum leitor cadastrado até o momento.';
                     linha.appendChild(celula);
@@ -934,6 +940,8 @@
                     const eventoNome = item.evento || item.evento_nome || '-';
                     const multiplas = item.multiplas_leituras;
                     const limite = multiplas ? (item.limite_leituras ?? '-') : '-';
+                    const ingressos = item.total_ingressos ?? '-';
+                    const bipados = item.total_bipados ?? '-';
                     const linkGerado = item.link || '-';
                     const dataEvento = formatDateBR(item.data_evento || item.quando || item.data || '');
 
@@ -941,6 +949,8 @@
                         { valor: eventoNome, classe: 'col-evento' },
                         { valor: dataEvento || '-', classe: 'text-center col-data' },
                         { valor: limite, classe: 'text-center qr-limit-col col-limit' },
+                        { valor: ingressos, classe: 'text-center col-ingressos' },
+                        { valor: bipados, classe: 'text-center col-bipados' },
                         { valor: linkGerado, classe: 'col-link', ehLink: true }
                     ];
 
@@ -1264,7 +1274,7 @@
                     })
                     .then(aplicarPayloadLeitores)
                     .catch(() => {
-                        tabelaLeitoresBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Não há leitores cadastrados.</td></tr>';
+                        tabelaLeitoresBody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Não há leitores cadastrados.</td></tr>';
                         statusLeitores.textContent = 'Não há leitores cadastrados.';
                     });
             }
