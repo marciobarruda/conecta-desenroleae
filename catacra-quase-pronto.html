@@ -365,6 +365,10 @@
         >
           Reservar ingressos
         </button>
+        <div id="cartQrcodeSection" class="border rounded p-3 bg-light d-none">
+          <h6 class="fw-bold mb-2">Como acesso o meu QRCode do Conecta?</h6>
+          <div id="cartQrcodeContent" class="text-center text-muted small">Carregando QRCode…</div>
+        </div>
       </div>
     </div>
 
@@ -2400,6 +2404,8 @@
       (function () {
         const NOME_USUARIO_CART =
           '{{ (() => { const nome = String($json.given_name ?? "").trim(); return nome ? nome[0].toUpperCase() + nome.slice(1).toLowerCase() : "Visitante"; })() }}';
+        const QRCODE_WEBHOOK =
+          'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/gif-qrcodeconecta';
         const carrinho = new Map();
         let cartOffcanvas;
         let cartOffcanvasElement;
@@ -2411,6 +2417,8 @@
         let cartCheckoutBtn;
         let cartFloating;
         let cartVisitorHelp;
+        let cartQrcodeSection;
+        let cartQrcodeContent;
 
         if (document.readyState === 'loading') {
           document.addEventListener('DOMContentLoaded', initCarrinho);
@@ -2439,13 +2447,86 @@
           cartFloating = document.querySelector('.cart-floating');
           cartCheckoutBtn = document.querySelector('#cartCheckoutBtn');
           cartVisitorHelp = document.querySelector('#cartVisitorHelp');
+          cartQrcodeSection = document.querySelector('#cartQrcodeSection');
+          cartQrcodeContent = document.querySelector('#cartQrcodeContent');
 
           cartOffcanvasElement = document.querySelector('#marketCart');
           cartOffcanvas = cartOffcanvasElement ? new bootstrap.Offcanvas(cartOffcanvasElement) : null;
 
           registrarEventos();
           atualizarAjudaVisitante();
+          carregarQrcodeConecta();
           atualizarCarrinho();
+        }
+
+        async function carregarQrcodeConecta() {
+          if (!cartQrcodeContent) return;
+          try {
+            const resposta = await fetch(QRCODE_WEBHOOK, { method: 'GET' });
+            if (!resposta.ok) {
+              throw new Error(`Erro HTTP ${resposta.status}`);
+            }
+            const texto = await resposta.text();
+            const base64 = extrairBase64Qrcode(texto);
+            if (!base64) {
+              throw new Error('Conteúdo vazio');
+            }
+            const dataUrl = construirDataUrlImagem(base64);
+            if (!dataUrl) {
+              throw new Error('Não foi possível montar a imagem');
+            }
+            exibirQrcode(dataUrl);
+          } catch (erro) {
+            console.error('Falha ao carregar QRCode do Conecta', erro);
+            exibirErroQrcode();
+          }
+        }
+
+        function extrairBase64Qrcode(conteudo) {
+          if (!conteudo) return '';
+          const bruto = conteudo.trim();
+          if (!bruto) return '';
+          try {
+            const json = JSON.parse(bruto);
+            if (json && typeof json === 'object') {
+              const candidato = json.gif || json.data || json.base64 || json.payload || '';
+              if (typeof candidato === 'string' && candidato.trim()) return candidato.trim();
+            }
+          } catch (_) {
+            /* segue com texto cru */
+          }
+          return bruto;
+        }
+
+        function construirDataUrlImagem(valor) {
+          if (!valor || typeof valor !== 'string') return '';
+          const limpo = valor.trim();
+          if (!limpo) return '';
+          if (/^data:image\//i.test(limpo)) return limpo;
+          if (limpo.includes(';base64,')) {
+            if (limpo.startsWith('data:')) return limpo;
+            return `data:image/gif;${limpo}`;
+          }
+          return `data:image/gif;base64,${limpo}`;
+        }
+
+        function exibirQrcode(src) {
+          if (!cartQrcodeContent || !cartQrcodeSection) return;
+          const img = document.createElement('img');
+          img.src = src;
+          img.alt = 'QRCode do Conecta Recife';
+          img.className = 'img-fluid rounded shadow-sm';
+          cartQrcodeContent.innerHTML = '';
+          cartQrcodeContent.appendChild(img);
+          cartQrcodeContent.classList.remove('text-muted');
+          cartQrcodeSection.classList.remove('d-none');
+        }
+
+        function exibirErroQrcode() {
+          if (!cartQrcodeContent || !cartQrcodeSection) return;
+          cartQrcodeContent.textContent = 'Não foi possível carregar o QRCode agora. Tente novamente mais tarde.';
+          cartQrcodeContent.classList.add('text-muted');
+          cartQrcodeSection.classList.remove('d-none');
         }
 
         function atualizarAjudaVisitante() {
