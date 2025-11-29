@@ -118,7 +118,7 @@
       .cart-floating .btn:focus-visible{outline:3px solid rgba(255,255,255,.6);outline-offset:2px}
       .cart-floating .btn:hover{background:rgba(255,255,255,.08)}
       .cart-floating .badge{font-size:.9rem;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.4);box-shadow:0 4px 12px rgba(0,0,0,.2);min-width:32px}
-      .cart-floating .cart-icon{font-size:1.35rem;line-height:1}
+      .cart-floating .cart-icon{font-size:1.35rem;line-height:1;color:#fff;display:flex}
     </style>
   </head>
   <body>
@@ -131,7 +131,20 @@
     />
     <div class="cart-floating btn-group">
       <button class="btn" type="button" id="cartButton" aria-label="Abrir carrinho">
-        <span class="cart-icon" aria-hidden="true">🛒</span>
+        <span class="cart-icon" aria-hidden="true">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="26"
+            height="26"
+            fill="currentColor"
+            viewBox="0 0 16 16"
+            role="presentation"
+            focusable="false"
+          >
+            <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .485.621l-1.5 6A.5.5 0 0 1 13 10H4a.5.5 0 0 1-.485-.379L2.11 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.14 4l.75 3H12.8l1.25-5H3.28l-.14.557L3.14 4z"/>
+            <path d="M5.5 12a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-2 1a2 2 0 1 1 4 0 2 2 0 0 1-4 0zm8.5-1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-2 1a2 2 0 1 1 4 0 2 2 0 0 1-4 0z"/>
+          </svg>
+        </span>
         <span class="badge" id="cartCount">0</span>
         <span class="visually-hidden">Abrir carrinho</span>
       </button>
