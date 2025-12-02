@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="pt-BR">
+  <!-- Head baseado em head.txt -->
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Catraca Conecta - Leitor QR</title>
+    <link
+      rel="icon"
+      href="https://statics.recife.pe.gov.br/images/automacao/catraca-conecta/catraca-logo.png"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --brand-primary: #0053a4;
+        --brand-secondary: #003a73;
+        --brand-highlight: #00a3ff;
+        --surface: #f4f7fb;
+        --surface-strong: #ffffff;
+        --border-color: #d0d7e2;
+        --text-strong: #1b263b;
+        --text-muted: #5b6c8c;
+        --shadow-strong: 0 14px 30px rgba(0, 35, 79, 0.15);
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Public Sans", system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        background: var(--surface);
+        color: var(--text-strong);
+        min-height: 100vh;
+      }
+      header.site-header {
+        background: url("https://statics.recife.pe.gov.br/images/dynamics/automacao/header.png?w=3000")
+          center/cover no-repeat;
+        color: #fff;
+        padding: 3rem 0 2.25rem;
+      }
+      header .lead {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1rem;
+        line-height: 1.65;
+      }
+      .badge-open {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        padding: 0.45rem 0.9rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.14);
+      }
+      .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: var(--text-strong);
+      }
+      .section-title::before {
+        content: "";
+        display: inline-block;
+        width: 32px;
+        height: 3px;
+        border-radius: 999px;
+        background: var(--brand-highlight);
+      }
+      .card-programa {
+        border: 1px solid rgba(0, 83, 164, 0.08);
+        background: var(--surface-strong);
+        box-shadow: 0 16px 34px rgba(0, 45, 98, 0.08);
+      }
+      .catalog-toolbar .form-select,
+      .catalog-toolbar .form-control {
+        border-color: var(--border-color);
+      }
+      /* ===== Ticket card (estilo do exemplo) ===== */
+      .ticket-card {
+        background: #fff;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        border-radius: 12px;
+        box-shadow: var(--shadow-strong);
+        overflow: hidden;
+        position: relative;
+      }
+      .ticket-cover {
+        background: #e9eef7;
+        width: 100%;
+        aspect-ratio: 2 / 3;
+        display: block;
+        overflow: hidden;
+        position: relative;
+      }
+      .ticket-date-badge {
+        position: absolute;
+        top: 0.6rem;
+        right: 0.6rem;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.15rem;
+        background: rgba(0, 0, 0, 0.55);
+        color: #fff;
+        padding: 0.55rem 0.75rem;
+        border-radius: 12px;
+        backdrop-filter: blur(6px);
+        text-align: right;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+      .ticket-date-weekday,
+      .ticket-date-day {
+        display: block;
+        min-width: 4.6ch;
+        text-align: right;
+      }
+      .ticket-date-weekday {
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        line-height: 1.1;
+      }
+      .ticket-date-day {
+        font-size: 1.2rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        line-height: 1.05;
+      }
+      .poster-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .ticket-body {
+        padding: 1rem 1rem 1.1rem;
+        position: relative;
+      }
+      .ticket-meta-toggle {
+        color: var(--brand-primary);
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+      .ticket-meta-toggle:focus {
+        box-shadow: none;
+      }
+      .ticket-meta-toggle-icon {
+        transition: transform 0.2s ease;
+      }
+      .ticket-meta-toggle[aria-expanded="true"] .ticket-meta-toggle-icon {
+        transform: rotate(180deg);
+      }
+      .ticket-meta {
+        display: none;
+      }
+      .ticket-meta.is-open {
+        display: flex;
+      }
+      /* Semicírculos nas laterais (efeito ‘talão’) */
+      .ticket-body::before,
+      .ticket-body::after {
+        content: "";
+        position: absolute;
+        top: -12px;
+        width: 24px;
+        height: 24px;
+        background: #fff;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        border-radius: 50%;
+        box-shadow: 0 0 0 6px #fff inset;
+      }
+      .ticket-body::before {
+        left: -12px;
+      }
+      .ticket-body::after {
+        right: -12px;
+      }
+      .ci {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 28px;
+        height: 28px;
+        padding: 0 0.4rem;
+        border-radius: 6px;
+        font-weight: 800;
+        font-size: 0.85rem;
+        color: #fff;
+      }
+      .ci.l {
+        background: #2aa84a;
+      }
+      /* L */
+      .ci.c10 {
+        background: #1f87c9;
+      }
+      /* 10 */
+      .ci.c12 {
+        background: #f4b400;
+      }
+      /* 12 */
+      .ci.c14 {
+        background: #ef6c00;
+      }
+      /* 14 */
+      .ci.c16 {
+        background: #d84315;
+      }
+      /* 16 */
+      .ci.c18 {
+        background: #212121;
+      }
+      /* 18 */
+      .meta-label {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+      }
+      .link-action {
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .link-action:hover {
+        text-decoration: underline;
+      }
+      .btn-fav[aria-pressed="true"] {
+        border-color: #ffc107 !important;
+      }
+      .catalog-grid .col {
+        display: flex;
+      }
+      .catalog-grid .ticket-card {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+      }
+      .ticket-card.is-muted {
+        filter: grayscale(1);
+        opacity: 0.55;
+        transition: filter 0.2s ease, opacity 0.2s ease;
+      }
+      .ticket-card.is-active {
+        box-shadow: 0 0 0 0.15rem rgba(0, 83, 164, 0.35);
+      }
+      .ticket-cover.is-soldout img {
+        filter: grayscale(1);
+      }
+      .ticket-soldout {
+        position: absolute;
+        inset: 50% 0 auto;
+        transform: translateY(-50%);
+        background: rgba(193, 18, 31, 0.82);
+        color: #fff;
+        text-align: center;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 0.45rem 0.5rem;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+        z-index: 2;
+      }
+      .catalog-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        padding: 1.5rem;
+        border: 1px dashed rgba(27, 38, 59, 0.25);
+        border-radius: 1rem;
+        background: linear-gradient(
+          90deg,
+          rgba(0, 83, 164, 0.06),
+          rgba(0, 163, 255, 0.08),
+          rgba(0, 83, 164, 0.06)
+        );
+        background-size: 200% 100%;
+        animation: catalogShine 2.4s ease infinite;
+        color: var(--text-strong);
+      }
+      .catalog-loading .catalog-loading-spinner {
+        width: 56px;
+        height: 56px;
+        border: 6px solid rgba(0, 83, 164, 0.18);
+        border-top-color: var(--brand-highlight);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        flex-shrink: 0;
+        box-shadow: 0 6px 20px rgba(0, 83, 164, 0.18);
+      }
+      .catalog-loading .catalog-loading-text {
+        display: flex;
+        flex-direction: column;
+        font-weight: 700;
+        line-height: 1.3;
+      }
+      .catalog-loading .catalog-loading-text small {
+        font-weight: 500;
+        color: var(--text-muted);
+      }
+      .catalog-loading.d-none {
+        display: none !important;
+      }
+      #modalDetalhes .modal-dialog {
+        max-width: 980px;
+      }
+      #modalDetalhes .modal-content {
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+      }
+      #modalDetalhes .modal-header,
+      #modalDetalhes .modal-footer {
+        background: var(--surface);
+        border-color: rgba(0, 0, 0, 0.05);
+      }
+      #modalDetalhes .modal-body {
+        padding: 2rem;
+      }
+      .modal-poster {
+        background: #e9eef7;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 10px 26px rgba(0, 45, 98, 0.14);
+        min-height: 360px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .modal-poster img {
+        width: 100%;
+        height: auto;
+        max-height: 100%;
+        object-fit: contain;
+        display: block;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @keyframes catalogShine {
+        0% {
+          background-position: 0 0;
+        }
+        50% {
+          background-position: 100% 0;
+        }
+        100% {
+          background-position: 0 0;
+        }
+      }
+      @media (max-width: 768px) {
+        header.site-header {
+          padding: 2.25rem 0 1.75rem;
+        }
+        .badge-open {
+          width: 100%;
+          justify-content: center;
+        }
+        #modalDetalhes .modal-body {
+          padding: 1.5rem;
+        }
+      }
+      @media (max-width: 576px) {
+        .catalog-toolbar .row > * + * {
+          margin-top: 0.5rem;
+        }
+        #modalDetalhes .modal-body {
+          padding: 1.25rem;
+        }
+      }
+      /* ===== Carrinho ===== */
+      .cart-floating {
+        position: fixed;
+        bottom: 18px;
+        right: 18px;
+        z-index: 1060;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem;
+        border-radius: 999px;
+        background: linear-gradient(
+          135deg,
+          rgba(0, 83, 164, 0.92),
+          rgba(0, 163, 255, 0.85)
+        );
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        box-shadow: 0 16px 30px rgba(0, 83, 164, 0.35);
+      }
+      .cart-floating .btn {
+        border-radius: 999px;
+        font-weight: 800;
+        background: transparent;
+        color: #fff;
+        border: none;
+        padding: 0.55rem 0.8rem;
+        box-shadow: none;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .cart-floating .btn:focus-visible {
+        outline: 3px solid rgba(255, 255, 255, 0.6);
+        outline-offset: 2px;
+      }
+      .cart-floating .btn:hover {
+        background: rgba(255, 255, 255, 0.08);
+      }
+      .cart-floating .badge {
+        font-size: 0.9rem;
+        background: rgba(255, 255, 255, 0.14);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        min-width: 32px;
+      }
+      .cart-floating .cart-icon {
+        font-size: 1.35rem;
+        line-height: 1;
+        color: #fff;
+        display: flex;
+      }
+      /* ===== Página de leitura ===== */
+      main {
+        padding: 2rem 0 3rem;
+      }
+      .reader-card {
+        border: 1px solid rgba(0, 83, 164, 0.12);
+        box-shadow: 0 14px 34px rgba(0, 45, 98, 0.08);
+        border-radius: 16px;
+      }
+      .reader-input {
+        font-size: 1.05rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+      .cpf-display {
+        font-size: 2rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        color: var(--brand-secondary);
+      }
+      .status-badge {
+        font-size: 0.95rem;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <div class="row align-items-center gy-3">
+          <div class="col-md-8">
+            <span class="badge-open text-uppercase">Leitor QR</span>
+            <h1 class="mt-3 fw-bold">Captura de CPF</h1>
+            <p class="lead mb-0">
+              Posicione o leitor no QR-Code. O campo abaixo captura automaticamente a
+              leitura, extrai apenas o CPF e exibe o resultado.
+            </p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-lg-8 col-xl-6">
+            <div class="reader-card bg-white p-4 p-md-5">
+              <div class="d-flex align-items-center mb-4">
+                <div class="section-title mb-0">Leitura do QR-Code</div>
+                <span class="ms-auto badge rounded-pill text-bg-light status-badge" id="status">
+                  Aguardando leitura
+                </span>
+              </div>
+              <div class="mb-3">
+                <label for="qrInput" class="form-label fw-semibold">Entrada do leitor</label>
+                <input
+                  type="text"
+                  class="form-control form-control-lg reader-input"
+                  id="qrInput"
+                  placeholder='Ex.: {"nome":"MARCIO BELARMINO DE ARRUDA","cpf":"01234567890","id":"962c36ef-4877-499f-a369-a0b02797363b"}'
+                  autocomplete="off"
+                  autofocus
+                />
+                <div class="form-text">
+                  Cole ou escaneie o conteúdo lido pelo dispositivo. O CPF aparecerá
+                  automaticamente abaixo.
+                </div>
+              </div>
+
+              <div class="p-4 bg-light rounded-4">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="flex-shrink-0">
+                    <div class="rounded-circle bg-white border border-2 border-light-subtle d-flex align-items-center justify-content-center" style="width:60px;height:60px;">
+                      <span class="text-primary fw-bold">CPF</span>
+                    </div>
+                  </div>
+                  <div class="flex-grow-1">
+                    <div class="text-muted mb-1">Resultado</div>
+                    <div class="cpf-display" id="cpfDisplay">---</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-3 text-muted small">
+                Dica: o leitor normalmente envia o texto completo do QR-Code. Este
+                formulário tenta interpretar o JSON e extrair a chave <code>cpf</code>.
+                Caso o formato seja diferente, insira apenas os 11 dígitos.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      const qrInput = document.getElementById('qrInput');
+      const cpfDisplay = document.getElementById('cpfDisplay');
+      const statusBadge = document.getElementById('status');
+
+      function updateStatus(text, variant = 'light') {
+        statusBadge.textContent = text;
+        statusBadge.className = `ms-auto badge rounded-pill text-bg-${variant} status-badge`;
+      }
+
+      function extractCpf(value) {
+        const trimmed = value.trim();
+        if (!trimmed) return '';
+
+        // Tenta interpretar como JSON
+        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+          try {
+            const parsed = JSON.parse(trimmed);
+            if (parsed && typeof parsed.cpf === 'string') {
+              return parsed.cpf;
+            }
+          } catch (error) {
+            // Mantém fluxo normal caso o JSON seja inválido
+          }
+        }
+
+        // Caso não seja JSON, retorna apenas dígitos
+        const digits = trimmed.replace(/\D+/g, '');
+        return digits;
+      }
+
+      function handleInput() {
+        const cpf = extractCpf(qrInput.value);
+        cpfDisplay.textContent = cpf || '---';
+        if (cpf) {
+          updateStatus('CPF capturado', 'success');
+        } else {
+          updateStatus('Aguardando leitura', 'light');
+        }
+      }
+
+      qrInput.addEventListener('input', handleInput);
+      qrInput.addEventListener('change', handleInput);
+      qrInput.addEventListener('focus', () => updateStatus('Pronto para leitura', 'primary'));
+
+      // Foco automático quando a página carregar
+      window.addEventListener('DOMContentLoaded', () => {
+        qrInput.focus();
+      });
+    </script>
+  </body>
+</html>
