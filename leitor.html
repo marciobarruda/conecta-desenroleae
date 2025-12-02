@@ -493,18 +493,28 @@
                   Aguardando leitura
                 </span>
               </div>
-              <div class="mb-3">
-                <label for="qrInput" class="form-label fw-semibold">Entrada do leitor</label>
-                <input
-                  type="password"
-                  class="form-control form-control-lg reader-input"
-                  id="qrInput"
-                  autocomplete="off"
-                  autofocus
-                />
-                <div class="form-text">
-                  Cole ou escaneie o conteúdo lido pelo dispositivo. O CPF aparecerá
-                  automaticamente abaixo.
+              <div class="row g-3 mb-3">
+                <div class="col-sm-6">
+                  <label for="eventSelect" class="form-label fw-semibold">Evento</label>
+                  <select id="eventSelect" class="form-select form-select-lg">
+                    <option value="mary_stuart">Mary Stuart</option>
+                    <option value="hamlet">Hamlet</option>
+                    <option value="othello">Othello</option>
+                  </select>
+                </div>
+                <div class="col-sm-6">
+                  <label for="qrInput" class="form-label fw-semibold">Entrada do leitor</label>
+                  <input
+                    type="password"
+                    class="form-control form-control-lg reader-input"
+                    id="qrInput"
+                    autocomplete="off"
+                    autofocus
+                  />
+                  <div class="form-text">
+                    Cole ou escaneie o conteúdo lido pelo dispositivo. O CPF aparecerá
+                    automaticamente abaixo.
+                  </div>
                 </div>
               </div>
 
@@ -535,24 +545,31 @@
 
     <script>
       const qrInput = document.getElementById('qrInput');
+      const eventSelect = document.getElementById('eventSelect');
       const cpfDisplay = document.getElementById('cpfDisplay');
       const statusBadge = document.getElementById('status');
+      let lastSentSignature = '';
 
       function updateStatus(text, variant = 'light') {
         statusBadge.textContent = text;
         statusBadge.className = `ms-auto badge rounded-pill text-bg-${variant} status-badge`;
       }
 
-      function extractCpf(value) {
+      function extractQrData(value) {
         const trimmed = value.trim();
-        if (!trimmed) return '';
+        if (!trimmed) return { nome: '', cpf: '', id: '' };
 
         // Tenta interpretar como JSON
         if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
           try {
             const parsed = JSON.parse(trimmed);
-            if (parsed && typeof parsed.cpf === 'string') {
-              return parsed.cpf;
+            if (parsed && typeof parsed === 'object') {
+              const cpf = typeof parsed.cpf === 'string' ? parsed.cpf : '';
+              return {
+                nome: typeof parsed.nome === 'string' ? parsed.nome : '',
+                cpf: cpf || trimmed.replace(/\D+/g, ''),
+                id: typeof parsed.id === 'string' ? parsed.id : '',
+              };
             }
           } catch (error) {
             // Mantém fluxo normal caso o JSON seja inválido
@@ -561,16 +578,56 @@
 
         // Caso não seja JSON, retorna apenas dígitos
         const digits = trimmed.replace(/\D+/g, '');
-        return digits;
+        return { nome: '', cpf: digits, id: '' };
       }
 
       function handleInput() {
-        const cpf = extractCpf(qrInput.value);
-        cpfDisplay.textContent = cpf || '---';
-        if (cpf) {
+        const data = extractQrData(qrInput.value);
+        cpfDisplay.textContent = data.cpf || '---';
+        if (data.cpf) {
           updateStatus('CPF capturado', 'success');
+          sendPayload(data);
         } else {
           updateStatus('Aguardando leitura', 'light');
+        }
+      }
+
+      async function sendPayload(qrData) {
+        const evento = eventSelect.value;
+        const payloadSignature = JSON.stringify({ evento, qrData });
+        if (!evento || !qrData.cpf || payloadSignature === lastSentSignature) return;
+
+        lastSentSignature = payloadSignature;
+        updateStatus('Enviando dados...', 'primary');
+
+        const url = new URL(
+          'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/festival-teatro2025'
+        );
+        url.searchParams.set('evento', evento);
+
+        const body = {
+          nome_aplicacao:
+            'leitormarystuart20251129t030000000z200000fc912ab9adea47f3b44776567fead948',
+          token: '73f2a2a0-084f-4e32-ba35-bd5f6c65b43b',
+          qrcodetexto: qrData,
+        };
+
+        try {
+          const response = await fetch(url.toString(), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+
+          if (!response.ok) {
+            throw new Error(`Erro ${response.status}`);
+          }
+
+          updateStatus('Dados enviados', 'success');
+        } catch (error) {
+          updateStatus('Falha ao enviar', 'danger');
+          lastSentSignature = '';
+          console.error('Erro ao enviar payload', error);
         }
       }
 
