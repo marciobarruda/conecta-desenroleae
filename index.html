@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Painel administrativo</title>
+    <link
+      rel="icon"
+      href="https://statics.recife.pe.gov.br/images/automacao/catraca-conecta/catraca-logo.png"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --brand-primary: #0053a4;
+        --brand-secondary: #003a73;
+        --brand-highlight: #00a3ff;
+        --surface: #f4f7fb;
+        --surface-strong: #ffffff;
+        --border-color: #d0d7e2;
+        --text-strong: #1b263b;
+        --text-muted: #5b6c8c;
+        --shadow-strong: 0 14px 30px rgba(0, 35, 79, 0.15);
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Public Sans", system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        background: var(--surface);
+        color: var(--text-strong);
+        min-height: 100vh;
+        padding-top: 80px;
+      }
+      header.site-header {
+        background: url("https://statics.recife.pe.gov.br/images/dynamics/automacao/header.png?w=3000")
+          center/cover no-repeat;
+        color: #fff;
+        padding: 3rem 0 2.25rem;
+      }
+      header .lead {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1rem;
+        line-height: 1.65;
+      }
+      .badge-open {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        padding: 0.45rem 0.9rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.14);
+      }
+        .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: var(--text-strong);
+      }
+      .section-title::before {
+        content: "";
+        display: inline-block;
+        width: 32px;
+        height: 3px;
+        border-radius: 999px;
+        background: var(--brand-highlight);
+      }
+      .section-title[data-bs-toggle="collapse"] {
+        cursor: pointer;
+        user-select: none;
+      }
+      .card-programa {
+        border: 1px solid rgba(0, 83, 164, 0.08);
+        background: var(--surface-strong);
+        box-shadow: 0 16px 34px rgba(0, 45, 98, 0.08);
+      }
+      .catalog-toolbar .form-select,
+      .catalog-toolbar .form-control {
+        border-color: var(--border-color);
+      }
+      .ticket-card {
+        background: #fff;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        border-radius: 12px;
+        box-shadow: var(--shadow-strong);
+        overflow: hidden;
+        position: relative;
+      }
+      .ticket-cover {
+        background: #e9eef7;
+      }
+      .poster-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .ticket-body {
+        padding: 1rem 1rem 1.1rem;
+        position: relative;
+      }
+      .ticket-body::before,
+      .ticket-body::after {
+        content: "";
+        position: absolute;
+        top: -12px;
+        width: 24px;
+        height: 24px;
+        background: #fff;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        border-radius: 50%;
+        box-shadow: 0 0 0 6px #fff inset;
+      }
+      .ticket-body::before {
+        left: -12px;
+      }
+      .ticket-body::after {
+        right: -12px;
+      }
+      .ci {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 28px;
+        height: 28px;
+        padding: 0 0.4rem;
+        border-radius: 6px;
+        font-weight: 800;
+        font-size: 0.85rem;
+        color: #fff;
+      }
+      .ci.l {
+        background: #2aa84a;
+      }
+      .ci.c10 {
+        background: #1f87c9;
+      }
+      .ci.c12 {
+        background: #f4b400;
+      }
+      .ci.c14 {
+        background: #ef6c00;
+      }
+      .ci.c16 {
+        background: #d84315;
+      }
+      .ci.c18 {
+        background: #212121;
+      }
+      .meta-label {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+      }
+      .link-action {
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .link-action:hover {
+        text-decoration: underline;
+      }
+      .btn-fav[aria-pressed="true"] {
+        border-color: #ffc107 !important;
+      }
+      .catalog-grid .col {
+        display: flex;
+      }
+      .catalog-grid .ticket-card {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+      }
+      .ticket-card.is-muted {
+        filter: grayscale(1);
+        opacity: 0.55;
+        transition: filter 0.2s ease, opacity 0.2s ease;
+      }
+      .ticket-card.is-active {
+        box-shadow: 0 0 0 0.15rem rgba(0, 83, 164, 0.35);
+      }
+      #modalDetalhes .modal-dialog {
+        max-width: 980px;
+      }
+      #modalDetalhes .modal-content {
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+      }
+      #modalDetalhes .modal-header,
+      #modalDetalhes .modal-footer {
+        background: var(--surface);
+        border-color: rgba(0, 0, 0, 0.05);
+      }
+      #modalDetalhes .modal-body {
+        padding: 2rem;
+      }
+      .modal-poster {
+        background: #e9eef7;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 10px 26px rgba(0, 45, 98, 0.14);
+        min-height: 360px;
+      }
+      .modal-poster img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      @media (max-width: 768px) {
+        header.site-header {
+          padding: 2.25rem 0 1.75rem;
+        }
+        .badge-open {
+          width: 100%;
+          justify-content: center;
+        }
+        #modalDetalhes .modal-body {
+          padding: 1.5rem;
+        }
+      }
+      @media (max-width: 576px) {
+        .catalog-toolbar .row > * + * {
+          margin-top: 0.5rem;
+        }
+        #modalDetalhes .modal-body {
+          padding: 1.25rem;
+        }
+      }
+    </style>
+</head>
+<body>
+    <style>
+        header.topo {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030;
+            background: linear-gradient(90deg, #0053a4, #0073ce);
+            color: #ffffff;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+        }
+        header.topo h1 {
+            font-size: 1.4rem;
+            margin: 0;
+        }
+        .nav-pills .nav-link {
+            color: #0053a4;
+            font-weight: 600;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #0053a4;
+        }
+        .card {
+            border: 1px solid #e2e6ea;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        .helper-text {
+            font-size: 0.9rem;
+        }
+        .table-action button + button {
+            margin-left: 0.35rem;
+        }
+        .copy-link-btn {
+            color: #0053a4;
+            font-size: 1.4rem;
+            line-height: 1;
+        }
+        .copy-link-btn:hover,
+        .copy-link-btn:focus {
+            color: #00a3ff;
+            text-decoration: none;
+        }
+        .copy-feedback {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        #tabela-leitores {
+            table-layout: fixed;
+        }
+        #tabela-leitores th,
+        #tabela-leitores td {
+            vertical-align: middle;
+        }
+        #tabela-leitores .col-evento {
+            min-width: 150px;
+        }
+        #tabela-leitores .col-data {
+            width: 130px;
+        }
+        #tabela-leitores .qr-limit-col,
+        #tabela-leitores .col-limit {
+            min-width: 170px;
+            max-width: 210px;
+            white-space: normal;
+            word-break: break-word;
+        }
+        #tabela-leitores .col-ingressos,
+        #tabela-leitores .col-bipados {
+            width: 140px;
+        }
+        #tabela-leitores .col-link {
+            width: 280px;
+        }
+        #tabela-leitores .col-link .leitor-link {
+            word-break: break-word;
+            white-space: normal;
+            display: block;
+        }
+        #tabela-leitores .col-acoes {
+            width: 120px;
+        }
+        .file-preview img {
+            max-height: 160px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+        .form-check-input {
+            width: 1.2rem;
+            height: 1.2rem;
+            border: 2px solid #0053a4;
+            box-shadow: 0 0 0 2px rgba(0, 83, 164, 0.08);
+        }
+        .form-check-input:focus {
+            border-color: #0053a4;
+            box-shadow: 0 0 0 0.2rem rgba(0, 83, 164, 0.3);
+        }
+        .form-check-input:checked {
+            background-color: #0053a4;
+            border-color: #0053a4;
+            box-shadow: 0 0 0 0.25rem rgba(0, 83, 164, 0.25);
+        }
+        .form-check-label {
+            font-weight: 600;
+            color: #1b263b;
+        }
+
+        .form-capsule {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+        }
+    </style>
+
+    <header class="topo py-3">
+        <div class="container d-flex align-items-center justify-content-between">
+            <h1 class="mb-0">Cadastro de eventos e leitores QRCode</h1>
+            <span class="fw-light">Painel de cadastros</span>
+        </div>
+    </header>
+
+    <main class="container my-4">
+        <ul class="nav nav-pills mb-4" id="painelAbas" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="evento-tab" data-bs-toggle="tab" data-bs-target="#evento-pane" type="button" role="tab" aria-controls="evento-pane" aria-selected="true">Eventos</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="leitor-tab" data-bs-toggle="tab" data-bs-target="#leitor-pane" type="button" role="tab" aria-controls="leitor-pane" aria-selected="false">Leitor de QRCode</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="painelConteudo">
+            <div class="tab-pane fade show active" id="evento-pane" role="tabpanel" aria-labelledby="evento-tab">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                            <h2 class="section-title h4 mb-0" data-bs-toggle="collapse" data-bs-target="#formEventosCollapse" aria-expanded="false" aria-controls="formEventosCollapse" role="button">Cadastro de eventos</h2>
+                        </div>
+                        <div class="collapse" id="formEventosCollapse">
+                        <form method="POST" action="https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/cadastrar-evento" enctype="multipart/form-data" class="gy-3 form-capsule">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="id" class="form-label">Identificador do evento</label>
+                                    <input type="text" class="form-control" id="id" name="id" required placeholder="Ex.: cidade-som" aria-describedby="ajuda-id" inputmode="latin">
+                                    <div id="ajuda-id" class="form-text">Usado na URL. Remove acentos e espaços automaticamente; permitido apenas letras, números, hífen (-) e underline (_).</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="nome" class="form-label">Título do evento</label>
+                                    <input type="text" class="form-control" id="nome" name="nome" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="classificacao" class="form-label">Classificação indicativa</label>
+                                    <select class="form-select" id="classificacao" name="classificacao" required>
+                                        <option value="Livre">Livre</option>
+                                        <option value="10+">10+</option>
+                                        <option value="12+">12+</option>
+                                        <option value="14+">14+</option>
+                                        <option value="16+">16+</option>
+                                        <option value="18+">18+</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="genero" class="form-label">Gênero</label>
+                                    <select class="form-select" id="genero" name="genero" required>
+                                        <option value="" disabled selected>Selecione um gênero...</option>
+                                        <option value="Comédia">Comédia</option>
+                                        <option value="Drama">Drama</option>
+                                        <option value="Experimental">Experimental</option>
+                                        <option value="Improviso">Improviso</option>
+                                        <option value="Infantil">Infantil</option>
+                                        <option value="Monólogo">Monólogo</option>
+                                        <option value="Musical">Musical</option>
+                                        <option value="Performance">Performance</option>
+                                        <option value="Romance">Romance</option>
+                                        <option value="Tragédia">Tragédia</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="local" class="form-label">Local</label>
+                                    <select class="form-select" id="local" name="local" required>
+                                        <option value="" disabled selected>Selecione o local...</option>
+                                        <option value="Casa de Alzira">Casa de Alzira</option>
+                                        <option value="Centro Cultural Marco Zero">Centro Cultural Marco Zero</option>
+                                        <option value="Parque da Macaxeira">Parque da Macaxeira</option>
+                                        <option value="Parque da Tamarineira">Parque da Tamarineira</option>
+                                        <option value="Rua da Alfândega">Rua da Alfândega</option>
+                                        <option value="Teatro Apolo">Teatro Apolo</option>
+                                        <option value="Teatro Barreto Júnior">Teatro Barreto Júnior</option>
+                                        <option value="Teatro de Santa Isabel">Teatro de Santa Isabel</option>
+                                        <option value="Teatro do Parque">Teatro do Parque</option>
+                                        <option value="Teatro Hermilo Borba Filho">Teatro Hermilo Borba Filho</option>
+                                        <option value="Teatro Luiz Mendonça">Teatro Luiz Mendonça</option>
+                                        <option value="Teatro Marco Camarotti">Teatro Marco Camarotti</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="endereco" class="form-label">Endereço</label>
+                                    <input type="text" class="form-control" id="endereco" name="endereco" placeholder="Selecione um local para preencher automaticamente" readonly required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="quando" class="form-label">Data da apresentação</label>
+                                    <input type="date" class="form-control" id="quando" name="quando" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="hora" class="form-label">Horário</label>
+                                    <input type="time" class="form-control" id="hora" name="hora" required>
+                                </div>
+                                <div class="col-12">
+                                    <label for="sinopse" class="form-label">Sinopse</label>
+                                    <textarea class="form-control" id="sinopse" name="sinopse" rows="4" placeholder="Descreva brevemente o espetáculo" required></textarea>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="poster" class="form-label">Poster (cartaz principal)</label>
+                                    <input type="file" class="form-control" id="poster" name="poster" accept="image/*" required>
+                                    <div class="form-text">Somente imagens (JPG, PNG, etc.). A prévia será exibida abaixo.</div>
+                                    <div class="mt-2 file-preview" id="poster-preview"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="posterdetalhes" class="form-label">Poster (detalhes / ficha técnica)</label>
+                                    <input type="file" class="form-control" id="posterdetalhes" name="posterdetalhes" accept="image/*" required>
+                                    <div class="form-text">Somente imagens (JPG, PNG, etc.). A prévia será exibida abaixo.</div>
+                                    <div class="mt-2 file-preview" id="posterdetalhes-preview"></div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="disponibilizados" class="form-label">Ingressos disponibilizados</label>
+                                    <input type="number" class="form-control" id="disponibilizados" name="disponibilizados" min="0" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="acessibilidade" class="form-label">Possui recursos de acessibilidade?</label>
+                                    <select class="form-select" id="acessibilidade" name="acessibilidade" required>
+                                        <option value="Sim">Sim</option>
+                                        <option value="Não">Não</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="duracao" class="form-label">Duração</label>
+                                    <input type="text" class="form-control" id="duracao" name="duracao" placeholder="Ex.: 60min" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="quem_faz" class="form-label">Quem faz (grupo, companhia, artista)</label>
+                                    <input type="text" class="form-control" id="quem_faz" name="quem_faz" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="origem" class="form-label">Origem (cidade/estado/país)</label>
+                                    <input type="text" class="form-control" id="origem" name="origem" required>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3 mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg">Cadastrar evento</button>
+                                <div id="mensagem-evento" class="text-muted"></div>
+                            </div>
+                        </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                            <h3 class="section-title h5 mb-0">Eventos cadastrados</h3>
+                            <span id="status-eventos" class="text-muted small">Carregando eventos...</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle" id="tabela-eventos">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th scope="col">Identificador</th>
+                                        <th scope="col">Evento</th>
+                                        <th scope="col">Data</th>
+                                        <th scope="col">Hora</th>
+                                        <th scope="col">Local</th>
+                                        <th scope="col" class="text-end col-acoes">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted">Aguardando carregamento...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="leitor-pane" role="tabpanel" aria-labelledby="leitor-tab">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                            <h2 class="section-title h4 mb-0" data-bs-toggle="collapse" data-bs-target="#formLeitorCollapse" aria-expanded="false" aria-controls="formLeitorCollapse" role="button">Cadastro de leitor de QRCode</h2>
+                        </div>
+                        <div class="collapse" id="formLeitorCollapse">
+                        <form action="https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/criar-leitor-qr-code" class="gy-3 form-capsule">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="evento" class="form-label">Evento</label>
+                                    <select class="form-select" id="evento" name="evento" required>
+                                        <option value="" selected disabled>Selecione o evento...</option>
+                                    </select>
+                                    <div id="evento-feedback" class="form-text text-danger"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="link_webhook" class="form-label">Link do Webhook para este evento</label>
+                                    <input type="text" class="form-control" id="link_webhook" name="link_webhook" readonly placeholder="Selecione um evento para gerar o link">
+                                    <small class="text-muted">O link será preenchido automaticamente após a seleção do evento.</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" id="leitor_identificado" name="leitor_identificado">
+                                        <label class="form-check-label" for="leitor_identificado">O utilizador/usuário que fará a leitura do QRCode do usuário Conecta Recife será identificado?</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" id="multiplas_leituras" name="multiplas_leituras">
+                                        <label class="form-check-label" for="multiplas_leituras">O QRCode do usuário Conecta Recife poderá ser lido várias vezes?</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 d-none" id="limite-leituras-group">
+                                    <label for="limite_leituras" class="form-label">Quantidade máxima de leituras do mesmo QRCode</label>
+                                    <input type="number" class="form-control" id="limite_leituras" name="limite_leituras" min="2">
+                                </div>
+                                <input type="hidden" id="nome_aplicacao" name="nome_aplicacao">
+                            </div>
+                            <div class="d-flex align-items-center gap-3 mt-4">
+                                <button type="submit" class="btn btn-primary">Salvar leitor</button>
+                                <div id="mensagem-leitor" class="text-muted"></div>
+                            </div>
+                        </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                            <h3 class="section-title h5 mb-0">Leitores cadastrados</h3>
+                            <span id="status-leitores" class="text-muted small">Carregando leitores...</span>
+                        </div>
+                                <div class="table-responsive">
+                            <table class="table table-hover align-middle" id="tabela-leitores">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th scope="col" class="col-evento">Evento</th>
+                                        <th scope="col" class="text-center col-data">Data</th>
+                                        <th scope="col" class="qr-limit-col col-limit text-center">QRCodes por CPF</th>
+                                        <th scope="col" class="text-center col-ingressos">Ingressos distribuídos</th>
+                                        <th scope="col" class="text-center col-bipados">Bipados</th>
+                                        <th scope="col" class="col-link">Link do leitor</th>
+                                        <th scope="col" class="text-end">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">Aguardando carregamento...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal fade" id="modalDetalhes" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-primary">🔍 Detalhes do evento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body" id="modal-detalhes-corpo"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalExcluir" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-danger">⚠️ Alerta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body" id="modal-excluir-corpo"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmar-exclusao">Excluir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const eventoSelect = document.getElementById('evento');
+            const webhookInput = document.getElementById('link_webhook');
+            const feedbackEvento = document.getElementById('evento-feedback');
+            const multiplasCheckbox = document.getElementById('multiplas_leituras');
+            const leitorIdentificadoCheckbox = document.getElementById('leitor_identificado');
+            const limiteGroup = document.getElementById('limite-leituras-group');
+            const limiteInput = document.getElementById('limite_leituras');
+            const idInput = document.getElementById('id');
+            const localSelect = document.getElementById('local');
+            const enderecoInput = document.getElementById('endereco');
+            const tabelaBody = document.querySelector('#tabela-eventos tbody');
+            const statusEventos = document.getElementById('status-eventos');
+            const tabelaLeitoresBody = document.querySelector('#tabela-leitores tbody');
+            const statusLeitores = document.getElementById('status-leitores');
+            const formularioEventos = document.querySelector('#evento-pane form');
+            const formularioLeitor = document.querySelector('#leitor-pane form');
+            const mensagemEvento = document.getElementById('mensagem-evento');
+            const mensagemLeitor = document.getElementById('mensagem-leitor');
+            const nomeAplicacaoInput = document.getElementById('nome_aplicacao');
+            const posterInput = document.getElementById('poster');
+            const posterPreview = document.getElementById('poster-preview');
+            const posterDetalhesInput = document.getElementById('posterdetalhes');
+            const posterDetalhesPreview = document.getElementById('posterdetalhes-preview');
+            const modalDetalhesEl = document.getElementById('modalDetalhes');
+            const modalExcluirEl = document.getElementById('modalExcluir');
+            const modalDetalhesBody = document.getElementById('modal-detalhes-corpo');
+            const modalExcluirBody = document.getElementById('modal-excluir-corpo');
+            const confirmarExclusaoBtn = document.getElementById('confirmar-exclusao');
+            const modalDetalhes = new bootstrap.Modal(modalDetalhesEl);
+            const modalExcluir = new bootstrap.Modal(modalExcluirEl);
+            const eventoFormCollapse = document.getElementById('formEventosCollapse');
+            const leitorFormCollapse = document.getElementById('formLeitorCollapse');
+            const tituloEventos = document.querySelector('[data-bs-target="#formEventosCollapse"]');
+            const tituloLeitor = document.querySelector('[data-bs-target="#formLeitorCollapse"]');
+            const collapseEventos = eventoFormCollapse ? new bootstrap.Collapse(eventoFormCollapse, { toggle: false }) : null;
+            const collapseLeitor = leitorFormCollapse ? new bootstrap.Collapse(leitorFormCollapse, { toggle: false }) : null;
+            const baseWebhook = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/festival-teatro2025?evento=';
+            const eventosCache = [];
+            const leitoresCache = [];
+            const mapaEnderecos = {
+                'Casa de Alzira': 'Rua Mariz e Barros, 328, Bairro do Recife.',
+                'Centro Cultural Marco Zero': 'Rua do Apolo, 219, Bairro do Recife.',
+                'Parque da Macaxeira': 'Av. Norte Miguel Arraes de Alencar, s/n, Macaxeira.',
+                'Parque da Tamarineira': 'Av. Conselheiro Rosa e Silva, 2130, Tamarineira.',
+                'Rua da Alfândega': 'Entre o Paço Alfândega e Igreja Madre de Deus.',
+                'Teatro Apolo': 'Rua do Apolo, 121, Bairro do Recife.',
+                'Teatro Barreto Júnior': 'Rua Estudante Jeremias Bastos, s/n, Pina.',
+                'Teatro de Santa Isabel': 'Praça da República, s/n, Santo Antônio.',
+                'Teatro do Parque': 'Rua do Hospício, 81, Boa Vista.',
+                'Teatro Hermilo Borba Filho': 'Cais do Apolo, 142, Bairro do Recife.',
+                'Teatro Luiz Mendonça': 'Av. Boa Viagem (Parque Dona Lindu), s/n, Boa Viagem.',
+                'Teatro Marco Camarotti': 'No Sesc Santo Amaro, Rua Treze de Maio, 455.'
+            };
+            let eventoParaExcluir = null;
+
+            function formatDateBR(valor) {
+                if (!valor) return '';
+                if (/^\d{2}\/\d{2}\/\d{4}$/.test(valor)) return valor;
+                if (/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+                    const [ano, mes, dia] = valor.split('-');
+                    return `${dia}/${mes}/${ano}`;
+                }
+                const data = new Date(valor);
+                if (Number.isNaN(data.getTime())) return valor;
+                const dia = String(data.getDate()).padStart(2, '0');
+                const mes = String(data.getMonth() + 1).padStart(2, '0');
+                const ano = data.getFullYear();
+                return `${dia}/${mes}/${ano}`;
+            }
+
+            function formatDateTimeBR(valor) {
+                if (!valor) return '';
+                const data = new Date(valor);
+                if (Number.isNaN(data.getTime())) return '';
+                const dia = String(data.getDate()).padStart(2, '0');
+                const mes = String(data.getMonth() + 1).padStart(2, '0');
+                const ano = data.getFullYear();
+                const horas = String(data.getHours()).padStart(2, '0');
+                const minutos = String(data.getMinutes()).padStart(2, '0');
+                return `${dia}/${mes}/${ano} ${horas}:${minutos}`;
+            }
+
+            function formatDateInput(valor) {
+                if (!valor) return '';
+                if (/^\d{4}-\d{2}-\d{2}$/.test(valor)) return valor;
+                const partes = valor.split(/[\/]/);
+                if (partes.length === 3) {
+                    const [dia, mes, ano] = partes;
+                    if (ano && mes && dia) {
+                        return `${ano.padStart(4, '0')}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+                    }
+                }
+                const data = new Date(valor);
+                if (Number.isNaN(data.getTime())) return '';
+                const dia = String(data.getDate()).padStart(2, '0');
+                const mes = String(data.getMonth() + 1).padStart(2, '0');
+                const ano = data.getFullYear();
+                return `${ano}-${mes}-${dia}`;
+            }
+
+            function normalizarBooleano(valor) {
+                if (typeof valor === 'string') {
+                    return valor.toLowerCase() === 'true';
+                }
+                return Boolean(valor);
+            }
+
+            function sincronizarAriaCollapse(collapseEl, titulo) {
+                if (!collapseEl || !titulo) return;
+                titulo.setAttribute('aria-expanded', collapseEl.classList.contains('show'));
+                collapseEl.addEventListener('shown.bs.collapse', () => titulo.setAttribute('aria-expanded', 'true'));
+                collapseEl.addEventListener('hidden.bs.collapse', () => titulo.setAttribute('aria-expanded', 'false'));
+            }
+
+            function sanitizeIdentificador(valor) {
+                const semAcentos = valor
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .replace(/ç/gi, 'c');
+                return semAcentos
+                    .toLowerCase()
+                    .replace(/\s+/g, '-')
+                    .replace(/[^a-z0-9_-]/g, '')
+                    .replace(/-+/g, '-')
+                    .replace(/^-+|-+$/g, '');
+            }
+
+            function atualizarEnderecoCampo(valorManual = '') {
+                if (!enderecoInput) return;
+                if (valorManual) {
+                    enderecoInput.value = valorManual;
+                    return;
+                }
+                const selecionado = localSelect ? localSelect.value : '';
+                enderecoInput.value = selecionado ? (mapaEnderecos[selecionado] || '') : '';
+            }
+
+            idInput.addEventListener('input', () => {
+                const cursorPos = idInput.selectionStart;
+                const valorLimpo = sanitizeIdentificador(idInput.value);
+                idInput.value = valorLimpo;
+                if (cursorPos !== null) {
+                    idInput.setSelectionRange(cursorPos, cursorPos);
+                }
+            });
+
+            function limparSelect() {
+                while (eventoSelect.options.length > 1) {
+                    eventoSelect.remove(1);
+                }
+            }
+
+            function renderizarPreview(input, alvo) {
+                alvo.innerHTML = '';
+                const arquivo = input.files && input.files[0];
+                if (!arquivo) return;
+
+                if (!arquivo.type.startsWith('image/')) {
+                    alvo.innerHTML = '<div class="text-danger small">Apenas imagens são permitidas.</div>';
+                    input.value = '';
+                    return;
+                }
+
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(arquivo);
+                img.alt = 'Prévia do arquivo selecionado';
+                img.className = 'img-fluid rounded shadow-sm';
+                alvo.appendChild(img);
+            }
+
+            function exibirAvisoCopiado(container) {
+                if (!container) return;
+                let aviso = container.querySelector('.copy-feedback');
+                if (!aviso) {
+                    aviso = document.createElement('div');
+                    aviso.className = 'copy-feedback text-success mt-1';
+                    container.appendChild(aviso);
+                }
+                aviso.textContent = 'Link copiado!';
+                if (aviso._timeoutId) {
+                    clearTimeout(aviso._timeoutId);
+                }
+                aviso._timeoutId = setTimeout(() => {
+                    if (aviso && aviso.parentElement) {
+                        aviso.remove();
+                    }
+                }, 2000);
+            }
+
+            function fallbackCopy(texto, container) {
+                const area = document.createElement('textarea');
+                area.value = texto;
+                area.setAttribute('readonly', '');
+                area.style.position = 'absolute';
+                area.style.left = '-9999px';
+                document.body.appendChild(area);
+                area.select();
+                try {
+                    document.execCommand('copy');
+                } catch (erro) {
+                    console.warn('Não foi possível copiar automaticamente.', erro);
+                }
+                document.body.removeChild(area);
+                exibirAvisoCopiado(container);
+            }
+
+            function copiarLink(texto, container) {
+                if (!texto) return;
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard
+                        .writeText(texto)
+                        .then(() => exibirAvisoCopiado(container))
+                        .catch(() => fallbackCopy(texto, container));
+                } else {
+                    fallbackCopy(texto, container);
+                }
+            }
+
+            function preencherEventos(lista) {
+                limparSelect();
+                lista.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.id;
+                    const label = item.evento ? `[${item.id}] ${item.evento}` : `[${item.id}]`;
+                    option.textContent = label;
+                    eventoSelect.appendChild(option);
+                });
+            }
+
+            function criarBotao(icone, titulo, classe, onClick) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `btn btn-sm ${classe}`;
+                btn.innerHTML = icone;
+                btn.title = titulo;
+                btn.addEventListener('click', onClick);
+                return btn;
+            }
+
+            function preencherTabela(lista) {
+                tabelaBody.innerHTML = '';
+                if (!lista.length) {
+                    const linha = document.createElement('tr');
+                    const celula = document.createElement('td');
+                    celula.colSpan = 6;
+                    celula.className = 'text-center text-muted';
+                    celula.textContent = 'Nenhum evento cadastrado até o momento.';
+                    linha.appendChild(celula);
+                    tabelaBody.appendChild(linha);
+                    return;
+                }
+
+                lista.forEach(item => {
+                    const linha = document.createElement('tr');
+                    const dataApresentacao = formatDateBR(item.quando || item.data || '');
+                    const horario = item.hora || '';
+                    const local = item.local || '';
+
+                    [item.id, item.evento, dataApresentacao, horario, local].forEach(valor => {
+                        const td = document.createElement('td');
+                        td.textContent = valor || '-';
+                        linha.appendChild(td);
+                    });
+
+                    const acao = document.createElement('td');
+                    acao.className = 'text-end table-action';
+
+                    const visualizar = criarBotao('🔍', 'Visualizar', 'btn-outline-secondary', () => mostrarDetalhes(item));
+
+                    const editar = criarBotao('✏️', 'Editar', 'btn-outline-primary', () => preencherFormulario(item));
+
+                    const excluir = criarBotao('🗑️', 'Excluir', 'btn-outline-danger', () => prepararExclusao(item));
+
+                    [visualizar, editar, excluir].forEach(btn => acao.appendChild(btn));
+                    linha.appendChild(acao);
+                    tabelaBody.appendChild(linha);
+                });
+            }
+
+            function preencherTabelaLeitores(lista) {
+                tabelaLeitoresBody.innerHTML = '';
+                if (!lista.length) {
+                    const linha = document.createElement('tr');
+                    const celula = document.createElement('td');
+                    celula.colSpan = 7;
+                    celula.className = 'text-center text-muted';
+                    celula.textContent = 'Nenhum leitor cadastrado até o momento.';
+                    linha.appendChild(celula);
+                    tabelaLeitoresBody.appendChild(linha);
+                    return;
+                }
+
+                lista.forEach(item => {
+                    const linha = document.createElement('tr');
+                    const eventoNome = item.evento || item.evento_nome || '-';
+                    const multiplas = item.multiplas_leituras;
+                    const limite = multiplas ? (item.limite_leituras ?? '-') : '-';
+                    const ingressos = item.total_ingressos ?? '-';
+                    const bipados = item.total_bipados ?? '-';
+                    const linkGerado = item.link || '-';
+                    const dataEvento = formatDateBR(item.data_evento || item.quando || item.data || '');
+
+                    const colunas = [
+                        { valor: eventoNome, classe: 'col-evento' },
+                        { valor: dataEvento || '-', classe: 'text-center col-data' },
+                        { valor: limite, classe: 'text-center qr-limit-col col-limit' },
+                        { valor: ingressos, classe: 'text-center col-ingressos' },
+                        { valor: bipados, classe: 'text-center col-bipados' },
+                        { valor: linkGerado, classe: 'col-link', ehLink: true }
+                    ];
+
+                    colunas.forEach(coluna => {
+                        const td = document.createElement('td');
+                        if (coluna.classe) {
+                            td.className = coluna.classe;
+                        }
+
+                        if (coluna.ehLink && coluna.valor && coluna.valor !== '-') {
+                            const linkEl = document.createElement('a');
+                            linkEl.href = coluna.valor;
+                            linkEl.target = '_blank';
+                            linkEl.rel = 'noopener noreferrer';
+                            linkEl.textContent = coluna.valor;
+                            linkEl.className = 'leitor-link text-break';
+                            td.appendChild(linkEl);
+                        } else {
+                            td.textContent = coluna.valor || '-';
+                        }
+                        linha.appendChild(td);
+                    });
+
+                    const acaoTd = document.createElement('td');
+                    acaoTd.className = 'text-end col-acoes';
+                    const excluir = criarBotao('🗑️', 'Excluir leitor', 'btn-outline-danger', () => prepararExclusaoLeitor(item));
+                    acaoTd.appendChild(excluir);
+                    linha.appendChild(acaoTd);
+
+                    tabelaLeitoresBody.appendChild(linha);
+                });
+            }
+
+            function preencherFormulario(item) {
+                if (collapseEventos) {
+                    collapseEventos.show();
+                }
+                formularioEventos.reset();
+                atualizarEnderecoCampo('');
+                idInput.value = sanitizeIdentificador(item.id || '');
+                const campos = {
+                    nome: 'nome',
+                    classificacao: 'classificacao',
+                    genero: 'genero',
+                    local: 'local',
+                    quando: 'quando',
+                    hora: 'hora',
+                    sinopse: 'sinopse',
+                    disponibilizados: 'disponibilizados',
+                    acessibilidade: 'acessibilidade',
+                    duracao: 'duracao',
+                    quem_faz: 'quem_faz',
+                    origem: 'origem'
+                };
+
+                Object.entries(campos).forEach(([prop, idCampo]) => {
+                    const campo = document.getElementById(idCampo);
+                    if (campo && item[prop] !== undefined) {
+                        const valor = idCampo === 'quando'
+                            ? formatDateInput(item[prop] || item.data)
+                            : item[prop];
+                        campo.value = valor || '';
+                    }
+                });
+
+                if (item.endereco) {
+                    atualizarEnderecoCampo(item.endereco);
+                } else {
+                    atualizarEnderecoCampo();
+                }
+
+                const nomeCampo = document.getElementById('nome');
+                if (nomeCampo && !nomeCampo.value && item.evento) {
+                    nomeCampo.value = item.evento;
+                }
+
+                document.getElementById('sinopse').value = item.sinopse || '';
+                document.getElementById('duracao').placeholder = 'Ex.: 60min';
+                const deslocar = () => window.scrollTo({ top: formularioEventos.offsetTop - 80, behavior: 'smooth' });
+                if (collapseEventos) {
+                    setTimeout(deslocar, 220);
+                } else {
+                    deslocar();
+                }
+            }
+
+            function preencherFormularioLeitor(item) {
+                if (collapseLeitor) {
+                    collapseLeitor.show();
+                }
+                if (item.id) {
+                    eventoSelect.value = item.id;
+                    atualizarWebhook();
+                }
+                document.getElementById('leitor_identificado').checked = Boolean(item.leitor_identificado);
+                multiplasCheckbox.checked = Boolean(item.multiplas_leituras);
+                const limiteNormalizado = Number(item.limite_leituras) || '';
+                limiteInput.value = multiplasCheckbox.checked
+                    ? (limiteNormalizado && limiteNormalizado >= 2 ? limiteNormalizado : 2)
+                    : '';
+                limiteInput.required = multiplasCheckbox.checked;
+                if (multiplasCheckbox.checked) {
+                    limiteGroup.classList.remove('d-none');
+                } else {
+                    limiteGroup.classList.add('d-none');
+                }
+                atualizarNomeAplicacao();
+                if (nomeAplicacaoInput && item.nome_aplicacao) {
+                    nomeAplicacaoInput.value = item.nome_aplicacao;
+                }
+                const deslocar = () => window.scrollTo({ top: formularioLeitor.offsetTop - 80, behavior: 'smooth' });
+                if (collapseLeitor) {
+                    setTimeout(deslocar, 220);
+                } else {
+                    deslocar();
+                }
+            }
+
+            function mostrarDetalhes(item) {
+                modalDetalhesBody.innerHTML = `
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <strong>Identificador:</strong>
+                            <div>${item.id || '-'}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Evento:</strong>
+                            <div>${item.evento || '-'}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Data:</strong>
+                            <div>${formatDateBR(item.quando || item.data || '-') || '-'}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Hora:</strong>
+                            <div>${item.hora || '-'}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Local:</strong>
+                            <div>${item.local || '-'}</div>
+                        </div>
+                        <div class="col-12">
+                            <strong>Sinopse:</strong>
+                            <p class="mb-0">${item.sinopse || 'Não informado.'}</p>
+                        </div>
+                    </div>
+                `;
+                modalDetalhes.show();
+            }
+
+            function mostrarDetalhesLeitor(item) {
+                modalDetalhesBody.innerHTML = `
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <strong>Evento:</strong>
+                            <div>${item.evento || item.evento_nome || '-'}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Webhook:</strong>
+                            <div class="text-break">${item.link_webhook || '-'}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Nome da aplicação:</strong>
+                            <div>${item.nome_aplicacao || '-'}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Identificado:</strong>
+                            <div>${item.leitor_identificado ? 'Sim' : 'Não'}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Múltiplas leituras:</strong>
+                            <div>${item.multiplas_leituras ? 'Sim' : 'Não'}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Limite:</strong>
+                            <div>${item.limite_leituras || '-'}</div>
+                        </div>
+                    </div>
+                `;
+                modalDetalhes.show();
+            }
+
+            function prepararExclusao(item) {
+                eventoParaExcluir = { tipo: 'evento', dados: item };
+                modalExcluirBody.innerHTML = `Deseja realmente excluir o evento <strong>${item.evento || item.id}</strong>?`;
+                modalExcluir.show();
+            }
+
+            function prepararExclusaoLeitor(item) {
+                eventoParaExcluir = { tipo: 'leitor', dados: item };
+                const identificacao = item.evento || item.id || 'o leitor selecionado';
+                modalExcluirBody.innerHTML = `Deseja realmente excluir o leitor vinculado ao evento <strong>${identificacao}</strong>?`;
+                modalExcluir.show();
+            }
+
+            function deletarEvento(item) {
+                const payload = {
+                    identificador: item.id,
+                    data: item.quando || item.data || '',
+                    hora: item.hora || ''
+                };
+
+                fetch('https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/gerenciar-eventos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                    .then(resposta => {
+                        if (!resposta.ok) {
+                            throw new Error('Falha ao excluir.');
+                        }
+                        return resposta.json().catch(() => ({}));
+                    })
+                    .then(() => {
+                        location.reload();
+                    })
+                    .catch(() => {
+                        alert('Não foi possível excluir o evento. Tente novamente.');
+                    });
+            }
+
+            function deletarLeitor(item) {
+                const payload = {
+                    link: item.link || item.link_webhook || ''
+                };
+
+                fetch('https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/excluir-leitor-qrcode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                    .then(resposta => {
+                        if (!resposta.ok) {
+                            throw new Error('Falha ao excluir.');
+                        }
+                        return resposta.json().catch(() => ({}));
+                    })
+                    .then(() => location.reload())
+                    .catch(() => {
+                        alert('Não foi possível excluir o leitor. Tente novamente.');
+                    });
+            }
+
+            function atualizarWebhook() {
+                const valor = eventoSelect.value;
+                webhookInput.value = valor ? baseWebhook + encodeURIComponent(valor) : '';
+                atualizarNomeAplicacao();
+            }
+
+            function obterEventoSelecionado() {
+                const valor = eventoSelect.value;
+                if (!valor) return null;
+                return eventosCache.find(item => item.id === valor) || null;
+            }
+
+            function gerarNomeAplicacao() {
+                const valor = eventoSelect.value;
+                if (!valor) return '';
+                const eventoSelecionado = obterEventoSelecionado();
+                const quando = eventoSelecionado?.quando || eventoSelecionado?.data || '';
+                const hora = eventoSelecionado?.hora || '';
+                const sufixo = `${quando || ''}${hora || ''}`;
+                return sufixo ? `Leitor ${valor} ${sufixo}` : `Leitor ${valor}`;
+            }
+
+            function atualizarNomeAplicacao() {
+                if (!nomeAplicacaoInput) return '';
+                const nome = gerarNomeAplicacao();
+                nomeAplicacaoInput.value = nome;
+                return nome;
+            }
+
+            function buscarEventos() {
+                statusEventos.textContent = 'Carregando eventos...';
+                eventoSelect.disabled = true;
+
+                fetch('https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/listar-id-eventos')
+                    .then(resposta => {
+                        if (!resposta.ok) {
+                            throw new Error('Não foi possível carregar a lista de eventos.');
+                        }
+                        return resposta.json();
+                    })
+                    .then(dados => {
+                        eventosCache.length = 0;
+                        dados.forEach(item => eventosCache.push(item));
+                        preencherEventos(eventosCache);
+                        preencherTabela(eventosCache);
+                        feedbackEvento.textContent = '';
+                        statusEventos.textContent = `${eventosCache.length} evento(s) carregado(s).`;
+                        eventoSelect.disabled = false;
+                        atualizarNomeAplicacao();
+                    })
+                    .catch(() => {
+                        feedbackEvento.textContent = 'Não existem eventos futuros cadastrados.';
+                        tabelaBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Não existem eventos futuros cadastrados.</td></tr>';
+                        statusEventos.textContent = 'Não existem eventos futuros cadastrados.';
+                        eventoSelect.disabled = true;
+                    });
+            }
+
+            function aplicarPayloadLeitores(dados) {
+                const lista = Array.isArray(dados) ? dados : dados ? [dados] : [];
+                leitoresCache.length = 0;
+                lista.forEach(item => leitoresCache.push(item));
+                preencherTabelaLeitores(leitoresCache);
+                statusLeitores.textContent = `${leitoresCache.length} leitor(es) carregado(s).`;
+            }
+
+            function buscarLeitores() {
+                statusLeitores.textContent = 'Carregando leitores...';
+
+                fetch('https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/listar-leitores', {
+                    method: 'POST'
+                })
+                    .then(resposta => {
+                        if (!resposta.ok) {
+                            throw new Error('Não foi possível carregar a lista de leitores.');
+                        }
+                        return resposta.json();
+                    })
+                    .then(aplicarPayloadLeitores)
+                    .catch(() => {
+                        tabelaLeitoresBody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Não há leitores cadastrados.</td></tr>';
+                        statusLeitores.textContent = 'Não há leitores cadastrados.';
+                    });
+            }
+
+            eventoSelect.addEventListener('change', atualizarWebhook);
+            if (localSelect) {
+                localSelect.addEventListener('change', () => atualizarEnderecoCampo());
+            }
+
+            const leitorTab = document.getElementById('leitor-tab');
+            if (leitorTab) {
+                leitorTab.addEventListener('shown.bs.tab', () => {
+                    buscarLeitores();
+                });
+            }
+
+            multiplasCheckbox.addEventListener('change', () => {
+                const ativo = multiplasCheckbox.checked;
+                limiteInput.required = ativo;
+                if (ativo) {
+                    limiteGroup.classList.remove('d-none');
+                    const valorAtual = Number(limiteInput.value) || 0;
+                    limiteInput.value = valorAtual >= 2 ? valorAtual : 2;
+                } else {
+                    limiteGroup.classList.add('d-none');
+                    limiteInput.value = '';
+                }
+            });
+
+            confirmarExclusaoBtn.addEventListener('click', () => {
+                if (!eventoParaExcluir) return;
+                modalExcluir.hide();
+                if (eventoParaExcluir.tipo === 'evento') {
+                    deletarEvento(eventoParaExcluir.dados);
+                } else if (eventoParaExcluir.tipo === 'leitor') {
+                    deletarLeitor(eventoParaExcluir.dados);
+                }
+            });
+
+            posterInput.addEventListener('change', () => renderizarPreview(posterInput, posterPreview));
+            posterDetalhesInput.addEventListener('change', () => renderizarPreview(posterDetalhesInput, posterDetalhesPreview));
+
+            formularioEventos.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const botao = formularioEventos.querySelector('button[type="submit"]');
+                const labelOriginal = botao ? botao.textContent : '';
+                mensagemEvento.classList.remove('text-danger', 'text-success');
+                mensagemEvento.textContent = 'Enviando...';
+
+                if (botao) {
+                    botao.disabled = true;
+                    botao.textContent = 'Enviando...';
+                }
+
+                idInput.value = sanitizeIdentificador(idInput.value || '');
+                atualizarEnderecoCampo();
+                const dados = new FormData(formularioEventos);
+
+                try {
+                    const resposta = await fetch(formularioEventos.action, {
+                        method: 'POST',
+                        body: dados
+                    });
+
+                    if (!resposta.ok) {
+                        throw new Error('Falha ao cadastrar.');
+                    }
+
+                    mensagemEvento.classList.add('text-success');
+                    mensagemEvento.textContent = 'Evento cadastrado com sucesso. Recarregando...';
+                    setTimeout(() => location.reload(), 600);
+                } catch (erro) {
+                    mensagemEvento.classList.add('text-danger');
+                    mensagemEvento.textContent = 'Não foi possível cadastrar o evento. Tente novamente.';
+                } finally {
+                    if (botao) {
+                        botao.disabled = false;
+                        botao.textContent = labelOriginal || 'Cadastrar evento';
+                    }
+                }
+            });
+
+            formularioLeitor.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                mensagemLeitor.classList.remove('text-danger', 'text-success');
+                const valorEvento = eventoSelect.value;
+
+                if (!valorEvento) {
+                    mensagemLeitor.classList.add('text-danger');
+                    mensagemLeitor.textContent = 'Selecione um evento antes de salvar o leitor.';
+                    return;
+                }
+
+                if (multiplasCheckbox.checked) {
+                    const limiteValor = Number(limiteInput.value) || 0;
+                    if (limiteValor < 2) {
+                        limiteInput.value = 2;
+                        mensagemLeitor.classList.add('text-danger');
+                        mensagemLeitor.textContent = 'O limite mínimo para múltiplas leituras é 2.';
+                        return;
+                    }
+                }
+
+                const botaoLeitor = formularioLeitor.querySelector('button[type="submit"]');
+                const labelBotao = botaoLeitor ? botaoLeitor.textContent : '';
+                if (botaoLeitor) {
+                    botaoLeitor.disabled = true;
+                    botaoLeitor.textContent = 'Enviando...';
+                }
+
+                const eventoSelecionado = obterEventoSelecionado();
+                const quandoSelecionado = eventoSelecionado?.quando || eventoSelecionado?.data || '';
+                const horaSelecionada = eventoSelecionado?.hora || '';
+                const nomeAplicacao = atualizarNomeAplicacao();
+                const linkGerado = webhookInput.value || (valorEvento ? baseWebhook + encodeURIComponent(valorEvento) : '');
+
+                const payload = {
+                    evento: valorEvento,
+                    link_webhook: linkGerado,
+                    leitor_identificado: leitorIdentificadoCheckbox.checked,
+                    multiplas_leituras: multiplasCheckbox.checked,
+                    limite_leituras: multiplasCheckbox.checked ? Number(limiteInput.value) : null,
+                    nome_aplicacao: nomeAplicacao,
+                    quando: quandoSelecionado || null,
+                    hora: horaSelecionada || null
+                };
+
+                mensagemLeitor.textContent = 'Enviando...';
+
+                try {
+                    const resposta = await fetch(formularioLeitor.action, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!resposta.ok) {
+                        throw new Error('Falha ao cadastrar.');
+                    }
+
+                    const dadosResposta = await resposta.json().catch(() => null);
+                    aplicarPayloadLeitores(dadosResposta || []);
+                    formularioLeitor.reset();
+                    limiteGroup.classList.add('d-none');
+                    limiteInput.value = '';
+                    mensagemLeitor.classList.add('text-success');
+                    mensagemLeitor.textContent = 'Leitor cadastrado com sucesso.';
+                    atualizarNomeAplicacao();
+                } catch (erro) {
+                    mensagemLeitor.classList.add('text-danger');
+                    mensagemLeitor.textContent = 'Não foi possível salvar o leitor. Tente novamente.';
+                } finally {
+                    if (botaoLeitor) {
+                        botaoLeitor.disabled = false;
+                        botaoLeitor.textContent = labelBotao || 'Salvar leitor';
+                    }
+                }
+            });
+
+            sincronizarAriaCollapse(eventoFormCollapse, tituloEventos);
+            sincronizarAriaCollapse(leitorFormCollapse, tituloLeitor);
+
+            buscarEventos();
+            atualizarEnderecoCampo('');
+            atualizarNomeAplicacao();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
