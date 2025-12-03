@@ -453,6 +453,8 @@
         font-size: 1.05rem;
         font-weight: 600;
         letter-spacing: 0.02em;
+        -webkit-text-security: disc;
+        text-security: disc;
       }
       .cpf-display {
         font-size: 2rem;
@@ -582,7 +584,14 @@
       }
 
       function handleInput() {
-        const data = extractQrData(qrInput.value);
+        const rawValue = qrInput.value;
+        if (!rawValue.trim()) {
+          updateStatus('Aguardando leitura', 'light');
+          return;
+        }
+
+        const data = extractQrData(rawValue);
+        qrInput.value = '';
         cpfDisplay.textContent = data.cpf || '---';
         if (data.cpf) {
           updateStatus('CPF capturado', 'success');
