@@ -449,26 +449,10 @@
         box-shadow: 0 14px 34px rgba(0, 45, 98, 0.08);
         border-radius: 16px;
       }
-      .event-select {
-        border-color: var(--border-color);
-        font-weight: 600;
-        padding-top: 0.75rem;
-        padding-bottom: 0.75rem;
-        background-color: #fff;
-      }
       .reader-input {
-        font-size: 1.1rem;
+        font-size: 1.05rem;
         font-weight: 600;
-        letter-spacing: 0.22em;
-        padding-inline: 0.95rem;
-        border: 1px solid var(--border-color);
-        border-radius: 10px;
-        background-color: #fff;
-        -webkit-text-security: disc !important;
-        text-security: disc !important;
-        color: transparent;
-        text-shadow: 0 0 0 #1b263b;
-        caret-color: transparent;
+        letter-spacing: 0.02em;
       }
       .cpf-display {
         font-size: 2rem;
@@ -512,7 +496,7 @@
               <div class="row g-3 mb-3">
                 <div class="col-sm-6">
                   <label for="eventSelect" class="form-label fw-semibold">Evento</label>
-                  <select id="eventSelect" class="form-select form-select-lg event-select">
+                  <select id="eventSelect" class="form-select form-select-lg">
                     <option value="mary_stuart">Mary Stuart</option>
                     <option value="hamlet">Hamlet</option>
                     <option value="othello">Othello</option>
@@ -521,7 +505,7 @@
                 <div class="col-sm-6">
                   <label for="qrInput" class="form-label fw-semibold">Entrada do leitor</label>
                   <input
-                    type="text"
+                    type="password"
                     class="form-control form-control-lg reader-input"
                     id="qrInput"
                     autocomplete="off"
@@ -598,14 +582,7 @@
       }
 
       function handleInput() {
-        const rawValue = qrInput.value;
-        if (!rawValue.trim()) {
-          updateStatus('Aguardando leitura', 'light');
-          return;
-        }
-
-        const data = extractQrData(rawValue);
-        qrInput.value = '';
+        const data = extractQrData(qrInput.value);
         cpfDisplay.textContent = data.cpf || '---';
         if (data.cpf) {
           updateStatus('CPF capturado', 'success');
