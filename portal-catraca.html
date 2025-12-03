@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Symplifica Conecta</title>
+    <title>Catraca Conecta</title>
     <link
       rel="icon"
-      href="https://statics.recife.pe.gov.br/images/dynamics/conecta/icons/favicon.png?w=32&h=32&fit=fill&border=2,transparent,shrink"
+      href="https://statics.recife.pe.gov.br/images/automacao/catraca-conecta/catraca-logo.png"
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -52,6 +52,8 @@
       }
       .ticket-cover{background:#e9eef7}
       .poster-img{width:100%;height:100%;object-fit:cover;display:block}
+      .greeting-banner{background:linear-gradient(135deg,#f0f4ff,#e8f0ff);border:1px solid rgba(0,83,164,.08);border-radius:999px;padding:1rem 1.25rem;box-shadow:0 8px 20px rgba(0,45,98,.08);color:var(--text-strong)}
+      .greeting-icon{font-size:1.35rem;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:rgba(0,83,164,.08)}
       .ticket-body{padding:1rem 1rem 1.1rem;position:relative}
       /* Semicírculos nas laterais (efeito ‘talão’) */
       .ticket-body::before,.ticket-body::after{
@@ -97,7 +99,7 @@
       type="hidden"
       id="cpf"
       name="cpf"
-      value="02763108458"
+      value="{{ String(($json.cpf ?? $json.preferred_username ?? '')).replace(/\D+/g, '').slice(0,11) }}"
       style="position: absolute; display: none;"
     />
     <!-- HEADER -->
@@ -105,20 +107,24 @@
       <div class="container">
         <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
           <div>
-            <h1 class="display-5 fw-bold mb-2">Desenrole aê • Symplifica Conecta</h1>
+            <h1 class="display-5 fw-bold mb-2">Catraca Conecta • Sua bilheteria eletrônica gratuita</h1>
             <p class="lead mb-0">Programação oficial da Secretaria de Cultura do Recife • Explore as peças e escolha seu teatro.</p>
-          </div>
-          <div class="text-md-end">
-            <span class="badge-open"><span aria-hidden="true">🎭</span> Programação aberta</span>
-            <div class="mt-2">
-              <button class="btn btn-light btn-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasFav" aria-controls="offcanvasFav">
-                Favoritos <span class="badge text-bg-primary align-middle ms-1" id="favCount">0</span>
-              </button>
-            </div>
           </div>
         </div>
       </div>
     </header>
+
+    <!-- SAUDAÇÃO -->
+    <section class="py-3">
+      <div class="container">
+        <div class="greeting-banner d-flex align-items-center gap-3">
+          <div class="greeting-icon" aria-hidden="true">🎭</div>
+          <p class="mb-0 fw-semibold flex-grow-1">
+            Olá, {{ $json.given_name }}! Que bom ter você aqui.
+          </p>
+        </div>
+      </div>
+    </section>
 
     <!-- FILTROS -->
     <section class="py-4">
@@ -204,6 +210,15 @@
               </select>
             </div>
             <button
+              id="modalCancelarBtn"
+              type="button"
+              class="btn btn-outline-danger"
+              data-action="cancelar"
+              aria-disabled="false"
+            >
+              Devolver ingresso
+            </button>
+            <button
               id="modalConfirmBtn"
               type="button"
               class="btn btn-primary"
@@ -213,6 +228,27 @@
               Confirmar
             </button>
             <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Fechar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: CONFIRMAR DEVOLUÇÃO -->
+    <div class="modal fade" id="modalCancelar" tabindex="-1" aria-labelledby="modalCancelarTitulo" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title fw-bold text-danger" id="modalCancelarTitulo">❗ Atenção</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <p class="mb-0">
+              Todos os ingressos vinculados ao seu CPF neste evento serão cancelados. Deseja continuar?
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não</button>
+            <button id="modalCancelarConfirmBtn" type="button" class="btn btn-danger">Sim</button>
           </div>
         </div>
       </div>
@@ -247,7 +283,8 @@
         const API_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/2917bb59-51f3-478a-a435-0753ab258f43';
         const API_URL_JA_PEGOS = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/d0bbd65b-b4f6-45cf-8f98-2aff0bcb03a5';
         const CONFIRMAR_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/322fa1a9-b9aa-4e22-8762-fe0e63895727';
-        const CPF_FIXO = '02763108458';
+        const CANCELAR_URL = 'https://webhook-n8n-dev-conectarecife.recife.pe.gov.br/webhook/cancelar-ingresso';
+        const CPF_FIXO = '';
         const ICON_LIBRAS_SRC = 'https://www.ifmg.edu.br/conselheirolafaiete/noticias/anexos-noticias/libras-768x767.png/@@images/image.png';
         const ICON_AD_SRC = 'https://w7.pngwing.com/pngs/691/979/png-transparent-computer-icons-audio-description-pause-miscellaneous-text-trademark.png';
         const ACESSIBILIDADE_ICONES = [
@@ -442,6 +479,10 @@
         let mSinopse;
         let mTicketBtn;
         let mConfirmBtn;
+        let mCancelarBtn;
+        let modalCancelar;
+        let modalCancelarBtnConfirmar;
+        let eventoParaCancelar = null;
 
         if (document.readyState === 'loading') {
           document.addEventListener('DOMContentLoaded', init);
@@ -489,6 +530,19 @@
           mSinopse = document.querySelector('#modalSinopse');
           mTicketBtn = document.querySelector('#modalTicketBtn');
           mConfirmBtn = document.querySelector('#modalConfirmBtn');
+          mCancelarBtn = document.querySelector('#modalCancelarBtn');
+          const modalCancelarEl = document.querySelector('#modalCancelar');
+          modalCancelar = modalCancelarEl ? new bootstrap.Modal(modalCancelarEl) : null;
+          if (modalCancelarEl && modalCancelar) {
+            modalCancelarEl.addEventListener('hidden.bs.modal', () => {
+              eventoParaCancelar = null;
+              if (modalCancelarBtnConfirmar) {
+                modalCancelarBtnConfirmar.disabled = false;
+                modalCancelarBtnConfirmar.textContent = 'Sim';
+              }
+            });
+          }
+          modalCancelarBtnConfirmar = document.querySelector('#modalCancelarConfirmBtn');
 
           document.body.classList.add('portal-dyn');
           injetarEstilos();
@@ -623,6 +677,8 @@
           if (disponiveis !== undefined) adaptado.disponiveis = disponiveis;
           const acessibilidade = ler('acessibilidade', 'acessibilidades', 'recursos_acessibilidade');
           if (acessibilidade !== undefined) adaptado.acessibilidade = acessibilidade;
+          const status = ler('status');
+          if (status !== undefined) adaptado.status = status;
           const duracao = ler('duracao', 'duração', 'tempo', 'tempo_estimado');
           if (duracao !== undefined) adaptado.duracao = duracao;
           const quemFaz = ler('quem_faz', 'quemfaz', 'quemFaz', 'grupo', 'companhia', 'company', 'coletivo');
@@ -672,6 +728,7 @@
                 duracao: item.duracao || item.duração || '',
                 quemFaz,
                 origem,
+                status: normalizarStatus(item.status),
                 quando: quandoValor || '',
                 quandoOriginal: item.quando ?? '',
                 horaOriginal: item.hora || '',
@@ -737,6 +794,23 @@
         function numeroSeguro(valor) {
           const numero = Number(valor);
           return Number.isFinite(numero) && numero >= 0 ? numero : 0;
+        }
+
+        function normalizarStatus(valor) {
+          if (valor === undefined || valor === null) return 'ok';
+          const texto = String(valor).trim().toLowerCase();
+          if (texto === 'block' || texto === 'semi-block') {
+            return texto;
+          }
+          return 'ok';
+        }
+
+        function rotuloPrincipalPorStatus(status) {
+          return normalizarStatus(status) === 'block' ? '🎟️ Devolver ingresso' : '🎟️ Pegar ingresso';
+        }
+
+        function rotuloConfirmarPorStatus(status) {
+          return 'Confirmar';
         }
 
         function interpretarAcessibilidade(valor) {
@@ -882,16 +956,48 @@
             mTicketBtn.addEventListener('click', () => {
               const id = mTicketBtn.dataset.id;
               if (!id) return;
-              const evento = eventosPorId.get(id);
+              const evento = eventosPorId.get(id) || eventosBloqueadosPorId.get(id);
               if (!evento) return;
+              const status = normalizarStatus(evento.status);
+              if (status === 'block') {
+                abrirModalCancelar(evento);
+                return;
+              }
               const chave = evento.quandoNormalizado || DATE_KEY_EMPTY;
               togglePorData(chave, id);
             });
           }
           if (mConfirmBtn) {
             mConfirmBtn.addEventListener('click', () => {
+              const id = mConfirmBtn.dataset.id;
+              const evento = id ? eventosPorId.get(id) || eventosBloqueadosPorId.get(id) : null;
+              const status = normalizarStatus(evento?.status);
+              if (status === 'semi-block') {
+                abrirModalCancelar(evento);
+                return;
+              }
+              if (!selecoesAtuais.has(id)) {
+                if (eventoConflitanteComSelecoes(evento)) {
+                  const card = encontrarCardPorId(id);
+                  mostrarAvisoErro(card, 'Seleção conflita com outro horário.');
+                  return;
+                }
+                selecoesAtuais.add(id);
+                atualizarEstadoTodos();
+                atualizarBotaoModal();
+              }
               confirmarIngresso(mConfirmBtn);
             });
+          }
+          if (mCancelarBtn) {
+            mCancelarBtn.addEventListener('click', () => {
+              const id = mCancelarBtn.dataset.id;
+              const evento = id ? eventosPorId.get(id) || eventosBloqueadosPorId.get(id) : null;
+              abrirModalCancelar(evento);
+            });
+          }
+          if (modalCancelarBtnConfirmar) {
+            modalCancelarBtnConfirmar.addEventListener('click', cancelarIngresso);
           }
         }
 
@@ -992,6 +1098,11 @@
           card.setAttribute('data-quando', evento.quandoNormalizado || DATE_KEY_EMPTY);
           card.setAttribute('data-hora', evento.horaCurta || '');
           card.setAttribute('data-ja-pegou', evento.jaPegou ? 'true' : 'false');
+          const status = normalizarStatus(evento.status);
+          card.dataset.status = status;
+          if (status === 'block') {
+            card.classList.add('is-muted');
+          }
           if (evento.jaPegou) {
             card.classList.add('portal-dyn-ja-pego');
           }
@@ -1181,8 +1292,34 @@
           return Number.isFinite(valor) && valor > 0 ? valor : 1;
         }
 
+        function configurarSelectQuantidade(status) {
+          if (!mQuantidadeSelect) return;
+          const apenasUm = normalizarStatus(status) === 'semi-block';
+          while (mQuantidadeSelect.firstChild) {
+            mQuantidadeSelect.removeChild(mQuantidadeSelect.firstChild);
+          }
+          const opcoes = ['1'];
+          if (!apenasUm) {
+            opcoes.push('2');
+          }
+          opcoes.forEach((valor) => {
+            const option = document.createElement('option');
+            option.value = valor;
+            option.textContent = valor;
+            if (valor === '1') {
+              option.selected = true;
+            }
+            mQuantidadeSelect.appendChild(option);
+          });
+        }
+
         function obterContainerAcoes(card) {
           return card ? card.querySelector('.ticket-actions') : null;
+        }
+
+        function obterStatusDoCard(card) {
+          if (!card) return 'ok';
+          return normalizarStatus(card.dataset.status);
         }
 
         function encontrarCardPorId(id) {
@@ -1222,13 +1359,20 @@
           const cards = elGrid.querySelectorAll('[data-id]');
           cards.forEach((card) => {
             const jaPegou = card.getAttribute('data-ja-pegou') === 'true';
+            const statusCard = obterStatusDoCard(card);
+            const ehBlock = statusCard === 'block';
             card.classList.remove('selecionado', 'is-active');
             if (jaPegou) {
               card.classList.add('portal-dyn-ja-pego');
               card.classList.remove('inativo', 'is-muted');
               card.setAttribute('aria-disabled', 'true');
             } else {
-              card.classList.remove('inativo', 'is-muted');
+              card.classList.remove('inativo');
+              if (ehBlock) {
+                card.classList.add('is-muted');
+              } else {
+                card.classList.remove('is-muted');
+              }
               card.classList.remove('portal-dyn-ja-pego');
               if (!card.dataset.bloqueado) {
                 card.removeAttribute('aria-disabled');
@@ -1249,10 +1393,12 @@
         }
 
         function resetarEstadoBotaoIngresso(botao) {
+          const status = obterStatusDoCard(botao.closest('[data-status]'));
+          const rotulo = rotuloPrincipalPorStatus(status);
           botao.disabled = false;
           botao.setAttribute('aria-disabled', 'false');
           botao.setAttribute('aria-pressed', 'false');
-          botao.textContent = '🎟️ Pegar ingresso';
+          botao.textContent = rotulo;
           botao.classList.remove('btn-success');
           if (!botao.classList.contains('btn-primary')) {
             botao.classList.add('btn-primary');
@@ -1261,9 +1407,13 @@
 
         function aplicarEstadoSelecionado(card) {
           if (!card) return;
+          const status = obterStatusDoCard(card);
           card.classList.add('selecionado');
           card.classList.add('is-active');
-          card.classList.remove('inativo', 'is-muted');
+          card.classList.remove('inativo');
+          if (status !== 'block') {
+            card.classList.remove('is-muted');
+          }
           const botao = card.querySelector('.btn-pegar-ingresso');
           if (botao) {
             botao.disabled = false;
@@ -1282,6 +1432,8 @@
 
         function aplicarEstadoInativo(card) {
           if (!card) return;
+          const status = obterStatusDoCard(card);
+          const rotulo = rotuloPrincipalPorStatus(status);
           if (card.getAttribute('data-ja-pegou') === 'true') {
             card.classList.add('portal-dyn-ja-pego');
             return;
@@ -1294,7 +1446,7 @@
             botao.disabled = true;
             botao.setAttribute('aria-disabled', 'true');
             botao.setAttribute('aria-pressed', 'false');
-            botao.textContent = '🎟️ Pegar ingresso';
+            botao.textContent = rotulo;
             botao.classList.remove('btn-success');
             if (!botao.classList.contains('btn-primary')) {
               botao.classList.add('btn-primary');
@@ -1338,7 +1490,7 @@
           return false;
         }
 
-        function reloadComAtraso(ms = 2500) {
+        function reloadComAtraso(ms = 5000) {
           if (typeof window === 'undefined') return;
           const atraso = Number.isFinite(ms) ? ms : 2500;
           window.setTimeout(() => {
@@ -1383,6 +1535,7 @@
             }
             return;
           }
+          const rotuloPadrao = botao.dataset.labelPadrao || 'Confirmar';
           const quantidade = obterQuantidadeSelecionada();
           const payload = { id, cpf };
           if (quantidade) {
@@ -1411,7 +1564,7 @@
               setTimeout(() => {
                 if (!botao.isConnected) return;
                 if (botao.dataset.confirmar === 'true') {
-                  botao.textContent = 'Confirmar';
+                  botao.textContent = rotuloPadrao;
                 }
               }, 2000);
             }
@@ -1421,7 +1574,7 @@
             reloadComAtraso();
           } catch (erro) {
             console.error('Falha ao confirmar ingresso', erro);
-            botao.textContent = 'Confirmar';
+            botao.textContent = rotuloPadrao;
             if (card) {
               mostrarAvisoErro(card, 'Falha ao confirmar. Tente novamente.');
             }
@@ -1430,11 +1583,59 @@
             botao.setAttribute('aria-disabled', 'false');
             if (botao === mConfirmBtn) {
               if (!botao.textContent || botao.textContent === 'Confirmando…') {
-                botao.textContent = 'Confirmar';
+                botao.textContent = rotuloPadrao;
               }
             } else if (botao.dataset.confirmar !== 'true' && (!botao.textContent || botao.textContent === 'Confirmando…')) {
               botao.textContent = 'Detalhes';
             }
+          }
+        }
+
+        function abrirModalCancelar(evento) {
+          if (!evento) return;
+          eventoParaCancelar = evento;
+          if (modalCancelarBtnConfirmar) {
+            modalCancelarBtnConfirmar.disabled = false;
+            modalCancelarBtnConfirmar.textContent = 'Sim';
+          }
+          if (modalCancelar) {
+            modalCancelar.show();
+          }
+        }
+
+        async function cancelarIngresso() {
+          const evento = eventoParaCancelar;
+          if (!evento) return;
+          const cpf = obterCPF();
+          if (!cpf) {
+            console.error('CPF inválido para cancelamento.');
+            return;
+          }
+          if (modalCancelarBtnConfirmar) {
+            modalCancelarBtnConfirmar.disabled = true;
+            modalCancelarBtnConfirmar.textContent = 'Cancelando…';
+          }
+          try {
+            const resposta = await fetch(CANCELAR_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: evento.id, cpf })
+            });
+            if (!resposta.ok) {
+              throw new Error(`HTTP ${resposta.status}`);
+            }
+            if (modalCancelar) {
+              modalCancelar.hide();
+            }
+            reloadComAtraso();
+          } catch (erro) {
+            console.error('Falha ao cancelar ingresso', erro);
+          } finally {
+            if (modalCancelarBtnConfirmar) {
+              modalCancelarBtnConfirmar.disabled = false;
+              modalCancelarBtnConfirmar.textContent = 'Sim';
+            }
+            eventoParaCancelar = null;
           }
         }
 
@@ -1473,6 +1674,9 @@
               atualizarEstadoTodos();
               atualizarBotaoModal();
             }
+            return;
+          }
+          if (evento.status === 'block') {
             return;
           }
           if (evento.apenasDetalhes || evento.jaPegou) {
@@ -1535,6 +1739,9 @@
 
         function abrirModal(evento) {
           if (!mTitle) return;
+          const status = normalizarStatus(evento.status);
+          const ehBlock = status === 'block';
+          const ehSemiBlock = status === 'semi-block';
           mTitle.textContent = evento.nome;
           if (mPoster) {
             mPoster.src = evento.posterdetalhes || evento.poster || '';
@@ -1578,17 +1785,28 @@
               mTicketBtn.dataset.id = evento.id;
               mTicketBtn.dataset.quando = evento.quandoNormalizado || DATE_KEY_EMPTY;
               mTicketBtn.dataset.hora = evento.horaCurta || '';
+              mTicketBtn.textContent = rotuloPrincipalPorStatus(status);
+              mTicketBtn.disabled = false;
+              mTicketBtn.setAttribute('aria-disabled', 'false');
             }
           }
+          const esconderQuantidade = somenteDetalhes || ehBlock;
+          configurarSelectQuantidade(status);
           if (mQuantidadeWrapper) {
-            mQuantidadeWrapper.classList.toggle('d-none', somenteDetalhes);
+            mQuantidadeWrapper.classList.toggle('d-none', esconderQuantidade);
           }
           if (mQuantidadeSelect) {
             mQuantidadeSelect.value = '1';
-            mQuantidadeSelect.disabled = somenteDetalhes;
+            mQuantidadeSelect.disabled = esconderQuantidade;
+          }
+          if (mCancelarBtn) {
+            mCancelarBtn.dataset.id = evento.id;
+            mCancelarBtn.classList.toggle('d-none', !ehSemiBlock);
+            mCancelarBtn.disabled = !ehSemiBlock;
+            mCancelarBtn.setAttribute('aria-disabled', ehSemiBlock ? 'false' : 'true');
           }
           if (mConfirmBtn) {
-            if (somenteDetalhes) {
+            if (somenteDetalhes || ehBlock) {
               mConfirmBtn.classList.add('d-none');
               mConfirmBtn.disabled = true;
               mConfirmBtn.setAttribute('aria-disabled', 'true');
@@ -1603,9 +1821,13 @@
               mConfirmBtn.dataset.confirmar = 'true';
               mConfirmBtn.dataset.confirmarId = evento.id;
               mConfirmBtn.setAttribute('aria-label', 'Confirmar ingresso');
+              const rotuloConfirmar = rotuloConfirmarPorStatus(status);
+              mConfirmBtn.dataset.labelPadrao = rotuloConfirmar;
               if (mConfirmBtn.textContent !== 'Confirmando…') {
-                mConfirmBtn.textContent = 'Confirmar';
+                mConfirmBtn.textContent = rotuloConfirmar;
               }
+              mConfirmBtn.disabled = false;
+              mConfirmBtn.setAttribute('aria-disabled', 'false');
             }
           }
           atualizarBotaoModal();
@@ -1618,6 +1840,11 @@
           if (!id) return;
           const evento = eventosPorId.get(id);
           if (!evento) return;
+          const status = normalizarStatus(evento.status);
+          const rotuloPrincipal = rotuloPrincipalPorStatus(status);
+          const rotuloConfirmar = rotuloConfirmarPorStatus(status);
+          const ehBlock = status === 'block';
+          const ehSemiBlock = status === 'semi-block';
           if (evento.apenasDetalhes || evento.jaPegou) {
             if (mTicketBtn) {
               mTicketBtn.disabled = true;
@@ -1658,7 +1885,7 @@
             mTicketBtn.disabled = false;
             mTicketBtn.setAttribute('aria-disabled', 'false');
             mTicketBtn.setAttribute('aria-pressed', 'false');
-            mTicketBtn.textContent = '🎟️ Pegar ingresso';
+            mTicketBtn.textContent = rotuloPrincipal;
             mTicketBtn.classList.remove('btn-success');
             mTicketBtn.classList.remove('btn-outline-secondary');
             if (!mTicketBtn.classList.contains('btn-outline-primary')) {
@@ -1666,22 +1893,16 @@
             }
           }
           if (mConfirmBtn && mConfirmBtn.dataset.id === id) {
-            if (selecionado) {
-              mConfirmBtn.disabled = false;
-              mConfirmBtn.setAttribute('aria-disabled', 'false');
-              if (mConfirmBtn.dataset.confirmar === 'true' && mConfirmBtn.textContent !== 'Confirmando…') {
-                mConfirmBtn.textContent = 'Confirmar';
-              }
-            } else {
-              mConfirmBtn.disabled = true;
-              mConfirmBtn.setAttribute('aria-disabled', 'true');
-              if (mConfirmBtn.dataset.confirmar === 'true' && mConfirmBtn.textContent !== 'Confirmando…') {
-                mConfirmBtn.textContent = 'Confirmar';
-              }
+            const podeConfirmar = !ehBlock && !bloqueado;
+            mConfirmBtn.disabled = !podeConfirmar;
+            mConfirmBtn.setAttribute('aria-disabled', podeConfirmar ? 'false' : 'true');
+            if (mConfirmBtn.dataset.confirmar === 'true' && mConfirmBtn.textContent !== 'Confirmando…') {
+              mConfirmBtn.textContent = rotuloConfirmar;
             }
+            mConfirmBtn.dataset.labelPadrao = rotuloConfirmar;
           }
           if (mQuantidadeSelect) {
-            mQuantidadeSelect.disabled = bloqueado;
+            mQuantidadeSelect.disabled = bloqueado || ehBlock;
           }
         }
 
